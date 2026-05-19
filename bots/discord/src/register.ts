@@ -1,5 +1,8 @@
 import { REST, Routes, SlashCommandBuilder } from 'discord.js';
+import { logger } from '@bots/shared';
 import { env } from './env.js';
+
+const log = logger.scoped('discord:register');
 
 const commands = [
   new SlashCommandBuilder()
@@ -15,4 +18,4 @@ await rest.put(
   { body: commands },
 );
 
-console.log(`Registered ${commands.length} guild command(s).`);
+log.info(`Registered ${commands.length} guild command(s).`);

@@ -1,0 +1,17 @@
+{
+  "name": "@bots/discord",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsx watch src/index.ts",
+    "register": "tsx src/register.ts"
+  },
+  "dependencies": {
+    "@bots/shared": "0.1.0",
+    "discord.js": "14.26.4",
+    "zod": "4.4.3"
+  }
+}

@@ -2,19 +2,18 @@
   "name": "just-a-bot",
   "version": "0.1.0",
   "private": true,
-  "type": "module",
   "engines": {
     "node": ">=22.12.0"
   },
+  "workspaces": [
+    "shared",
+    "bots/*"
+  ],
   "scripts": {
-    "build": "tsc",
-    "start": "node dist/index.js",
-    "dev": "tsx watch src/index.ts",
-    "register": "tsx src/register.ts"
-  },
-  "dependencies": {
-    "discord.js": "14.26.4",
-    "dotenv": "16.4.7"
+    "build": "npm run build --workspaces --if-present",
+    "discord:dev": "npm run dev -w @bots/discord",
+    "discord:register": "npm run register -w @bots/discord",
+    "discord:start": "npm run start -w @bots/discord"
   },
   "devDependencies": {
     "@types/node": "22.10.5",

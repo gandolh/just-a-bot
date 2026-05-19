@@ -1,12 +1,15 @@
 import { Client, Events, GatewayIntentBits } from 'discord.js';
+import { logger } from '@bots/shared';
 import { env } from './env.js';
+
+const log = logger.scoped('discord');
 
 const client = new Client({
   intents: [GatewayIntentBits.Guilds],
 });
 
 client.once(Events.ClientReady, (c) => {
-  console.log(`Logged in as ${c.user.tag}`);
+  log.info(`Logged in as ${c.user.tag}`);
 });
 
 client.on(Events.InteractionCreate, async (interaction) => {
