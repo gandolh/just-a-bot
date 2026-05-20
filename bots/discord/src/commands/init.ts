@@ -39,7 +39,7 @@ export const init: Command = {
       .setTitle('⚔️ Initiative')
       .setColor(0xc0392b)
       .setDescription(lines.join('\n'))
-      .setFooter({ text: `Round ${enc.round} • Zone: ${enc.zone}` });
+      .setFooter({ text: `Round ${enc.round} • ${enc.label}` });
     await interaction.reply({ embeds: [embed] });
   },
 };
@@ -149,7 +149,7 @@ export const endTurn: Command = {
         .setTitle('🔁 Turn ended')
         .setColor(0xc0392b)
         .setDescription(`Now: ${nextId ? describeEntity(fresh!, nextId) + ` \`${nextId}\`` : '—'}`)
-        .setFooter({ text: `Round ${enc.round} • Zone: ${enc.zone}` });
+        .setFooter({ text: `Round ${enc.round} • ${enc.label}` });
     }
 
     const embeds = [...aiSummaries.map((s) => s.embed), footerEmbed].slice(0, 10);

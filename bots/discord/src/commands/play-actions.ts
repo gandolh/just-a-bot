@@ -5,11 +5,15 @@ import {
 } from 'discord.js';
 import {
   CharacterSheet,
+  isWalkableTerrain,
   loadWorld,
   modifier,
+  movementCost,
   PcEntity,
+  terrainAt,
   updateWorld,
   World,
+  zoneAt,
 } from '../dnd/world.ts';
 import {
   currentActor,
@@ -33,22 +37,19 @@ async function requireWorld(interaction: ChatInputCommandInteraction): Promise<W
   return world;
 }
 
-async function requireActiveTurn(
+interface ActiveCtx {
+  pcId: string;
+  pc: PcEntity;
+  sheet: CharacterSheet;
+}
+
+async function requirePc(
   interaction: ChatInputCommandInteraction,
   world: World,
-): Promise<{ pcId: string; pc: PcEntity; sheet: CharacterSheet } | null> {
-  if (!world.encounter) {
-    await interaction.reply({ content: 'No encounter is active.', ephemeral: true });
-    return null;
-  }
+): Promise<ActiveCtx | null> {
   const owner = entityForUser(world, interaction.user.id);
   if (!owner || owner.entity.kind !== 'pc') {
     await interaction.reply({ content: 'You have no character placed in this world.', ephemeral: true });
-    return null;
-  }
-  const actorId = currentActor(world.encounter);
-  if (actorId !== owner.id) {
-    await interaction.reply({ content: `It's not your turn. Current actor: \`${actorId}\`.`, ephemeral: true });
     return null;
   }
   const sheet = world.characters[owner.entity.characterId];
@@ -59,68 +60,157 @@ async function requireActiveTurn(
   return { pcId: owner.id, pc: owner.entity, sheet };
 }
 
+async function requireActiveTurn(
+  interaction: ChatInputCommandInteraction,
+  world: World,
+): Promise<ActiveCtx | null> {
+  if (!world.encounter) {
+    await interaction.reply({ content: 'No encounter is active.', ephemeral: true });
+    return null;
+  }
+  const ctx = await requirePc(interaction, world);
+  if (!ctx) return null;
+  const actorId = currentActor(world.encounter);
+  if (actorId !== ctx.pcId) {
+    await interaction.reply({ content: `It's not your turn. Current actor: \`${actorId}\`.`, ephemeral: true });
+    return null;
+  }
+  return ctx;
+}
+
 function chebyshev(a: [number, number], b: [number, number]): number {
   return Math.max(Math.abs(a[0] - b[0]), Math.abs(a[1] - b[1]));
 }
 
-function pathClear(world: World, zoneId: string, from: [number, number], to: [number, number]): boolean {
-  const zone = world.zones[zoneId];
-  if (!zone) return false;
+// Walks one cell at a time from `from` toward `to` via Chebyshev steps,
+// adding up the per-cell movement cost (in cells, then converted to feet).
+// Returns null if the path passes through impassable terrain.
+function tracePath(
+  world: World,
+  from: [number, number],
+  to: [number, number],
+): { feetCost: number } | null {
+  const [fr, fc] = from;
+  const [tr, tc] = to;
   const steps = chebyshev(from, to);
-  if (steps === 0) return true;
-  const dr = (to[0] - from[0]) / steps;
-  const dc = (to[1] - from[1]) / steps;
-  for (let i = 1; i <= steps; i++) {
-    const r = Math.round(from[0] + dr * i);
-    const c = Math.round(from[1] + dc * i);
-    if (r < 0 || r >= zone.height || c < 0 || c >= zone.width) return false;
-    const cell = zone.grid[r][c];
-    if (cell === '#') return false;
+  if (steps === 0) return { feetCost: 0 };
+  let r = fr;
+  let c = fc;
+  let cells = 0;
+  for (let i = 0; i < steps; i++) {
+    r += Math.sign(tr - r);
+    c += Math.sign(tc - c);
+    const t = terrainAt(world, r, c);
+    if (!isWalkableTerrain(t)) return null;
+    cells += movementCost(t);
   }
-  return true;
+  return { feetCost: cells * 5 };
 }
+
+const DIRS: Record<string, [number, number]> = {
+  north: [-1, 0],
+  south: [1, 0],
+  east: [0, 1],
+  west: [0, -1],
+  ne: [-1, 1],
+  nw: [-1, -1],
+  se: [1, 1],
+  sw: [1, -1],
+};
 
 export const move: Command = {
   data: new SlashCommandBuilder()
     .setName('move')
-    .setDescription('Move your character to a target cell on the current zone')
-    .addIntegerOption((o) => o.setName('row').setDescription('Target row').setMinValue(0).setRequired(true))
-    .addIntegerOption((o) => o.setName('col').setDescription('Target column').setMinValue(0).setRequired(true)),
+    .setDescription('Move your character on the overworld')
+    .addStringOption((o) =>
+      o.setName('direction').setDescription('Cardinal direction (overrides row/col)').addChoices(
+        { name: 'north', value: 'north' },
+        { name: 'south', value: 'south' },
+        { name: 'east', value: 'east' },
+        { name: 'west', value: 'west' },
+        { name: 'northeast', value: 'ne' },
+        { name: 'northwest', value: 'nw' },
+        { name: 'southeast', value: 'se' },
+        { name: 'southwest', value: 'sw' },
+      ),
+    )
+    .addIntegerOption((o) => o.setName('steps').setDescription('Cells to move in that direction (default 1)').setMinValue(1).setMaxValue(20))
+    .addIntegerOption((o) => o.setName('row').setDescription('Target row (overworld)').setMinValue(0))
+    .addIntegerOption((o) => o.setName('col').setDescription('Target column (overworld)').setMinValue(0)),
   async execute(interaction) {
     const world = await requireWorld(interaction);
     if (!world) return;
-    const ctx = await requireActiveTurn(interaction, world);
+    const ctx = await requirePc(interaction, world);
     if (!ctx) return;
-    const row = interaction.options.getInteger('row', true);
-    const col = interaction.options.getInteger('col', true);
-    const zone = world.zones[ctx.pc.zone];
-    if (!zone || row >= zone.height || col >= zone.width) {
+
+    const dir = interaction.options.getString('direction');
+    const steps = interaction.options.getInteger('steps') ?? 1;
+    const targetRow = interaction.options.getInteger('row');
+    const targetCol = interaction.options.getInteger('col');
+
+    let to: [number, number];
+    if (dir) {
+      const [dr, dc] = DIRS[dir];
+      to = [ctx.pc.pos[0] + dr * steps, ctx.pc.pos[1] + dc * steps];
+    } else if (targetRow !== null && targetCol !== null) {
+      to = [targetRow, targetCol];
+    } else {
+      await interaction.reply({ content: 'Provide a `direction` or both `row` and `col`.', ephemeral: true });
+      return;
+    }
+
+    if (to[0] < 0 || to[0] >= world.overworld.height || to[1] < 0 || to[1] >= world.overworld.width) {
       await interaction.reply({ content: 'Out of bounds.', ephemeral: true });
       return;
     }
-    if (!pathClear(world, ctx.pc.zone, ctx.pc.pos, [row, col])) {
-      await interaction.reply({ content: 'Path blocked by a wall.', ephemeral: true });
+
+    // Block stepping onto another entity's cell.
+    const occupant = Object.entries(world.entities).find(
+      ([eid, e]) => eid !== ctx.pcId && e.pos[0] === to[0] && e.pos[1] === to[1],
+    );
+    if (occupant) {
+      await interaction.reply({ content: `That cell is occupied by \`${occupant[0]}\`.`, ephemeral: true });
       return;
     }
-    const steps = chebyshev(ctx.pc.pos, [row, col]);
-    const feet = steps * 5;
-    const budget = world.encounter!.movementBudget[ctx.pcId] ?? ctx.sheet.speed;
-    if (feet > budget) {
-      await interaction.reply({
-        content: `Not enough movement. ${feet} ft requested, ${budget} ft remaining.`,
-        ephemeral: true,
-      });
+
+    const path = tracePath(world, ctx.pc.pos, to);
+    if (!path) {
+      await interaction.reply({ content: 'Path blocked by impassable terrain.', ephemeral: true });
       return;
     }
+
+    // In an active encounter, enforce movement budget.
+    if (world.encounter) {
+      const turn = await requireActiveTurn(interaction, world);
+      if (!turn) return;
+      const budget = world.encounter.movementBudget[ctx.pcId] ?? ctx.sheet.speed;
+      if (path.feetCost > budget) {
+        await interaction.reply({
+          content: `Not enough movement. ${path.feetCost} ft requested, ${budget} ft remaining.`,
+          ephemeral: true,
+        });
+        return;
+      }
+    }
+
     const from = ctx.pc.pos;
     await updateWorld(interaction.guildId!, (w) => {
       const e = w.entities[ctx.pcId] as PcEntity;
-      e.pos = [row, col];
-      const enc = w.encounter!;
-      enc.movementBudget[ctx.pcId] = budget - feet;
-      logAction(enc, ctx.pcId, `moved from [${from[0]},${from[1]}] to [${row},${col}] (${feet} ft)`);
+      e.pos = to;
+      if (w.encounter) {
+        const budget = w.encounter.movementBudget[ctx.pcId] ?? ctx.sheet.speed;
+        w.encounter.movementBudget[ctx.pcId] = budget - path.feetCost;
+        logAction(w.encounter, ctx.pcId, `moved (${from[0]},${from[1]}) → (${to[0]},${to[1]}) (${path.feetCost} ft)`);
+      }
     });
-    await interaction.reply(`🏃 Moved to (${row},${col}). Movement left: **${budget - feet}/${ctx.sheet.speed} ft**.`);
+
+    const fresh = await loadWorld(interaction.guildId!);
+    const zoneHere = fresh ? zoneAt(fresh, to[0], to[1]) : null;
+    const where = zoneHere ? ` — entered **${zoneHere.zone.name}**` : '';
+    const budgetLine = world.encounter
+      ? ` Movement left: **${(world.encounter.movementBudget[ctx.pcId] ?? ctx.sheet.speed) - path.feetCost}/${ctx.sheet.speed} ft**.`
+      : '';
+    await interaction.reply(`🏃 Moved to (${to[0]},${to[1]}).${where}.${budgetLine}`);
   },
 };
 
@@ -134,45 +224,54 @@ function describeEntity(world: World, id: string): string {
   return `${e.name} (${e.kind})`;
 }
 
+const LOOK_RADIUS = 12; // cells
+
 export const look: Command = {
   data: new SlashCommandBuilder()
     .setName('look')
-    .setDescription('Describe your current zone and visible entities'),
+    .setDescription('Describe where you stand and what is nearby'),
   async execute(interaction) {
     const world = await requireWorld(interaction);
     if (!world) return;
-    const owner = entityForUser(world, interaction.user.id);
-    if (!owner) {
-      await interaction.reply({ content: 'You have no character placed yet.', ephemeral: true });
-      return;
-    }
-    const zone = world.zones[owner.entity.zone];
-    if (!zone) {
-      await interaction.reply({ content: 'Your zone is missing.', ephemeral: true });
-      return;
-    }
-    const overlay = zone.grid.map((row) => row.split(''));
-    for (const [eid, e] of Object.entries(world.entities)) {
-      if (e.zone !== owner.entity.zone) continue;
-      const [r, c] = e.pos;
-      if (r < 0 || r >= overlay.length || c < 0 || c >= overlay[r].length) continue;
-      if (e.kind === 'pc') overlay[r][c] = (eid[0] ?? '?').toUpperCase();
-      else if (e.kind === 'npc') overlay[r][c] = '@';
-      else overlay[r][c] = (e.name[0] ?? '?').toLowerCase();
-    }
-    const rendered = overlay.map((r) => r.join('')).join('\n');
+    const ctx = await requirePc(interaction, world);
+    if (!ctx) return;
+    const [r, c] = ctx.pc.pos;
+    const zone = zoneAt(world, r, c);
+    const terrain = terrainAt(world, r, c);
+    const terrainLabel = TERRAIN_LABEL[terrain] ?? terrain;
+
     const nearby = Object.entries(world.entities)
-      .filter(([eid, e]) => e.zone === owner.entity.zone && eid !== owner.id)
-      .map(([eid, e]) => `• \`${eid}\` — ${describeEntity(world, eid)} at (${e.pos[0]},${e.pos[1]})`)
+      .filter(([eid, e]) => eid !== ctx.pcId && chebyshev(ctx.pc.pos, e.pos) <= LOOK_RADIUS)
+      .sort(([, a], [, b]) => chebyshev(ctx.pc.pos, a.pos) - chebyshev(ctx.pc.pos, b.pos))
+      .map(([eid, e]) => {
+        const d = chebyshev(ctx.pc.pos, e.pos) * 5;
+        return `• \`${eid}\` — ${describeEntity(world, eid)} at (${e.pos[0]},${e.pos[1]}) — ${d} ft`;
+      })
       .join('\n');
+
     const embed = new EmbedBuilder()
-      .setTitle(`👁️ ${zone.name}`)
+      .setTitle(`👁️ ${zone ? zone.zone.name : 'Wilderness'}`)
       .setColor(0x16a085)
-      .setDescription('```\n' + rendered + '\n```');
-    if (zone.description) embed.addFields({ name: 'Description', value: zone.description });
-    if (nearby) embed.addFields({ name: 'Entities', value: nearby });
+      .setDescription(
+        `You are at (${r},${c}) on **${terrainLabel}**.` +
+          (zone?.zone.description ? `\n\n${zone.zone.description}` : ''),
+      );
+    if (nearby) embed.addFields({ name: `Visible within ${LOOK_RADIUS * 5} ft`, value: nearby });
+    else embed.addFields({ name: 'Visible', value: '*Nothing of note nearby.*' });
     await interaction.reply({ embeds: [embed] });
   },
+};
+
+const TERRAIN_LABEL: Record<string, string> = {
+  '.': 'open ground',
+  '#': 'wall / building',
+  '~': 'water',
+  f: 'forest',
+  '^': 'mountain',
+  '=': 'road',
+  '>': 'stairs down',
+  '<': 'stairs up',
+  '+': 'door',
 };
 
 function weaponFromEquipped(sheet: CharacterSheet): { profile: WeaponProfile; name: string } {
@@ -243,10 +342,6 @@ export const attack: Command = {
       await interaction.reply({ content: `No such entity \`${targetId}\`.`, ephemeral: true });
       return;
     }
-    if (target.zone !== ctx.pc.zone) {
-      await interaction.reply({ content: 'Target is not in your zone.', ephemeral: true });
-      return;
-    }
     const desc = describeTarget(world, targetId);
     if (!desc) {
       await interaction.reply({ content: 'Cannot attack that entity.', ephemeral: true });
@@ -273,7 +368,9 @@ export const attack: Command = {
     let damageLine = '';
     let dmgTotal = 0;
     if (hit) {
-      const dmgExpr = crit ? `${doubleDice(profile.damageDice)}${abilMod >= 0 ? '+' : ''}${abilMod}` : `${profile.damageDice}${abilMod >= 0 ? '+' : ''}${abilMod}`;
+      const dmgExpr = crit
+        ? `${doubleDice(profile.damageDice)}${abilMod >= 0 ? '+' : ''}${abilMod}`
+        : `${profile.damageDice}${abilMod >= 0 ? '+' : ''}${abilMod}`;
       const dmgRoll = rollExpression(dmgExpr);
       dmgTotal = Math.max(0, dmgRoll.total);
       damageLine = `${crit ? '💥 CRIT! ' : ''}Damage: \`${dmgExpr}\` → ${dmgRoll.breakdown} = **${dmgTotal}** ${profile.damageType}`;
@@ -312,16 +409,9 @@ export const use: Command = {
   async execute(interaction) {
     const world = await requireWorld(interaction);
     if (!world) return;
-    const owner = entityForUser(world, interaction.user.id);
-    if (!owner) {
-      await interaction.reply({ content: 'You have no character.', ephemeral: true });
-      return;
-    }
-    const sheet = world.characters[interaction.user.id];
-    if (!sheet) {
-      await interaction.reply({ content: 'No sheet.', ephemeral: true });
-      return;
-    }
+    const ctx = await requirePc(interaction, world);
+    if (!ctx) return;
+    const sheet = ctx.sheet;
     const itemName = interaction.options.getString('item', true).toLowerCase();
     const stack = sheet.inventory.find((i) => i.item === itemName);
     if (!stack || stack.qty < 1) {
@@ -343,7 +433,7 @@ export const use: Command = {
           s.inventory[idx].qty -= 1;
           if (s.inventory[idx].qty <= 0) s.inventory.splice(idx, 1);
         }
-        if (w.encounter) logAction(w.encounter, owner.id, `used potion-of-healing: +${gained} HP`);
+        if (w.encounter) logAction(w.encounter, ctx.pcId, `used potion-of-healing: +${gained} HP`);
       });
       result = `🧪 Drank **potion-of-healing** — \`2d4+2\` → **${heal.total}** healed (${gained} applied). HP **${after}/${sheet.hp.max}**.`;
     } else {
@@ -354,10 +444,9 @@ export const use: Command = {
           s.inventory[idx].qty -= 1;
           if (s.inventory[idx].qty <= 0) s.inventory.splice(idx, 1);
         }
-        if (w.encounter) logAction(w.encounter, owner.id, `used ${itemName}`);
+        if (w.encounter) logAction(w.encounter, ctx.pcId, `used ${itemName}`);
       });
     }
     await interaction.reply(result);
   },
 };
-

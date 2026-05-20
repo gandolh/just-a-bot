@@ -89,7 +89,8 @@ export const char: Command = {
         .addIntegerOption((o) => o.setName('cha').setDescription('CHA').setMinValue(1).setMaxValue(20).setRequired(true))
         .addIntegerOption((o) => o.setName('hp').setDescription('Max HP').setMinValue(1).setMaxValue(999).setRequired(true))
         .addIntegerOption((o) => o.setName('ac').setDescription('Armor Class').setMinValue(1).setMaxValue(30).setRequired(true))
-        .addIntegerOption((o) => o.setName('level').setDescription('Level (default 1)').setMinValue(1).setMaxValue(20)),
+        .addIntegerOption((o) => o.setName('level').setDescription('Level (default 1)').setMinValue(1).setMaxValue(20))
+        .addStringOption((o) => o.setName('glyph').setDescription('Map emoji for your character (e.g. 🧙)')),
     )
     .addSubcommand((sub) =>
       sub
@@ -187,6 +188,8 @@ export const char: Command = {
         knownSpells: [],
         notes: '',
       };
+      const glyph = interaction.options.getString('glyph');
+      if (glyph) sheet.glyph = glyph;
       await updateWorld(guildId, (w) => {
         w.characters[userId] = sheet;
       });

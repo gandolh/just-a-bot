@@ -4,8 +4,9 @@ import {
   Entity,
   MonsterEntity,
   modifier,
+  terrainAt,
+  isWalkableTerrain,
   World,
-  Zone,
 } from './world.ts';
 import { logAction, speedOf } from './encounter.ts';
 
@@ -51,6 +52,8 @@ const GENERIC_FLAVOR = [
   '*A guttural sound — it has chosen its target.*',
 ];
 
+const AI_AGGRO_RANGE_FT = 60; // monsters won't chase targets further than this
+
 export function pickFlavor(monster: MonsterEntity): string {
   const pool = (monster.srdSlug && FLAVOR[monster.srdSlug]) || GENERIC_FLAVOR;
   return pool[Math.floor(Math.random() * pool.length)];
@@ -60,26 +63,27 @@ function chebyshev(a: [number, number], b: [number, number]): number {
   return Math.max(Math.abs(a[0] - b[0]), Math.abs(a[1] - b[1]));
 }
 
-function isWalkable(zone: Zone, r: number, c: number): boolean {
-  if (r < 0 || r >= zone.height || c < 0 || c >= zone.width) return false;
-  return zone.grid[r][c] !== '#';
-}
-
-function targetsFor(world: World, monster: MonsterEntity): { id: string; pos: [number, number]; ac: number; hp: number; name: string }[] {
+function targetsFor(world: World, monster: MonsterEntity): {
+  id: string;
+  pos: [number, number];
+  ac: number;
+  hp: number;
+  name: string;
+}[] {
   const out: { id: string; pos: [number, number]; ac: number; hp: number; name: string }[] = [];
   for (const [id, e] of Object.entries(world.entities)) {
-    if (e.zone !== monster.zone) continue;
     if (e.kind !== 'pc') continue;
     const sheet = world.characters[e.characterId];
     if (!sheet) continue;
     if (sheet.hp.current <= 0) continue;
+    if (chebyshev(monster.pos, e.pos) * 5 > AI_AGGRO_RANGE_FT) continue;
     out.push({ id, pos: e.pos, ac: sheet.ac, hp: sheet.hp.current, name: sheet.name });
   }
   return out;
 }
 
 function stepToward(
-  zone: Zone,
+  world: World,
   from: [number, number],
   to: [number, number],
   steps: number,
@@ -97,7 +101,7 @@ function stepToward(
     ];
     let moved = false;
     for (const [nr, nc] of candidates) {
-      if (!isWalkable(zone, nr, nc)) continue;
+      if (!isWalkableTerrain(terrainAt(world, nr, nc))) continue;
       const key = `${nr},${nc}`;
       if (occupied.has(key)) continue;
       r = nr;
@@ -112,9 +116,6 @@ function stepToward(
 }
 
 function parseAttackAction(desc: string): { toHit: number; damageDice: string; damageType: string } | null {
-  // Examples:
-  // "Melee Weapon Attack: +4 to hit, reach 5 ft., one target. Hit: 5 (1d6+2) slashing damage."
-  // "Ranged Weapon Attack: +4 to hit, range 80/320 ft., one target. Hit: 5 (1d6+2) piercing damage."
   const hit = desc.match(/([+-]\d+)\s*to hit/i);
   const dmg = desc.match(/Hit:\s*\d+\s*\((\d*d\d+(?:\s*[+-]\s*\d+)?)\)\s*(\w+)\s*damage/i);
   if (!hit || !dmg) return null;
@@ -144,14 +145,12 @@ export function runMonsterTurn(world: World, monsterId: string): AiTurnReport {
   }
   const enc = world.encounter;
   if (!enc) return { flavor: '', lines: ['No encounter active.'] };
-  const zone = world.zones[monster.zone];
-  if (!zone) return { flavor: pickFlavor(monster), lines: ['(no zone)'] };
 
   const targets = targetsFor(world, monster);
   if (targets.length === 0) {
     const flavor = pickFlavor(monster);
-    logAction(enc, monsterId, 'found no targets and waited');
-    return { flavor, lines: ['No living targets in this zone — the creature waits.'] };
+    logAction(enc, monsterId, 'found no targets in range and waited');
+    return { flavor, lines: ['No living targets nearby — the creature waits.'] };
   }
 
   targets.sort((a, b) => chebyshev(monster.pos, a.pos) - chebyshev(monster.pos, b.pos));
@@ -168,23 +167,20 @@ export function runMonsterTurn(world: World, monsterId: string): AiTurnReport {
   const lines: string[] = [];
   const flavor = pickFlavor(monster);
 
-  // Move
   const speedFt = Math.max(0, Math.min(speedOf(world, monsterId), 60));
   const stepsAvail = Math.floor(speedFt / 5);
   const distNow = chebyshev(monster.pos, target.pos) * 5;
-  const reachCells = Math.floor(reach / 5);
 
   const occupied = new Set<string>();
   for (const e of Object.values(world.entities)) {
-    if (e.zone !== monster.zone) continue;
     occupied.add(`${e.pos[0]},${e.pos[1]}`);
   }
   occupied.delete(`${monster.pos[0]},${monster.pos[1]}`);
 
-  const beforePos = monster.pos;
+  const beforePos: [number, number] = [monster.pos[0], monster.pos[1]];
   let newPos = beforePos;
   if (distNow > reach && stepsAvail > 0) {
-    newPos = stepToward(zone, beforePos, target.pos, stepsAvail, occupied);
+    newPos = stepToward(world, beforePos, target.pos, stepsAvail, occupied);
     if (newPos[0] !== beforePos[0] || newPos[1] !== beforePos[1]) {
       monster.pos = newPos;
       const moved = chebyshev(beforePos, newPos) * 5;
@@ -192,7 +188,6 @@ export function runMonsterTurn(world: World, monsterId: string): AiTurnReport {
     }
   }
 
-  // Attack if in reach
   const distAfter = chebyshev(newPos, target.pos) * 5;
   if (distAfter > reach) {
     lines.push(`Too far to reach **${target.name}** (${distAfter} ft, needs ${reach}).`);
@@ -252,5 +247,4 @@ function doubleDice(expr: string): string {
   return expr.replace(/(\d*)d(\d+)/gi, (_, c, s) => `${(c ? parseInt(c, 10) : 1) * 2}d${s}`);
 }
 
-// Re-export for callers; keeps modifier referenced.
 void modifier;

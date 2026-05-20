@@ -21,12 +21,14 @@ import { dm } from './dm.ts';
 import { init, endTurn } from './init.ts';
 import { move, look, attack, use } from './play-actions.ts';
 import { join, leave } from './join.ts';
+import { map } from './map.ts';
+import { shop } from './shop.ts';
 
 const all: Command[] = [
   ping, play, skip, pause, resume, stop, queue, nowplaying,
   coins, slots, blackjack, dice, wordle, tictactoe,
   roll, spell, monster, item, condition, char, dm, init, endTurn,
-  move, look, attack, use, join, leave,
+  move, look, attack, use, join, leave, map, shop,
   help,
 ];
 

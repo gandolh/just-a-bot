@@ -43,7 +43,6 @@ export function advanceTurn(encounter: Encounter): void {
   }
   const actor = currentActor(encounter);
   if (actor) {
-    // refresh movement budget for the new actor at the start of their turn
     encounter.movementBudget[actor] = encounter.movementBudget[actor] ?? 0;
   }
 }

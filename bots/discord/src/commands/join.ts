@@ -1,8 +1,16 @@
 import { EmbedBuilder, SlashCommandBuilder } from 'discord.js';
 import { applyTemplate, TEMPLATES, TemplateKey } from '../dnd/templates.ts';
-import { loadWorld, PcEntity, updateWorld } from '../dnd/world.ts';
+import { loadWorld, PcEntity, updateWorld, zoneAt } from '../dnd/world.ts';
 import { entityForUser, rollInitiative, speedOf } from '../dnd/encounter.ts';
 import type { Command } from './types.ts';
+
+function spawnPointOf(world: { story: { flags: Record<string, unknown> } }): [number, number] {
+  const sp = world.story.flags.spawn;
+  if (Array.isArray(sp) && sp.length === 2 && typeof sp[0] === 'number' && typeof sp[1] === 'number') {
+    return [sp[0], sp[1]];
+  }
+  return [0, 0];
+}
 
 export const join: Command = {
   data: new SlashCommandBuilder()
@@ -20,7 +28,8 @@ export const join: Command = {
         ),
     )
     .addStringOption((o) => o.setName('name').setDescription('Character name (required for new characters)'))
-    .addStringOption((o) => o.setName('race').setDescription('Race (default: human)')),
+    .addStringOption((o) => o.setName('race').setDescription('Race (default: human)'))
+    .addStringOption((o) => o.setName('glyph').setDescription('Map emoji for your PC (e.g. 🧙)')),
   async execute(interaction) {
     if (!interaction.inCachedGuild()) {
       await interaction.reply({ content: 'Use this in a server.', ephemeral: true });
@@ -37,19 +46,9 @@ export const join: Command = {
       return;
     }
 
-    const zoneIds = Object.keys(world.zones);
-    if (zoneIds.length === 0) {
-      await interaction.reply({
-        content: 'The world has no zones yet. The DM should create at least one with `/dm zone create`.',
-        ephemeral: true,
-      });
-      return;
-    }
-    const firstZone = zoneIds[0];
-
     const lines: string[] = [];
     let createdCharacter = false;
-    let placed = false;
+    const glyph = interaction.options.getString('glyph');
 
     if (!world.characters[userId]) {
       const template = interaction.options.getString('template') as TemplateKey | null;
@@ -59,50 +58,53 @@ export const join: Command = {
         await interaction.reply({
           content:
             'You have no character yet. Pick `template` and `name` to roll one up.\n' +
-            'Example: `/join template:fighter name:Thorin race:dwarf`',
+            'Example: `/join template:fighter name:Thorin race:dwarf glyph:🛡️`',
           ephemeral: true,
         });
         return;
       }
       const t = TEMPLATES[template];
       const sheet = applyTemplate(name, race, t);
+      if (glyph) sheet.glyph = glyph;
       await updateWorld(guildId, (w) => {
         w.characters[userId] = sheet;
       });
       createdCharacter = true;
-      lines.push(`🛡️ Created **${sheet.name}** — Level 1 ${sheet.race} ${sheet.class}.`);
+      lines.push(`${sheet.glyph ?? '🛡️'} Created **${sheet.name}** — Level 1 ${sheet.race} ${sheet.class}.`);
+    } else if (glyph) {
+      await updateWorld(guildId, (w) => {
+        w.characters[userId].glyph = glyph;
+      });
+      lines.push(`Updated map glyph to ${glyph}.`);
     }
 
     const existingEntity = entityForUser(world, userId);
     if (!existingEntity) {
-      // First time joining the map — spawn at (0,0) of the first zone.
       const eid = `pc-${userId}`;
+      const spawn = spawnPointOf(world);
       await updateWorld(guildId, (w) => {
         w.entities[eid] = {
           kind: 'pc',
           characterId: userId,
-          zone: firstZone,
-          pos: [0, 0],
+          pos: spawn,
         } satisfies PcEntity;
       });
-      lines.push(`📍 Placed at \`${firstZone}\` (0,0).`);
-      placed = true;
+      const zone = zoneAt(world, spawn[0], spawn[1]);
+      lines.push(`📍 Placed at (${spawn[0]},${spawn[1]})${zone ? ` — ${zone.zone.name}` : ''}.`);
     } else {
-      lines.push(`📍 Resumed at \`${existingEntity.entity.zone}\` (${existingEntity.entity.pos[0]},${existingEntity.entity.pos[1]}).`);
+      const [r, c] = existingEntity.entity.pos;
+      const zone = zoneAt(world, r, c);
+      lines.push(`📍 Resumed at (${r},${c})${zone ? ` — ${zone.zone.name}` : ''}.`);
     }
 
-    // If encounter active, insert at end of current round.
     let initiative: number | null = null;
-    let alreadyInOrder = false;
     if (world.encounter) {
       const eid = `pc-${userId}`;
       const already = world.encounter.order.find((o) => o.entityId === eid);
       if (already) {
-        alreadyInOrder = true;
         initiative = already.initiative;
         lines.push(`⚔️ You're already in the initiative order (rolled **${already.initiative}**).`);
       } else {
-        // Need a freshly-loaded world reference for rollInitiative since updates above.
         const fresh = await loadWorld(guildId);
         initiative = rollInitiative(fresh!, eid);
         await updateWorld(guildId, (w) => {
@@ -124,10 +126,8 @@ export const join: Command = {
       .setTitle(`👋 ${interaction.user.username} joined ${world.name}`)
       .setColor(0x27ae60)
       .setDescription(lines.join('\n'));
-    if (createdCharacter) embed.setFooter({ text: 'Tip: /char show to see your sheet, /char inv to manage gear.' });
+    if (createdCharacter) embed.setFooter({ text: 'Tip: /char show to see your sheet, /map to see the world.' });
     await interaction.reply({ embeds: [embed] });
-    void placed;
-    void alreadyInOrder;
   },
 };
 
@@ -159,10 +159,8 @@ export const leave: Command = {
       if (w.encounter) {
         const idx = w.encounter.order.findIndex((o) => o.entityId === owner.id);
         if (idx !== -1) {
-          // Adjust turnIndex if we removed an earlier entry or the active one.
           if (idx < w.encounter.turnIndex) w.encounter.turnIndex--;
           else if (idx === w.encounter.turnIndex && w.encounter.turnIndex >= w.encounter.order.length - 1) {
-            // Active actor leaving and is last in order — wrap.
             w.encounter.turnIndex = 0;
             w.encounter.round++;
           }
@@ -187,6 +185,10 @@ export const leave: Command = {
       if (endedEncounter) lines.push('🕊️ Encounter ended (no combatants remain).');
     }
     lines.push('Your character and position are saved. `/join` to resume later.');
-    await interaction.reply({ embeds: [new EmbedBuilder().setTitle('👋 You left the adventure').setColor(0x95a5a6).setDescription(lines.join('\n'))] });
+    await interaction.reply({
+      embeds: [
+        new EmbedBuilder().setTitle('👋 You left the adventure').setColor(0x95a5a6).setDescription(lines.join('\n')),
+      ],
+    });
   },
 };

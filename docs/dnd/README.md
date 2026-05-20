@@ -16,19 +16,26 @@ combat math against a self-contained per-guild JSON world.
 | --------- | ---------------------------------------------------------------------------------------- |
 | Reference | `/roll`, `/spell`, `/monster`, `/item`, `/condition`                                     |
 | Character | `/char create`, `/char show`, `/char hp`, `/char condition`, `/char equip`, `/char inv`, `/char delete` |
-| DM        | `/dm world …`, `/dm zone …`, `/dm place …`, `/dm encounter …`, `/dm remove`, `/dm narrate` |
-| Play      | `/join`, `/leave`, `/init`, `/end-turn`, `/move`, `/look`, `/attack`, `/use`             |
+| DM        | `/dm world …`, `/dm zone …`, `/dm paint …`, `/dm place …`, `/dm shop …`, `/dm encounter …`, `/dm remove`, `/dm narrate` |
+| Play      | `/join`, `/leave`, `/init`, `/end-turn`, `/move`, `/look`, `/map`, `/attack`, `/use`, `/shop browse|buy|sell` |
+| Coins     | `/coins balance`, `/coins add`, `/slots`, `/blackjack` (shared wallet — gamble for shop money) |
 
 ## Quick start
 
 ```
-DM:     /dm world init name:"Test"
-DM:     /dm zone create id:room name:"Stone Room" width:10 height:8
-Player: /join template:fighter name:Thorin race:dwarf
-DM:     /dm place monster id:goblin-1 srd:goblin zone:room row:5 col:7
-DM:     /dm encounter start zone:room entities:"pc-<userId>,goblin-1"
-Player: /attack target:goblin-1
-Player: /end-turn   ← AI-controlled goblin runs its turn automatically
+DM:     /dm world init name:"Ashen Marches" width:100 height:100
+DM:     /dm paint rect row:45 col:38 width:18 height:16 token:.
+DM:     /dm paint line from-row:50 from-col:0 to-row:50 to-col:60 token:=
+DM:     /dm zone create id:ashfen name:"Ashfen Village" row:45 col:38 width:18 height:16
+DM:     /dm world spawn row:50 col:5
+DM:     /dm place monster id:goblin-1 srd:goblin row:40 col:68 glyph:👺
+DM:     /dm place shop id:shop-smithy name:"Smithy" row:47 col:51 glyph:⚒️
+DM:     /dm shop add id:shop-smithy item:longsword price:150 qty:2
+Player: /join template:fighter name:Thorin race:dwarf glyph:🛡️
+Player: /map world          ← see the campaign overview
+Player: /move direction:east steps:5
+Player: /shop browse        ← stand next to a shop, browse its wares
+Player: /attack target:goblin-1   (inside an encounter)
 ```
 
 ## Source layout
@@ -51,14 +58,23 @@ Player: /end-turn   ← AI-controlled goblin runs its turn automatically
   channel worlds.
 - **One PC per player per world.** Multi-character flexibility wasn't worth
   the complexity. Keyed by Discord user id, entity id is `pc-<userId>`.
+- **One big overworld, zones are labels.** Earlier versions had each zone
+  as its own grid with magic "exits" between them. The current model is a
+  single 100×100 (configurable) overworld grid; zones are named rectangles
+  over it. Players walk from village to forest to cave on the same grid —
+  no teleports. Buildings are wall-clusters; we don't model interiors.
 - **Monster stat blocks copied at placement time, not referenced.** An LLM
   reading the world JSON has every stat it needs without external calls.
   Upstream SRD changes don't drift live campaigns. Cost: each world file is
   bigger.
-- **Grids are arrays of strings, not 2D arrays of cells.** LLM- and
-  human-readable, trivially editable, no JSON noise. Entities are stored
-  separately from grid cells so terrain underneath remains visible and
-  multiple entities can occupy a cell at render time if needed.
+- **Grids are arrays of ASCII strings, emojis only at render time.** Storage
+  stays compact and pathing/comparisons stay cheap. The `/map` renderer
+  maps each token (and each entity) to an emoji — entities can carry their
+  own `glyph` field.
+- **Shops use the gambling wallet.** A single `wallets.json` covers both
+  gambling and shop transactions, so a broke party can win their starter
+  kit at `/slots`. Selling defaults to half-price unless `buyBack` overrides
+  per item.
 - **JSON, not SQLite.** Same reasoning as the architecture doc: the
   product needs human/LLM readability more than transactional updates.
 - **Monster AI is regex-driven.** Action `+X to hit` and damage dice are
