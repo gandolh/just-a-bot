@@ -10,6 +10,7 @@ const schema = z.object({
   DISCORD_TOKEN: z.string().min(1),
   CLIENT_ID: z.string().regex(/^\d+$/, 'must be a numeric Discord snowflake'),
   GUILD_ID: z.string().regex(/^\d+$/, 'must be a numeric Discord snowflake'),
+  YT_COOKIE: z.string().optional(),
 });
 
 export const env = loadEnv(schema, { path: envPath });

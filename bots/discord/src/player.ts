@@ -1,9 +1,10 @@
 import type { Client } from 'discord.js';
 import { Player } from 'discord-player';
 import { DefaultExtractors } from '@discord-player/extractor';
-import { YoutubeiExtractor } from 'discord-player-youtubei';
+import { YoutubeExtractor } from 'discord-player-youtubei';
 import ffmpegStatic from 'ffmpeg-static';
 import { logger } from '@bots/shared';
+import { env } from './env.ts';
 
 const log = logger.scoped('discord:player');
 
@@ -18,14 +19,12 @@ export async function initPlayer(client: Client): Promise<Player> {
   if (player) return player;
 
   player = new Player(client as never);
-  await player.extractors.register(YoutubeiExtractor, {
-    generateWithPoToken: true,
-    useYoutubeDL: true,
-    streamOptions: { useClient: 'WEB_EMBEDDED' },
+  await player.extractors.register(YoutubeExtractor, {
+    ...(env.YT_COOKIE ? { cookie: env.YT_COOKIE } : {}),
   });
   await player.extractors.loadMulti(DefaultExtractors);
 
-  const yt = player.extractors.get('com.retrouser955.discord-player.discord-player-youtubei');
+  const yt = player.extractors.get(YoutubeExtractor.identifier);
   if (yt) yt.priority = 100;
 
   player.on('debug', (msg) => log.debug(`player: ${msg}`));
