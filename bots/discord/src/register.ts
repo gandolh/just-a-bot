@@ -1,7 +1,7 @@
 import { REST, Routes } from 'discord.js';
 import { logger } from '@bots/shared';
-import { env } from './env.js';
-import { commands } from './commands/index.js';
+import { env } from './env.ts';
+import { commands } from './commands/index.ts';
 
 const log = logger.scoped('discord:register');
 

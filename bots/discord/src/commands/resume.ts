@@ -1,6 +1,6 @@
 import { SlashCommandBuilder } from 'discord.js';
 import { useQueue } from 'discord-player';
-import type { Command } from './types.js';
+import type { Command } from './types.ts';
 
 export const resume: Command = {
   data: new SlashCommandBuilder().setName('resume').setDescription('Resume playback'),

@@ -1,7 +1,7 @@
 import { GuildMember, SlashCommandBuilder } from 'discord.js';
 import { QueryType } from 'discord-player';
-import { getPlayer } from '../player.js';
-import type { Command } from './types.js';
+import { getPlayer } from '../player.ts';
+import type { Command } from './types.ts';
 
 export const play: Command = {
   data: new SlashCommandBuilder()

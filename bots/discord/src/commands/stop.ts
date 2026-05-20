@@ -1,6 +1,6 @@
 import { SlashCommandBuilder } from 'discord.js';
 import { useQueue } from 'discord-player';
-import type { Command } from './types.js';
+import type { Command } from './types.ts';
 
 export const stop: Command = {
   data: new SlashCommandBuilder()

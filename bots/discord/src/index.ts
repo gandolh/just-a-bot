@@ -1,8 +1,9 @@
 import { Client, Events, GatewayIntentBits } from 'discord.js';
 import { logger } from '@bots/shared';
-import { env } from './env.js';
-import { initPlayer } from './player.js';
-import { commands } from './commands/index.js';
+import { env } from './env.ts';
+import { initPlayer } from './player.ts';
+import { commands } from './commands/index.ts';
+import { handleBlackjackButton } from './commands/blackjack.ts';
 
 const log = logger.scoped('discord');
 
@@ -20,6 +21,17 @@ client.once(Events.ClientReady, (c) => {
 });
 
 client.on(Events.InteractionCreate, async (interaction) => {
+  if (interaction.isButton()) {
+    if (interaction.customId.startsWith('bj:')) {
+      try {
+        await handleBlackjackButton(interaction);
+      } catch (err) {
+        log.error('Blackjack button failed', err);
+      }
+    }
+    return;
+  }
+
   if (!interaction.isChatInputCommand()) return;
 
   const command = commands.get(interaction.commandName);

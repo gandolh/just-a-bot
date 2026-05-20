@@ -1,3 +1,3 @@
-export { loadEnv } from './env.js';
-export type { BotAdapter, IncomingMessage, OutgoingMessage } from './bot-adapter.js';
-export { logger } from './logger.js';
+export { loadEnv } from './env.ts';
+export type { BotAdapter, IncomingMessage, OutgoingMessage } from './bot-adapter.ts';
+export { logger } from './logger.ts';
