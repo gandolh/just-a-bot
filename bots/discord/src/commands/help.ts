@@ -39,6 +39,14 @@ const GROUPS: Group[] = [
     ],
   },
   {
+    title: 'Games',
+    emoji: '🎮',
+    entries: [
+      { name: '/wordle', desc: 'Start a Wordle game in a thread (type guesses, `delete` removes it)' },
+      { name: '/tictactoe', desc: 'Play tic-tac-toe with buttons (mention an opponent or play the bot)' },
+    ],
+  },
+  {
     title: 'D&D / Roleplay',
     emoji: '🐉',
     text: [

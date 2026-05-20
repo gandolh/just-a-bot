@@ -4,6 +4,8 @@ import { env } from './env.ts';
 import { initPlayer } from './player.ts';
 import { commands } from './commands/index.ts';
 import { handleBlackjackButton } from './commands/blackjack.ts';
+import { handleWordleMessage, hasWordleGame } from './commands/wordle.ts';
+import { handleTicTacToeButton } from './commands/tictactoe.ts';
 
 const log = logger.scoped('discord');
 
@@ -27,6 +29,12 @@ client.on(Events.InteractionCreate, async (interaction) => {
         await handleBlackjackButton(interaction);
       } catch (err) {
         log.error('Blackjack button failed', err);
+      }
+    } else if (interaction.customId.startsWith('ttt:')) {
+      try {
+        await handleTicTacToeButton(interaction);
+      } catch (err) {
+        log.error('Tic-tac-toe button failed', err);
       }
     }
     return;
@@ -52,6 +60,16 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
 client.on(Events.MessageCreate, async (message) => {
   if (message.author.bot) return;
+
+  if (message.channel.isThread() && hasWordleGame(message.channelId)) {
+    try {
+      await handleWordleMessage(message);
+    } catch (err) {
+      log.error('Wordle message handler failed', err);
+    }
+    return;
+  }
+
   if (!client.user || !message.mentions.has(client.user)) return;
 
   const mentionPattern = new RegExp(`<@!?${client.user.id}>`, 'g');

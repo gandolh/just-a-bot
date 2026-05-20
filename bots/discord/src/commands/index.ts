@@ -11,6 +11,8 @@ import { coins } from './coins.ts';
 import { slots } from './slots.ts';
 import { blackjack } from './blackjack.ts';
 import { dice } from './dice.ts';
+import { wordle } from './wordle.ts';
+import { tictactoe } from './tictactoe.ts';
 import { help } from './help.ts';
 import { roll } from './roll.ts';
 import { spell, monster, item, condition } from './srd.ts';
@@ -22,7 +24,7 @@ import { join, leave } from './join.ts';
 
 const all: Command[] = [
   ping, play, skip, pause, resume, stop, queue, nowplaying,
-  coins, slots, blackjack, dice,
+  coins, slots, blackjack, dice, wordle, tictactoe,
   roll, spell, monster, item, condition, char, dm, init, endTurn,
   move, look, attack, use, join, leave,
   help,
