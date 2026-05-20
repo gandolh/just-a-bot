@@ -7,69 +7,19 @@ import {
   MessageFlags,
   SlashCommandBuilder,
 } from 'discord.js';
-import { credit, getBalance, tryDebit } from '../wallet.ts';
+import {
+  doubleDown,
+  finishWithDealer,
+  Game,
+  handValue,
+  hit,
+  isBlackjack,
+  newGame,
+  renderHand,
+  settle,
+} from '../gambling/blackjack.ts';
+import { getBalance, tryDebit } from '../gambling/wallet.ts';
 import type { Command } from './types.ts';
-
-type Suit = '♠' | '♥' | '♦' | '♣';
-type Rank = 'A' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | '10' | 'J' | 'Q' | 'K';
-interface Card {
-  rank: Rank;
-  suit: Suit;
-}
-
-const RANKS: Rank[] = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
-const SUITS: Suit[] = ['♠', '♥', '♦', '♣'];
-
-function freshDeck(): Card[] {
-  const deck: Card[] = [];
-  for (const s of SUITS) for (const r of RANKS) deck.push({ rank: r, suit: s });
-  for (let i = deck.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [deck[i], deck[j]] = [deck[j], deck[i]];
-  }
-  return deck;
-}
-
-function handValue(hand: Card[]): { total: number; soft: boolean } {
-  let total = 0;
-  let aces = 0;
-  for (const c of hand) {
-    if (c.rank === 'A') {
-      aces++;
-      total += 11;
-    } else if (c.rank === 'K' || c.rank === 'Q' || c.rank === 'J') {
-      total += 10;
-    } else {
-      total += Number(c.rank);
-    }
-  }
-  let soft = aces > 0;
-  while (total > 21 && aces > 0) {
-    total -= 10;
-    aces--;
-    if (aces === 0) soft = false;
-  }
-  return { total, soft };
-}
-
-function isBlackjack(hand: Card[]): boolean {
-  return hand.length === 2 && handValue(hand).total === 21;
-}
-
-function renderHand(hand: Card[], hideHole = false): string {
-  const cards = hand.map((c, i) => (hideHole && i === 1 ? '🂠' : `${c.rank}${c.suit}`));
-  return cards.join(' ');
-}
-
-interface Game {
-  userId: string;
-  bet: number;
-  deck: Card[];
-  player: Card[];
-  dealer: Card[];
-  doubled: boolean;
-  finished: boolean;
-}
 
 function buttons(disabled: boolean, canDouble: boolean): ActionRowBuilder<ButtonBuilder> {
   return new ActionRowBuilder<ButtonBuilder>().addComponents(
@@ -110,66 +60,6 @@ function gameView(game: Game, opts: { reveal: boolean; status?: string }): {
   };
 }
 
-async function settle(
-  game: Game,
-  outcome: 'player-bust' | 'dealer-bust' | 'player-win' | 'dealer-win' | 'push' | 'blackjack',
-): Promise<string> {
-  const stake = game.doubled ? game.bet * 2 : game.bet;
-  let delta = 0;
-  let label = '';
-  switch (outcome) {
-    case 'player-bust':
-      delta = -stake;
-      label = 'Bust! You lose.';
-      break;
-    case 'dealer-bust':
-      delta = stake;
-      label = 'Dealer busts. You win!';
-      break;
-    case 'player-win':
-      delta = stake;
-      label = 'You win!';
-      break;
-    case 'dealer-win':
-      delta = -stake;
-      label = 'Dealer wins.';
-      break;
-    case 'push':
-      delta = 0;
-      label = 'Push.';
-      break;
-    case 'blackjack':
-      delta = Math.floor(stake * 1.5);
-      label = 'Blackjack! 3:2 payout.';
-      break;
-  }
-  if (delta > 0) await credit(game.userId, stake + delta);
-  else if (delta === 0) await credit(game.userId, stake);
-  const balance = await getBalance(game.userId);
-  const sign = delta >= 0 ? '+' : '';
-  return `${label} Net: **${sign}${delta.toLocaleString()}**. Balance: **${balance.toLocaleString()}**.`;
-}
-
-function dealerPlay(game: Game): void {
-  while (true) {
-    const v = handValue(game.dealer);
-    if (v.total < 17 || (v.total === 17 && v.soft)) {
-      game.dealer.push(game.deck.pop()!);
-    } else break;
-  }
-}
-
-async function finishWithDealer(game: Game): Promise<string> {
-  dealerPlay(game);
-  const p = handValue(game.player).total;
-  const d = handValue(game.dealer).total;
-  game.finished = true;
-  if (d > 21) return settle(game, 'dealer-bust');
-  if (p > d) return settle(game, 'player-win');
-  if (p < d) return settle(game, 'dealer-win');
-  return settle(game, 'push');
-}
-
 const games = new Map<string, Game>();
 
 export async function handleBlackjackButton(interaction: ButtonInteraction): Promise<void> {
@@ -192,8 +82,7 @@ export async function handleBlackjackButton(interaction: ButtonInteraction): Pro
   let reveal = false;
 
   if (action === 'hit') {
-    game.player.push(game.deck.pop()!);
-    const v = handValue(game.player).total;
+    const v = hit(game);
     if (v > 21) {
       reveal = true;
       status = await settle(game, 'player-bust');
@@ -209,13 +98,11 @@ export async function handleBlackjackButton(interaction: ButtonInteraction): Pro
       await interaction.reply({ content: 'You can only double on your first action.', ephemeral: true });
       return;
     }
-    const ok = await tryDebit(game.userId, game.bet);
+    const ok = await doubleDown(game);
     if (!ok) {
       await interaction.reply({ content: 'Not enough coins to double.', ephemeral: true });
       return;
     }
-    game.doubled = true;
-    game.player.push(game.deck.pop()!);
     const v = handValue(game.player).total;
     if (v > 21) {
       reveal = true;
@@ -257,16 +144,7 @@ export const blackjack: Command = {
       return;
     }
 
-    const deck = freshDeck();
-    const game: Game = {
-      userId,
-      bet,
-      deck,
-      player: [deck.pop()!, deck.pop()!],
-      dealer: [deck.pop()!, deck.pop()!],
-      doubled: false,
-      finished: false,
-    };
+    const game = newGame(userId, bet);
 
     const playerBJ = isBlackjack(game.player);
     const dealerBJ = isBlackjack(game.dealer);

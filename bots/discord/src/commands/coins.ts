@@ -1,5 +1,5 @@
 import { SlashCommandBuilder } from 'discord.js';
-import { addCoins, getBalance, MAX_ADD } from '../wallet.ts';
+import { addCoins, getBalance, MAX_ADD } from '../gambling/wallet.ts';
 import type { Command } from './types.ts';
 
 export const coins: Command = {

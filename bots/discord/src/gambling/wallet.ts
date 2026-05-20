@@ -3,7 +3,7 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const here = fileURLToPath(new URL('.', import.meta.url));
-const dataFile = resolve(here, '../data/wallets.json');
+const dataFile = resolve(here, '../../data/wallets.json');
 
 export const MAX_ADD = 100_000;
 

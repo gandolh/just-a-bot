@@ -9,7 +9,8 @@ interface Entry {
 interface Group {
   title: string;
   emoji: string;
-  entries: Entry[];
+  entries?: Entry[];
+  text?: string;
 }
 
 const GROUPS: Group[] = [
@@ -38,6 +39,18 @@ const GROUPS: Group[] = [
     ],
   },
   {
+    title: 'D&D / Roleplay',
+    emoji: '🐉',
+    text: [
+      '**Play:** `/join` `/leave` `/move` `/look` `/attack` `/use` `/init` `/end-turn`',
+      '**Character:** `/char create|show|hp|condition|equip|inv|delete`',
+      '**DM:** `/dm world|zone|place|encounter|remove|narrate`',
+      '**Reference:** `/roll` `/spell` `/monster` `/item` `/condition`',
+      '',
+      'Full guide → [docs/dnd/README.md](https://github.com/gandolh/just-a-bot/blob/main/docs/dnd/README.md)',
+    ].join('\n'),
+  },
+  {
     title: 'Misc',
     emoji: '🛠️',
     entries: [
@@ -58,9 +71,8 @@ export const help: Command = {
       .setDescription('Coins are hypothetical. No real payments are made.');
 
     for (const group of GROUPS) {
-      const value = group.entries
-        .map((e) => `\`${e.name}\` — ${e.desc}`)
-        .join('\n');
+      const value = group.text
+        ?? group.entries!.map((e) => `\`${e.name}\` — ${e.desc}`).join('\n');
       embed.addFields({ name: `${group.emoji} ${group.title}`, value });
     }
 
