@@ -6,8 +6,6 @@ combat math against a self-contained per-guild JSON world.
 
 ## Contents
 
-- [Plan & progress](plan.md) — goals, locked decisions, build steps, status,
-  and progress log.
 - [World JSON schema](world-schema.md) — full worked example and constraints
   for the per-guild world file at
   `bots/discord/data/worlds/<guild-id>.json`.
@@ -45,3 +43,28 @@ Player: /end-turn   ← AI-controlled goblin runs its turn automatically
 | Templates       | [`bots/discord/src/dnd/templates.ts`](../../bots/discord/src/dnd/templates.ts)        |
 | Weapons table   | [`bots/discord/src/dnd/weapons.ts`](../../bots/discord/src/dnd/weapons.ts)            |
 | Commands        | [`bots/discord/src/commands/`](../../bots/discord/src/commands/)                      |
+
+## Design notes
+
+- **One world per guild.** A Discord server is the natural campaign
+  boundary. Simpler than user-named worlds; harder to outgrow than per-
+  channel worlds.
+- **One PC per player per world.** Multi-character flexibility wasn't worth
+  the complexity. Keyed by Discord user id, entity id is `pc-<userId>`.
+- **Monster stat blocks copied at placement time, not referenced.** An LLM
+  reading the world JSON has every stat it needs without external calls.
+  Upstream SRD changes don't drift live campaigns. Cost: each world file is
+  bigger.
+- **Grids are arrays of strings, not 2D arrays of cells.** LLM- and
+  human-readable, trivially editable, no JSON noise. Entities are stored
+  separately from grid cells so terrain underneath remains visible and
+  multiple entities can occupy a cell at render time if needed.
+- **JSON, not SQLite.** Same reasoning as the architecture doc: the
+  product needs human/LLM readability more than transactional updates.
+- **Monster AI is regex-driven.** Action `+X to hit` and damage dice are
+  parsed from the SRD action description. If 5e ever changes its
+  formatting we'll need to adjust. The alternative (structured fields) was
+  rejected because the SRD source doesn't provide them consistently.
+- **Loose action economy.** A PC can `/move` and `/attack` multiple times
+  per turn — only the movement budget enforces a cap. Strict 5e action /
+  bonus action / reaction tracking is a future iteration.
