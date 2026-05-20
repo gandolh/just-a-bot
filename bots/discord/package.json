@@ -11,7 +11,15 @@
   },
   "dependencies": {
     "@bots/shared": "0.1.0",
+    "@discord-player/extractor": "7.2.0",
+    "@discordjs/opus": "0.10.0",
+    "@discordjs/voice": "0.19.2",
+    "discord-player": "7.2.0",
+    "discord-player-youtubei": "2.0.0",
     "discord.js": "14.26.4",
+    "ffmpeg-static": "5.3.0",
+    "sodium-native": "5.1.0",
+    "youtube-dl-exec": "3.1.7",
     "zod": "4.4.3"
   }
 }

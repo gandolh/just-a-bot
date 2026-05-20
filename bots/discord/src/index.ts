@@ -1,12 +1,15 @@
 import { Client, Events, GatewayIntentBits } from 'discord.js';
 import { logger } from '@bots/shared';
 import { env } from './env.js';
+import { initPlayer } from './player.js';
+import { commands } from './commands/index.js';
 
 const log = logger.scoped('discord');
 
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildVoiceStates,
     GatewayIntentBits.GuildMessages,
     GatewayIntentBits.MessageContent,
   ],
@@ -19,8 +22,19 @@ client.once(Events.ClientReady, (c) => {
 client.on(Events.InteractionCreate, async (interaction) => {
   if (!interaction.isChatInputCommand()) return;
 
-  if (interaction.commandName === 'ping') {
-    await interaction.reply('Pong!');
+  const command = commands.get(interaction.commandName);
+  if (!command) return;
+
+  try {
+    await command.execute(interaction);
+  } catch (err) {
+    log.error(`Command ${interaction.commandName} failed`, err);
+    const message = 'Something went wrong running that command.';
+    if (interaction.deferred || interaction.replied) {
+      await interaction.followUp({ content: message, ephemeral: true }).catch(() => {});
+    } else {
+      await interaction.reply({ content: message, ephemeral: true }).catch(() => {});
+    }
   }
 });
 
@@ -35,4 +49,5 @@ client.on(Events.MessageCreate, async (message) => {
   await message.reply(`Echo: ${stripped}`);
 });
 
+await initPlayer(client);
 await client.login(env.DISCORD_TOKEN);

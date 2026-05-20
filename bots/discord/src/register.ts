@@ -1,21 +1,14 @@
-import { REST, Routes, SlashCommandBuilder } from 'discord.js';
+import { REST, Routes } from 'discord.js';
 import { logger } from '@bots/shared';
 import { env } from './env.js';
+import { commands } from './commands/index.js';
 
 const log = logger.scoped('discord:register');
 
-const commands = [
-  new SlashCommandBuilder()
-    .setName('ping')
-    .setDescription('Replies with Pong!')
-    .toJSON(),
-];
+const body = Array.from(commands.values()).map((c) => c.data.toJSON());
 
 const rest = new REST({ version: '10' }).setToken(env.DISCORD_TOKEN);
 
-await rest.put(
-  Routes.applicationGuildCommands(env.CLIENT_ID, env.GUILD_ID),
-  { body: commands },
-);
+await rest.put(Routes.applicationGuildCommands(env.CLIENT_ID, env.GUILD_ID), { body });
 
-log.info(`Registered ${commands.length} guild command(s).`);
+log.info(`Registered ${body.length} guild command(s): ${body.map((c) => c.name).join(', ')}`);
