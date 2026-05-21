@@ -60,6 +60,20 @@ const GROUPS: Group[] = [
     ].join('\n'),
   },
   {
+    title: 'D&D',
+    emoji: '🐲',
+    text: [
+      'Tabletop campaign in chat. One DM narrates; players act.',
+      '',
+      '**Setup:** `/dnd setup` (claim DM) • `/dnd end` • `/dnd status`',
+      '**Players:** `/dnd join name:… class:…` `/dnd sheet` `/dnd hp <delta>` `/dnd leave`',
+      '**Anyone rolls:** `/dnd roll 1d20+5` `/dnd check ability:dex` `/dnd say text:…`',
+      '**DM narration:** `/dnd narrate`, `/dnd npc`, `/dnd scene`, `/dnd whisper`, `/dnd dmroll`',
+      '**DM combat:** `/dnd init` • `/dnd next` • `/dnd endcombat` • `/dnd monster`',
+      '**DM bookkeeping:** `/dnd damage <target>`, `/dnd heal <target>`, `/dnd xp`, `/dnd give`',
+    ].join('\n'),
+  },
+  {
     title: 'Misc',
     emoji: '🛠️',
     entries: [
