@@ -52,8 +52,8 @@ Runtime state lives under `bots/discord/data/` and is gitignored.
 | Path                                          | What                                                |
 | --------------------------------------------- | --------------------------------------------------- |
 | `bots/discord/data/wallets.json`              | Per-user gambling balances                          |
-| `bots/discord/data/worlds/<guild-id>.json`    | One D&D world per Discord guild                     |
+| `bots/discord/data/rpg/<guild-id>.json`       | One RPG world per Discord guild                     |
 
-Wiping a file resets that feature's state. Worlds can be hand-edited or
-piped to an LLM directly; the schema is documented in
-[../dnd/world-schema.md](../dnd/world-schema.md).
+Wiping a file resets that feature's state. RPG worlds can be hand-edited
+or piped to an LLM directly; the model is described in
+[../rpg/README.md](../rpg/README.md).

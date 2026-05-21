@@ -32,12 +32,12 @@ bots/discord/src/
 │   ├── *.ts            one file per command (or close family)
 │   └── index.ts        exports the Command[] used by index.ts + register.ts
 ├── gambling/           wallet + slot/blackjack/dice game logic
-└── dnd/                world model, dice engine, SRD client, AI, weapons
+└── rpg/                world model, combat, mob spawn/tick, map renderer
 ```
 
 **Convention:** `commands/*.ts` is the Discord-facing surface (slash defs,
 interaction parsing, embed rendering). Real logic lives next to it in
-`gambling/` or `dnd/`. Easy to write unit tests against the game modules
+`gambling/` or `rpg/`. Easy to write unit tests against the game modules
 without touching Discord types.
 
 ## Data flow
@@ -45,7 +45,7 @@ without touching Discord types.
 - All persisted state is JSON on local disk, under
   `bots/discord/data/`. Gitignored.
 - Gambling: `data/wallets.json` — single file, all users.
-- D&D: `data/worlds/<guild-id>.json` — one file per guild.
+- RPG: `data/rpg/<guild-id>.json` — one file per guild.
 - Both stores: in-memory cache + serialized writes (per-key promise chain
   for worlds, single chain for the wallet). No SQLite; everything LLM- and
   human-readable.
@@ -59,7 +59,7 @@ by `data.name`.
 
 ## Design notes
 
-- **No SQLite, even though it would fit.** JSON wins because the D&D world
+- **No SQLite, even though it would fit.** JSON wins because the RPG world
   needs to be ingestible by an LLM in one read, and the wallet's volume is
   trivial. SQLite was the engineering answer; JSON is the product answer.
 - **No build step.** Direct-tsx in production trades a few seconds of

@@ -47,16 +47,16 @@ const GROUPS: Group[] = [
     ],
   },
   {
-    title: 'D&D / Roleplay',
+    title: 'RPG',
     emoji: '🐉',
     text: [
-      '**Play:** `/join` `/leave` `/move` `/look` `/map` `/attack` `/use` `/shop` `/init` `/end-turn`',
-      '**Character:** `/char create|show|hp|condition|equip|inv|delete`',
-      '**DM:** `/dm world|zone|paint|place|shop|encounter|remove|narrate`',
-      '**Coins (shared with shops):** `/coins balance|add` `/slots` `/blackjack`',
-      '**Reference:** `/roll` `/spell` `/monster` `/item` `/condition`',
+      'A shared persistent world per server. Drop in, fight mobs, level up.',
       '',
-      'Full guide → [docs/dnd/README.md](https://github.com/gandolh/just-a-bot/blob/main/docs/dnd/README.md)',
+      '**Join & info:** `/rpg join` `/rpg me` `/rpg leave` `/rpg top`',
+      '**Play:** `/rpg move <dir>` `/rpg look` `/rpg attack` `/rpg pickup` `/rpg use` `/rpg map`',
+      '',
+      'Mobs spawn automatically and hunt down adventurers in range.',
+      'Walk over loot to auto-collect. Die → respawn at the plaza, drop half your coins.',
     ].join('\n'),
   },
   {

@@ -94,7 +94,7 @@ Source: [`bots/discord/src/gambling/wallet.ts`](../../bots/discord/src/gambling/
 ## Design notes
 
 - **One file for all users.** Volume is trivial; per-user files would just
-  fragment state. The D&D side uses per-guild files because *world data* is
+  fragment state. The RPG side uses per-guild files because *world data* is
   guild-scoped; wallet balances are not.
 - **Not multi-process safe.** Two bot instances running against the same
   data dir will race. Not a concern unless you go multi-process.
