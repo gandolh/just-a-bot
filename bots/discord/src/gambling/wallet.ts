@@ -58,3 +58,7 @@ export async function tryDebit(userId: string, amount: number): Promise<boolean>
 export async function credit(userId: string, amount: number): Promise<number> {
   return addCoins(userId, amount);
 }
+
+export async function getAllBalances(): Promise<Record<string, number>> {
+  return load();
+}
