@@ -6,9 +6,7 @@ const here = fileURLToPath(new URL('.', import.meta.url));
 const dataFile = resolve(here, '../../data/reminders.json');
 
 export type Reminder = BaseReminder & {
-  userId: string;
-  teamId: string;
-  channelId: string;
+  from: string;
 };
 
 const store = createReminderStore<Reminder>(dataFile);
@@ -17,12 +15,12 @@ export async function addReminder(r: Reminder): Promise<void> {
   await store.add(r);
 }
 
-export async function listReminders(userId: string, teamId: string): Promise<Reminder[]> {
-  return store.filter((r) => r.userId === userId && r.teamId === teamId);
+export async function listReminders(from: string): Promise<Reminder[]> {
+  return store.filter((r) => r.from === from);
 }
 
-export async function cancelReminder(id: string, userId: string): Promise<boolean> {
-  return store.remove((r) => r.id === id && r.userId === userId);
+export async function cancelReminder(id: string, from: string): Promise<boolean> {
+  return store.remove((r) => r.id === id && r.from === from);
 }
 
 export async function getDueReminders(now: Date): Promise<Reminder[]> {

@@ -15,6 +15,17 @@ DISCORD_CLIENT_ID=...
 
 `env.ts` validates with zod and fails fast on boot if anything is missing.
 
+### Optional: Instagram publishing (`/post`)
+
+Add to `bots/discord/.env` to enable `/post`:
+
+```
+IG_USER_ID=...
+IG_ACCESS_TOKEN=...
+```
+
+If omitted, `/post` still registers but replies "Instagram is not configured." See [post/README.md](post/README.md) for the Meta app + token walkthrough.
+
 ## Register slash commands
 
 Slash commands are registered **per guild** for fast propagation during

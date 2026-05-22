@@ -108,6 +108,9 @@ License texts: [Inter](https://github.com/rsms/inter/blob/master/LICENSE.txt),
   that renders via a `leaderboardTemplate`. Update `docs/todo/leaderboards.md`.
 - `/quote random` — once the quote-book feature ships, add a `card:true`
   option that wraps the quote in a card. Update `docs/todo/quote-book.md`.
+- [`/post`](../post/README.md) reuses `renderToPng` with 1080×1080
+  `meme-square` / `card-square` sibling templates and publishes the result to
+  Instagram.
 
 ## Design notes
 

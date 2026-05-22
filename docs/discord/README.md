@@ -20,6 +20,7 @@ smaller features.
 - [Hangman](hangman/README.md) — `/hangman` cooperative thread-based guessing game
 - [Trivia](trivia/README.md) — `/trivia` multiple-choice questions via OpenTDB, first correct answer wins
 - [Img](img/README.md) — `/img meme` `/img card` PNG image generation (Satori + resvg)
+- [Post](post/README.md) — `/post meme` `/post card` render 1080×1080, preview in Discord, approve & publish to Instagram via Graph API
 - [Mafia](mafia/README.md) — `/mafia` Werewolf-style social deduction game with DM-based night actions
 - [Mafia2](mafia2/README.md) — `/mafia2` voice-channel **Activity** version, live tension dashboard, role-scoped state. Milestones 1–5 built; not yet exercised in a live Discord client.
 - [Confession Box](confessions/README.md) — `/confess` anonymous per-guild confession channel with admin setup

@@ -13,6 +13,7 @@ import { handleTriviaButton } from './commands/trivia.ts';
 import { handleRpgButton } from './commands/rpg-buttons.ts';
 import { handleMafiaButton } from './commands/mafia.ts';
 import { handleConnectFourButton } from './commands/connect-four.ts';
+import { handleInstagramButton } from './commands/post.ts';
 import { startLink as startMafia2Link } from './mafia2/link.ts';
 
 const log = logger.scoped('discord');
@@ -80,6 +81,12 @@ client.on(Events.InteractionCreate, async (interaction) => {
         await handleConnectFourButton(interaction);
       } catch (err) {
         log.error('Connect Four button failed', err);
+      }
+    } else if (interaction.customId.startsWith('ig:')) {
+      try {
+        await handleInstagramButton(interaction);
+      } catch (err) {
+        log.error('Instagram button failed', err);
       }
     }
     return;

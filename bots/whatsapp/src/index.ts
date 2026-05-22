@@ -3,6 +3,7 @@ import { logger } from '@bots/shared';
 import { env } from './env.ts';
 import { verifySignature } from './signature.ts';
 import { handleMessage } from './handler.ts';
+import { tickReminders } from './reminders/tick.ts';
 
 const log = logger.scoped('whatsapp');
 
@@ -70,6 +71,11 @@ app.post('/webhook', async (req, reply) => {
     handleMessage(msg).catch((err) => log.error('handleMessage failed', err));
   }
 });
+
+const REMINDER_TICK_MS = 30_000;
+setInterval(() => {
+  tickReminders().catch((err) => log.error('reminder tick failed', err));
+}, REMINDER_TICK_MS);
 
 await app.listen({ port: env.PORT, host: '0.0.0.0' });
 log.info(`Listening on :${env.PORT}`);

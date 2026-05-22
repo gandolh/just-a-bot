@@ -20,6 +20,11 @@ const schema = z.object({
   MAFIA_ACTIVITY_WS_URL: z.string().url().optional(),
   MAFIA_ACTIVITY_TOKEN: z.string().min(16).optional(),
   MAFIA2_ACTIVITY_URL: z.string().url().optional(),
+
+  // /post — Instagram publishing. Optional: command still registers but reports
+  // "not configured" if either is missing.
+  IG_USER_ID: z.string().regex(/^\d+$/, 'must be a numeric IG Business account id').optional(),
+  IG_ACCESS_TOKEN: z.string().min(20).optional(),
 });
 
 export const env = loadEnv(schema, { path: envPath });

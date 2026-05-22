@@ -22,6 +22,24 @@ export const memeText = (align: 'flex-start' | 'flex-end'): Record<string, unkno
   lineHeight: 1.1,
 });
 
+export const memeTextSquare = (align: 'flex-start' | 'flex-end'): Record<string, unknown> => ({
+  position: 'absolute',
+  left: 0,
+  right: 0,
+  ...(align === 'flex-start' ? { top: 24 } : { bottom: 24 }),
+  display: 'flex',
+  justifyContent: 'center',
+  padding: '0 32px',
+  fontFamily: 'Anton',
+  fontSize: 96,
+  fontWeight: 400,
+  color: 'white',
+  textShadow: '5px 5px 0 #000, -5px 5px 0 #000, 5px -5px 0 #000, -5px -5px 0 #000',
+  textAlign: 'center',
+  textTransform: 'uppercase',
+  lineHeight: 1.1,
+});
+
 export const cardContainer: Record<string, unknown> = {
   width: '100%',
   height: '100%',

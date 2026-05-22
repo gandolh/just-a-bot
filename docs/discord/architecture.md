@@ -16,7 +16,8 @@ bots/discord/src/
 │   └── index.ts        exports the Command[] used by index.ts + register.ts
 ├── gambling/           wallet + slot/blackjack/dice game logic
 ├── rpg/                world model, combat, mob spawn/tick, map renderer
-└── dnd/                campaign state + dice parser for the DM-led layer
+├── dnd/                campaign state + dice parser for the DM-led layer
+└── instagram/          Graph API client used by /post
 ```
 
 **Convention:** `commands/*.ts` is the Discord-facing surface (slash defs,
@@ -36,6 +37,7 @@ are dispatched by `customId` prefix:
 | `ttt:` | Tic-tac-toe (`handleTicTacToeButton`) |
 | `c4:` | Connect Four |
 | `rpg:` | RPG action buttons |
+| `ig:` | Instagram post approve/cancel (`/post`) |
 | _(else)_ | Command map keyed by `data.name` |
 
 Wordle is the odd one out — it plays in a thread and listens to
