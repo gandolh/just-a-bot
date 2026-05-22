@@ -1,4 +1,7 @@
 import {
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle,
   ChatInputCommandInteraction,
   EmbedBuilder,
   SlashCommandBuilder,
@@ -26,6 +29,7 @@ import {
   ATTACK_COOLDOWN_MS,
   charAttackMob,
 } from '../rpg/combat.ts';
+import { startDuel, startTrade } from './rpg-buttons.ts';
 
 const PC_GLYPHS = ['🧙', '🧝', '🧛', '🧟', '🧞', '🧜', '🦸', '🥷', '👤', '🧚'];
 
@@ -87,7 +91,15 @@ const data = new SlashCommandBuilder()
   .addSubcommand((s) => s.setName('use').setDescription('Use a healing potion from your inventory'))
   .addSubcommand((s) => s.setName('map').setDescription('Show the map around you'))
   .addSubcommand((s) => s.setName('top').setDescription('Leaderboard of adventurers'))
-  .addSubcommand((s) => s.setName('leave').setDescription('Remove your character from this world'));
+  .addSubcommand((s) => s.setName('leave').setDescription('Remove your character from this world'))
+  .addSubcommand((s) =>
+    s.setName('duel').setDescription('Challenge another player to a 1v1 duel')
+      .addUserOption((o) => o.setName('target').setDescription('Player to challenge').setRequired(true)),
+  )
+  .addSubcommand((s) =>
+    s.setName('trade').setDescription('Propose an item/coin trade with another player')
+      .addUserOption((o) => o.setName('target').setDescription('Player to trade with').setRequired(true)),
+  );
 
 export const rpg: Command = {
   data,
@@ -111,6 +123,8 @@ export const rpg: Command = {
       case 'map': return handleMap(interaction, userId);
       case 'top': return handleTop(interaction);
       case 'leave': return handleLeave(interaction, userId);
+      case 'duel': return handleDuel(interaction, userId);
+      case 'trade': return handleTradeStart(interaction, userId);
     }
   },
 };
@@ -483,4 +497,163 @@ function dirName(dir: Dir): string {
     n: 'north', s: 'south', e: 'east', w: 'west',
     ne: 'northeast', nw: 'northwest', se: 'southeast', sw: 'southwest',
   }[dir];
+}
+
+async function handleDuel(
+  interaction: ChatInputCommandInteraction,
+  userId: string,
+): Promise<void> {
+  const target = interaction.options.getUser('target', true);
+
+  if (target.id === userId) {
+    await interaction.reply({ content: 'You cannot duel yourself.', ephemeral: true });
+    return;
+  }
+  if (target.bot) {
+    await interaction.reply({ content: 'You cannot duel a bot.', ephemeral: true });
+    return;
+  }
+
+  const world = await getOrCreateWorld(interaction.guildId!);
+  const challenger = world.chars[userId];
+  if (!challenger) {
+    await interaction.reply({ content: 'You have not joined. Use `/rpg join` first.', ephemeral: true });
+    return;
+  }
+  const defender = world.chars[target.id];
+  if (!defender) {
+    await interaction.reply({ content: `<@${target.id}> has not joined the RPG yet.`, ephemeral: true });
+    return;
+  }
+
+  // Post the challenge message first to get the message ID.
+  const placeholder = await interaction.reply({
+    content: `⚔️ ${challenger.glyph} **${challenger.name}** challenges ${defender.glyph} **${defender.name}** to a duel!`,
+    components: [],
+    withResponse: true,
+  });
+
+  const messageId = placeholder.resource?.message?.id ?? '';
+  const channelId = interaction.channelId;
+
+  let duelId = '';
+  await updateWorld(interaction.guildId!, (w) => {
+    const duel = startDuel(w, userId, target.id, messageId, channelId);
+    duelId = duel.id;
+  });
+
+  const acceptBtn = new ButtonBuilder()
+    .setCustomId(`rpg:duel:accept:${duelId}`)
+    .setLabel('Accept')
+    .setStyle(ButtonStyle.Success);
+  const declineBtn = new ButtonBuilder()
+    .setCustomId(`rpg:duel:decline:${duelId}`)
+    .setLabel('Decline')
+    .setStyle(ButtonStyle.Danger);
+  const row = new ActionRowBuilder<ButtonBuilder>().addComponents(acceptBtn, declineBtn);
+
+  await interaction.editReply({
+    content: `⚔️ ${challenger.glyph} **${challenger.name}** challenges ${defender.glyph} **${defender.name}** to a duel!\n<@${target.id}> — do you accept? (expires in 60s)`,
+    components: [row],
+  });
+}
+
+async function handleTradeStart(
+  interaction: ChatInputCommandInteraction,
+  userId: string,
+): Promise<void> {
+  const target = interaction.options.getUser('target', true);
+
+  if (target.id === userId) {
+    await interaction.reply({ content: 'You cannot trade with yourself.', ephemeral: true });
+    return;
+  }
+  if (target.bot) {
+    await interaction.reply({ content: 'You cannot trade with a bot.', ephemeral: true });
+    return;
+  }
+
+  const world = await getOrCreateWorld(interaction.guildId!);
+  const charA = world.chars[userId];
+  if (!charA) {
+    await interaction.reply({ content: 'You have not joined. Use `/rpg join` first.', ephemeral: true });
+    return;
+  }
+  const charB = world.chars[target.id];
+  if (!charB) {
+    await interaction.reply({ content: `<@${target.id}> has not joined the RPG yet.`, ephemeral: true });
+    return;
+  }
+
+  const embed = new EmbedBuilder()
+    .setColor(0xe67e22)
+    .setTitle('🤝 Trade Proposal')
+    .addFields(
+      { name: `⏳ <@${userId}> offers`, value: 'Coins: 0\nItems: —', inline: true },
+      { name: `⏳ <@${target.id}> offers`, value: 'Coins: 0\nItems: —', inline: true },
+    )
+    .setFooter({ text: 'Both sides must confirm to execute. Any change resets confirmations.' });
+
+  const placeholder = await interaction.reply({
+    embeds: [embed],
+    components: [],
+    withResponse: true,
+  });
+
+  const messageId = placeholder.resource?.message?.id ?? '';
+  const channelId = interaction.channelId;
+
+  let tradeId = '';
+  await updateWorld(interaction.guildId!, (w) => {
+    const trade = startTrade(w, userId, target.id, messageId, channelId);
+    tradeId = trade.id;
+  });
+
+  // Rebuild components now that we have the trade ID.
+  const aItems = charA.inventory;
+  const bItems = charB.inventory;
+
+  const rows: ActionRowBuilder<ButtonBuilder>[] = [];
+
+  rows.push(
+    new ActionRowBuilder<ButtonBuilder>().addComponents(
+      new ButtonBuilder()
+        .setCustomId(`rpg:trade:coins:${tradeId}:a:10`)
+        .setLabel('A +10 coins')
+        .setStyle(ButtonStyle.Primary),
+      new ButtonBuilder()
+        .setCustomId(`rpg:trade:coins:${tradeId}:a:-10`)
+        .setLabel('A -10 coins')
+        .setStyle(ButtonStyle.Secondary),
+      new ButtonBuilder()
+        .setCustomId(`rpg:trade:coins:${tradeId}:b:10`)
+        .setLabel('B +10 coins')
+        .setStyle(ButtonStyle.Primary),
+      new ButtonBuilder()
+        .setCustomId(`rpg:trade:coins:${tradeId}:b:-10`)
+        .setLabel('B -10 coins')
+        .setStyle(ButtonStyle.Secondary),
+    ),
+  );
+
+  rows.push(
+    new ActionRowBuilder<ButtonBuilder>().addComponents(
+      new ButtonBuilder()
+        .setCustomId(`rpg:trade:confirm:${tradeId}:a`)
+        .setLabel('✅ Confirm (A)')
+        .setStyle(ButtonStyle.Success),
+      new ButtonBuilder()
+        .setCustomId(`rpg:trade:confirm:${tradeId}:b`)
+        .setLabel('✅ Confirm (B)')
+        .setStyle(ButtonStyle.Success),
+      new ButtonBuilder()
+        .setCustomId(`rpg:trade:cancel:${tradeId}`)
+        .setLabel('❌ Cancel')
+        .setStyle(ButtonStyle.Danger),
+    ),
+  );
+
+  void aItems; void bItems;
+
+  await interaction.editReply({ embeds: [embed], components: rows });
 }

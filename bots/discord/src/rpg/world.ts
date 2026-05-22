@@ -54,6 +54,36 @@ export interface Loot {
   pos: [number, number];
 }
 
+export interface Duel {
+  id: string;
+  challengerId: string;
+  defenderId: string;
+  state: 'pending' | 'active' | 'finished';
+  createdAt: string;
+  expiresAt: string;
+  messageId: string;
+  channelId: string;
+  log: string[];
+}
+
+export interface TradeOffer {
+  coins: number;
+  items: string[];
+}
+
+export interface Trade {
+  id: string;
+  aId: string;
+  bId: string;
+  aOffer: TradeOffer;
+  bOffer: TradeOffer;
+  aConfirmed: boolean;
+  bConfirmed: boolean;
+  state: 'open' | 'completed' | 'cancelled';
+  messageId: string;
+  channelId: string;
+}
+
 export interface World {
   guildId: string;
   width: number;
@@ -63,6 +93,8 @@ export interface World {
   chars: Record<string, Character>;
   mobs: Record<string, Mob>;
   loot: Record<string, Loot>;
+  duels: Record<string, Duel>;
+  trades: Record<string, Trade>;
   nextId: number;
   lastSpawnAt: number;
   updatedAt: string;
@@ -155,6 +187,9 @@ export async function loadWorld(guildId: string): Promise<World | null> {
   try {
     const raw = await readFile(pathFor(guildId), 'utf8');
     const world = JSON.parse(raw) as World;
+    // Backward-compat defaults for fields added after initial release.
+    world.duels ??= {};
+    world.trades ??= {};
     cache.set(guildId, world);
     return world;
   } catch (err) {
@@ -248,6 +283,8 @@ export function generateWorld(guildId: string, width: number, height: number): W
     chars: {},
     mobs: {},
     loot: {},
+    duels: {},
+    trades: {},
     nextId: 1,
     lastSpawnAt: 0,
     updatedAt: new Date().toISOString(),
