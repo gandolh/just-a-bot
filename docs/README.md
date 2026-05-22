@@ -18,3 +18,4 @@ Project documentation, organized by feature area. Written for future me.
 - [Img](img/README.md) — `/img meme` `/img card` PNG image generation (Satori + resvg)
 - [Mafia](mafia/README.md) — `/mafia` Werewolf-style social deduction game with DM-based night actions
 - [Confession Box](confessions/README.md) — `/confess` anonymous per-guild confession channel with admin setup
+- [Timezone Clock](clock/README.md) — `/clock` register your timezone, see everyone's local time at a glance

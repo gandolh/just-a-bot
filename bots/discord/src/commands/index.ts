@@ -25,11 +25,13 @@ import { trivia } from './trivia.ts';
 import { img } from './img.ts';
 import { mafia } from './mafia.ts';
 import { confess } from './confess.ts';
+import { clock } from './clock.ts';
 
 const all: Command[] = [
   ping, play, skip, pause, resume, stop, queue, nowplaying,
   coins, slots, blackjack, dice, wordle, tictactoe,
   rpg, dnd, mafia, confess,
+  clock,
   top,
   quote,
   remindme, birthday,
