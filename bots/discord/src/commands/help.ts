@@ -78,6 +78,7 @@ const GROUPS: Group[] = [
     emoji: '🛠️',
     entries: [
       { name: '/ping', desc: 'Health check' },
+      { name: '/ask', desc: 'Ask an Ollama-hosted model a question' },
       { name: '/help', desc: 'Show this message' },
     ],
   },

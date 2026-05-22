@@ -27,6 +27,7 @@ import { mafia } from './mafia.ts';
 import { confess } from './confess.ts';
 import { clock } from './clock.ts';
 import { connectFour } from './connect-four.ts';
+import { ask } from './ask.ts';
 
 const all: Command[] = [
   ping, play, skip, pause, resume, stop, queue, nowplaying,
@@ -39,6 +40,7 @@ const all: Command[] = [
   hangman,
   trivia,
   img,
+  ask,
   help,
 ];
 
