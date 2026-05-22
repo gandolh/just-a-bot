@@ -6,6 +6,7 @@ import { commands } from './commands/index.ts';
 import { handleBlackjackButton } from './commands/blackjack.ts';
 import { handleWordleMessage, hasWordleGame } from './commands/wordle.ts';
 import { handleTicTacToeButton } from './commands/tictactoe.ts';
+import { handleRpgButton } from './commands/rpg-buttons.ts';
 
 const log = logger.scoped('discord');
 
@@ -23,6 +24,17 @@ client.once(Events.ClientReady, (c) => {
 });
 
 client.on(Events.InteractionCreate, async (interaction) => {
+  if (interaction.isButton() || interaction.isStringSelectMenu()) {
+    if (interaction.customId.startsWith('rpg:')) {
+      try {
+        await handleRpgButton(interaction);
+      } catch (err) {
+        log.error('RPG button failed', err);
+      }
+      return;
+    }
+  }
+
   if (interaction.isButton()) {
     if (interaction.customId.startsWith('bj:')) {
       try {

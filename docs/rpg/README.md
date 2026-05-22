@@ -25,6 +25,8 @@ A single slash command, `/rpg <sub>`:
 | `/rpg map`          | Emoji viewport centred on you (or the plaza if you haven't joined).   |
 | `/rpg top`          | Leaderboard by XP.                                                    |
 | `/rpg leave`        | Delete your character.                                                |
+| `/rpg duel @user`   | Challenge another player to a 1v1 arena duel. Accept/Decline buttons. |
+| `/rpg trade @user`  | Open a trade proposal with another player. Item selectors + coin adjustments. |
 
 ## Quick start
 
@@ -129,8 +131,36 @@ Tradeoff: mobs don't move when no one's playing — which is fine.
 | Combat resolution    | [`bots/discord/src/rpg/combat.ts`](../../bots/discord/src/rpg/combat.ts) |
 | Mob spawn + AI tick  | [`bots/discord/src/rpg/tick.ts`](../../bots/discord/src/rpg/tick.ts)    |
 | Map rendering        | [`bots/discord/src/rpg/render.ts`](../../bots/discord/src/rpg/render.ts) |
+| Duel logic           | [`bots/discord/src/rpg/duel.ts`](../../bots/discord/src/rpg/duel.ts)    |
+| Trade logic          | [`bots/discord/src/rpg/trade.ts`](../../bots/discord/src/rpg/trade.ts)  |
 | Slash command        | [`bots/discord/src/commands/rpg.ts`](../../bots/discord/src/commands/rpg.ts) |
+| RPG button router    | [`bots/discord/src/commands/rpg-buttons.ts`](../../bots/discord/src/commands/rpg-buttons.ts) |
 | Per-guild state file | `bots/discord/data/rpg/<guild-id>.json` (gitignored)                  |
+
+## PvP duels
+
+Consented 1v1 fights. No open-world ganking — both players must agree.
+
+1. `/rpg duel @bob` — Alice posts a challenge with Accept / Decline buttons. The challenge expires after 60 seconds.
+2. Bob clicks **Accept**: the bot runs the full fight immediately using the same `d20 + ATK vs 10 + DEF` formula as PvE combat, then replays the swing log one line per 1.5s.
+3. Neither character is permanently damaged. Both are at full HP before and after. The winner gets a small XP bonus (`floor(loserLevel × 5 × 0.1)`), no coins transfer, no item loss.
+4. Bob clicks **Decline** (or the 60s window lapses): challenge marked finished, no stat changes.
+
+## Item and coin trading
+
+Consented, atomic swaps of items and coins between two players.
+
+1. `/rpg trade @bob` — opens a trade proposal message visible to the channel.
+2. Each side adjusts their offer using **+10 / -10 coin** buttons and item select menus (populated from their inventory).
+3. Any change by either side resets both confirmations, so both must always re-confirm after any edit.
+4. When both click **Confirm**, the server validates that each player still owns what they offered (guards against race conditions), then performs an atomic swap inside a single `updateWorld` mutation.
+5. Either player can click **Cancel** at any time to abort the trade.
+
+Custom ID prefixes:
+- `rpg:duel:accept:<id>`, `rpg:duel:decline:<id>`
+- `rpg:trade:coins:<id>:<side>:<delta>`, `rpg:trade:item:<id>:<side>`, `rpg:trade:confirm:<id>:<side>`, `rpg:trade:cancel:<id>`
+
+Both `Duel` and `Trade` records live in the per-guild world JSON under `duels` and `trades` keys (default `{}` on load for backward compatibility).
 
 ## Design notes
 
@@ -155,3 +185,6 @@ Tradeoff: mobs don't move when no one's playing — which is fine.
   No DM authoring step needed.
 - **One file per guild, JSON, human-readable.** Same trade as the rest
   of the project — readability over transactional correctness.
+- **Duels don't kill.** The fight resolves on snapshotted HP; real characters are untouched. This keeps PvP low-stakes and avoids griefing.
+- **Trades are atomic.** The swap happens inside a single `updateWorld` callback so the per-guild write chain serialises it. No intermediate state is ever flushed.
+- **No wagers, no cursed items.** Both are v2 ideas. In v1 every item is freely tradable and duels award only XP.
