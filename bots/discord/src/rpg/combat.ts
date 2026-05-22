@@ -4,10 +4,12 @@ import {
   MOB_KINDS,
   World,
   cheby,
+  effectiveStats,
   findOpenCell,
   levelFor,
   nextId,
 } from './world.ts';
+import { BountyClaim, onKill } from './bounty.ts';
 
 export const ATTACK_COOLDOWN_MS = 3000;
 
@@ -27,6 +29,7 @@ export interface KillResult {
   drops: string[];
   leveledUp: boolean;
   newLevel?: number;
+  bounty?: BountyClaim | null;
 }
 
 function roll(sides: number): number {
@@ -56,7 +59,8 @@ export function charAttackMob(
 
   const kind = MOB_KINDS[mob.kind];
   const def = kind?.def ?? 0;
-  const res = computeHit(char.atk, def);
+  const eff = effectiveStats(char);
+  const res = computeHit(eff.atk, def);
   const attack: AttackResult = {
     attacker: char.name,
     target: kind?.name ?? mob.kind,
@@ -77,7 +81,7 @@ export function charAttackMob(
   }
 
   // Counter-attack from the mob.
-  const counterRes = computeHit(kind?.atk ?? 1, char.def);
+  const counterRes = computeHit(kind?.atk ?? 1, eff.def);
   const counter: AttackResult = {
     attacker: kind?.name ?? mob.kind,
     target: char.name,
@@ -99,7 +103,8 @@ export function charAttackMob(
 // Mob attacks a character. Used by the tick step.
 export function mobAttackChar(world: World, mob: Mob, char: Character): AttackResult {
   const kind = MOB_KINDS[mob.kind];
-  const res = computeHit(kind?.atk ?? 1, char.def);
+  const eff = effectiveStats(char);
+  const res = computeHit(kind?.atk ?? 1, eff.def);
   if (res.hit) char.hp -= res.damage;
   const log = res.hit
     ? `${kind?.glyph ?? '👹'} **${kind?.name ?? mob.kind}** strikes ${char.glyph} ${char.name} for **${res.damage}**${res.crit ? ' 💥 crit!' : ''}`
@@ -152,12 +157,15 @@ function killMob(world: World, char: Character, mob: Mob): KillResult {
     char.hp = char.maxHp; // full heal on level up
   }
 
+  const bounty = onKill(char, kind.slug);
+
   return {
     xp: kind.xp,
     coins,
     drops,
     leveledUp,
     newLevel: leveledUp ? afterLevel : undefined,
+    bounty,
   };
 }
 

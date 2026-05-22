@@ -1,5 +1,6 @@
 import {
   ActionRowBuilder,
+  AutocompleteInteraction,
   ButtonBuilder,
   ButtonStyle,
   ChatInputCommandInteraction,
@@ -13,6 +14,7 @@ import {
   Mob,
   World,
   cheby,
+  effectiveStats,
   entityAt,
   findOpenCell,
   getOrCreateWorld,
@@ -30,6 +32,14 @@ import {
   charAttackMob,
 } from '../rpg/combat.ts';
 import { startDuel, startTrade } from './rpg-buttons.ts';
+import { ITEMS, ItemDef, getItem, isWeapon, shopCatalog } from '../rpg/items.ts';
+import { buyItem, onPlaza, sellItem } from '../rpg/shop.ts';
+import { rollBounty } from '../rpg/bounty.ts';
+import {
+  buildControllerEmbed,
+  buildControllerRows,
+  hpBar,
+} from '../rpg/controller.ts';
 
 const PC_GLYPHS = ['🧙', '🧝', '🧛', '🧟', '🧞', '🧜', '🦸', '🥷', '👤', '🧚'];
 
@@ -99,7 +109,38 @@ const data = new SlashCommandBuilder()
   .addSubcommand((s) =>
     s.setName('trade').setDescription('Propose an item/coin trade with another player')
       .addUserOption((o) => o.setName('target').setDescription('Player to trade with').setRequired(true)),
-  );
+  )
+  .addSubcommand((s) =>
+    s.setName('equip').setDescription('Equip a weapon or armor from your inventory')
+      .addStringOption((o) =>
+        o.setName('item').setDescription('Item to equip').setRequired(true).setAutocomplete(true),
+      ),
+  )
+  .addSubcommand((s) =>
+    s.setName('unequip').setDescription('Return an equipped item to your inventory')
+      .addStringOption((o) =>
+        o.setName('slot').setDescription('Slot to unequip').setRequired(true).addChoices(
+          { name: 'weapon', value: 'weapon' },
+          { name: 'armor', value: 'armor' },
+        ),
+      ),
+  )
+  .addSubcommand((s) => s.setName('shop').setDescription('See what the plaza shop sells'))
+  .addSubcommand((s) =>
+    s.setName('buy').setDescription('Buy an item from the plaza shop (must stand on the plaza)')
+      .addStringOption((o) =>
+        o.setName('item').setDescription('Item to buy').setRequired(true).setAutocomplete(true),
+      ),
+  )
+  .addSubcommand((s) =>
+    s.setName('sell').setDescription('Sell an item from your inventory (must stand on the plaza)')
+      .addStringOption((o) =>
+        o.setName('item').setDescription('Item to sell').setRequired(true).setAutocomplete(true),
+      ),
+  )
+  .addSubcommand((s) => s.setName('bounty').setDescription('View your current bounty (auto-rolls a new one if none)'))
+  .addSubcommand((s) => s.setName('play').setDescription('Open a button-driven controller: walk, attack, loot in place'))
+  .addSubcommand((s) => s.setName('help').setDescription('Quickstart and command reference'));
 
 export const rpg: Command = {
   data,
@@ -125,7 +166,70 @@ export const rpg: Command = {
       case 'leave': return handleLeave(interaction, userId);
       case 'duel': return handleDuel(interaction, userId);
       case 'trade': return handleTradeStart(interaction, userId);
+      case 'equip': return handleEquip(interaction, userId);
+      case 'unequip': return handleUnequip(interaction, userId);
+      case 'shop': return handleShop(interaction);
+      case 'buy': return handleBuy(interaction, userId);
+      case 'sell': return handleSell(interaction, userId);
+      case 'bounty': return handleBounty(interaction, userId);
+      case 'play': return handlePlay(interaction, userId);
+      case 'help': return handleHelp(interaction);
     }
+  },
+  async autocomplete(interaction: AutocompleteInteraction) {
+    if (!interaction.inGuild()) {
+      await interaction.respond([]);
+      return;
+    }
+    const sub = interaction.options.getSubcommand();
+    const focused = interaction.options.getFocused()?.toString().toLowerCase() ?? '';
+
+    if (sub === 'buy') {
+      const matches = shopCatalog()
+        .filter((i) => i.slug.includes(focused) || i.label.toLowerCase().includes(focused))
+        .slice(0, 25)
+        .map((i) => ({ name: `${i.label} — ${i.buy}c`, value: i.slug }));
+      await interaction.respond(matches);
+      return;
+    }
+
+    const world = await getOrCreateWorld(interaction.guildId!);
+    const char = world.chars[interaction.user.id];
+    if (!char) { await interaction.respond([]); return; }
+
+    if (sub === 'equip') {
+      const seen = new Set<string>();
+      const matches: { name: string; value: string }[] = [];
+      for (const slug of char.inventory) {
+        if (seen.has(slug)) continue;
+        seen.add(slug);
+        const item = getItem(slug);
+        if (!item || (item.kind !== 'weapon' && item.kind !== 'armor')) continue;
+        if (!slug.includes(focused) && !item.label.toLowerCase().includes(focused)) continue;
+        matches.push({ name: `${item.label} (${item.desc ?? item.kind})`, value: slug });
+        if (matches.length >= 25) break;
+      }
+      await interaction.respond(matches);
+      return;
+    }
+
+    if (sub === 'sell') {
+      const seen = new Set<string>();
+      const matches: { name: string; value: string }[] = [];
+      for (const slug of char.inventory) {
+        if (seen.has(slug)) continue;
+        seen.add(slug);
+        const item = getItem(slug);
+        if (!item) continue;
+        if (!slug.includes(focused) && !item.label.toLowerCase().includes(focused)) continue;
+        matches.push({ name: `${item.label} — sells for ${item.sell}c`, value: slug });
+        if (matches.length >= 25) break;
+      }
+      await interaction.respond(matches);
+      return;
+    }
+
+    await interaction.respond([]);
   },
 };
 
@@ -141,7 +245,7 @@ async function handleJoin(
     tickWorld(w);
     if (w.chars[userId]) return;
     const cell = findOpenCell(w, w.spawn, 6) ?? w.spawn;
-    w.chars[userId] = {
+    const fresh: Character = {
       userId,
       name: customName?.trim() || displayName,
       glyph: (customGlyph?.match(/\p{Extended_Pictographic}/u)?.[0]) ?? pickGlyph(w),
@@ -156,9 +260,13 @@ async function handleJoin(
       kills: 0,
       deaths: 0,
       inventory: [],
+      equipment: { weapon: null, armor: null },
+      bounty: null,
       lastAttackAt: 0,
       lastMoveAt: 0,
     };
+    rollBounty(fresh);
+    w.chars[userId] = fresh;
   });
 
   const char = world.chars[userId];
@@ -185,6 +293,9 @@ async function handleMe(
     return;
   }
   const cooldownMs = attackCooldownRemainingMs(char);
+  const eff = effectiveStats(char);
+  const atkLine = eff.bonusAtk > 0 ? `${eff.atk} (${char.atk} +${eff.bonusAtk})` : `${eff.atk}`;
+  const defLine = eff.bonusDef > 0 ? `${eff.def} (${char.def} +${eff.bonusDef})` : `${eff.def}`;
   const embed = new EmbedBuilder()
     .setColor(0x3498db)
     .setTitle(`${char.glyph} ${char.name}`)
@@ -192,15 +303,46 @@ async function handleMe(
       `Lvl **${char.level}** • ${char.xp} XP (next in ${xpToNext(char.xp)})`,
     )
     .addFields(
-      { name: 'HP', value: `${char.hp}/${char.maxHp}`, inline: true },
-      { name: 'ATK / DEF', value: `${char.atk} / ${char.def}`, inline: true },
+      { name: 'HP', value: `${hpBar(char.hp, char.maxHp)} ${char.hp}/${char.maxHp}`, inline: false },
+      { name: 'ATK / DEF', value: `${atkLine} / ${defLine}`, inline: true },
       { name: 'Coins', value: `${char.coins}`, inline: true },
       { name: 'Kills / Deaths', value: `${char.kills} / ${char.deaths}`, inline: true },
       { name: 'Position', value: `(${char.pos[0]}, ${char.pos[1]})`, inline: true },
       { name: 'Cooldown', value: cooldownMs > 0 ? fmtCooldown(cooldownMs) : 'ready', inline: true },
-      { name: 'Inventory', value: char.inventory.length ? char.inventory.join(', ') : '— empty —' },
+      { name: 'Equipped', value: equipLine(char), inline: false },
+      { name: 'Bounty', value: bountyLine(char), inline: false },
+      { name: 'Inventory', value: inventoryLine(char) },
     );
   await interaction.reply({ embeds: [embed], ephemeral: true });
+}
+
+function equipLine(char: Character): string {
+  const parts: string[] = [];
+  const w = char.equipment.weapon ? ITEMS[char.equipment.weapon] : null;
+  const a = char.equipment.armor ? ITEMS[char.equipment.armor] : null;
+  parts.push(w ? `🗡️ ${w.label} (${w.desc ?? `+${w.atk} ATK`})` : '🗡️ — bare hands —');
+  parts.push(a ? `🛡️ ${a.label} (${a.desc ?? `+${a.def} DEF`})` : '🛡️ — no armor —');
+  return parts.join('\n');
+}
+
+function bountyLine(char: Character): string {
+  if (!char.bounty) return '— none. Use `/rpg bounty` to take one. —';
+  const kind = MOB_KINDS[char.bounty.target];
+  const targetLabel = kind ? `${kind.glyph} ${kind.name.toLowerCase()}s` : char.bounty.target;
+  return `🎯 Slay ${char.bounty.goal} ${targetLabel} — **${char.bounty.progress}/${char.bounty.goal}** — reward ${char.bounty.xpReward} XP + ${char.bounty.coinReward} coins`;
+}
+
+function inventoryLine(char: Character): string {
+  if (char.inventory.length === 0) return '— empty —';
+  const counts: Record<string, number> = {};
+  for (const slug of char.inventory) counts[slug] = (counts[slug] ?? 0) + 1;
+  return Object.entries(counts)
+    .map(([slug, n]) => {
+      const item = ITEMS[slug];
+      const label = item?.label ?? slug;
+      return n > 1 ? `${label} ×${n}` : label;
+    })
+    .join(', ');
 }
 
 async function handleMove(
@@ -350,6 +492,13 @@ async function handleAttack(
       resultLines.push(`☠️ Defeated! +${res.kill.xp} XP, +${res.kill.coins} coins${dropText}.`);
       if (res.kill.leveledUp) {
         resultLines.push(`✨ **Level up!** ${char.name} is now level ${res.kill.newLevel}. Full heal.`);
+      }
+      if (res.kill.bounty) {
+        const b = res.kill.bounty;
+        resultLines.push(`🎯 **Bounty complete!** +${b.xp} XP, +${b.coins} coins. Take a new one with \`/rpg bounty\`.`);
+        if (b.leveledUp && !res.kill.leveledUp) {
+          resultLines.push(`✨ **Level up!** ${char.name} is now level ${b.newLevel}. Full heal.`);
+        }
       }
     } else if (res.counter) {
       resultLines.push(res.counter.log);
@@ -656,4 +805,239 @@ async function handleTradeStart(
   void aItems; void bItems;
 
   await interaction.editReply({ embeds: [embed], components: rows });
+}
+
+async function handleEquip(
+  interaction: ChatInputCommandInteraction,
+  userId: string,
+): Promise<void> {
+  const slug = interaction.options.getString('item', true);
+  let outcome: string | null = null;
+  let missing = false;
+
+  await updateWorld(interaction.guildId!, (w) => {
+    const char = w.chars[userId];
+    if (!char) { missing = true; return; }
+    const item = getItem(slug);
+    if (!item) { outcome = `Unknown item **${slug}**.`; return; }
+    if (item.kind !== 'weapon' && item.kind !== 'armor') {
+      outcome = `${item.label} is not equippable.`;
+      return;
+    }
+    const idx = char.inventory.indexOf(slug);
+    if (idx < 0) { outcome = `You don't have a **${item.label}** to equip.`; return; }
+
+    const slot: 'weapon' | 'armor' = isWeapon(slug) ? 'weapon' : 'armor';
+    char.inventory.splice(idx, 1);
+    const previous = char.equipment[slot];
+    char.equipment[slot] = slug;
+    if (previous) char.inventory.push(previous);
+    const prevText = previous ? ` (returned ${ITEMS[previous]?.label ?? previous} to inventory)` : '';
+    outcome = `🎽 Equipped **${item.label}** — ${item.desc ?? ''}${prevText}.`;
+  });
+
+  if (missing) {
+    await interaction.reply({ content: 'You have not joined. Use `/rpg join` first.', ephemeral: true });
+    return;
+  }
+  await interaction.reply({ content: outcome ?? 'Nothing happens.', ephemeral: true });
+}
+
+async function handleUnequip(
+  interaction: ChatInputCommandInteraction,
+  userId: string,
+): Promise<void> {
+  const slot = interaction.options.getString('slot', true) as 'weapon' | 'armor';
+  let outcome: string | null = null;
+  let missing = false;
+
+  await updateWorld(interaction.guildId!, (w) => {
+    const char = w.chars[userId];
+    if (!char) { missing = true; return; }
+    const slug = char.equipment[slot];
+    if (!slug) { outcome = `Nothing equipped in the ${slot} slot.`; return; }
+    char.equipment[slot] = null;
+    char.inventory.push(slug);
+    outcome = `🎽 Unequipped **${ITEMS[slug]?.label ?? slug}** — returned to inventory.`;
+  });
+
+  if (missing) {
+    await interaction.reply({ content: 'You have not joined. Use `/rpg join` first.', ephemeral: true });
+    return;
+  }
+  await interaction.reply({ content: outcome ?? 'Nothing happens.', ephemeral: true });
+}
+
+function formatCatalogLine(item: ItemDef): string {
+  const stat = item.atk ? `+${item.atk} ATK` : item.def ? `+${item.def} DEF` : item.desc ?? item.kind;
+  return `• ${item.glyph} **${item.label}** — ${item.buy}c (${stat}) [\`${item.slug}\`]`;
+}
+
+async function handleShop(interaction: ChatInputCommandInteraction): Promise<void> {
+  const lines = shopCatalog().map(formatCatalogLine);
+  const embed = new EmbedBuilder()
+    .setColor(0x1abc9c)
+    .setTitle('🏪 Plaza Shop')
+    .setDescription(
+      [
+        'Stand on a 🟧 plaza tile to `/rpg buy` or `/rpg sell`.',
+        '',
+        ...lines,
+        '',
+        '_Sell prices are roughly a third of buy price. Materials (slime jelly, wolf pelt, troll tooth) only sell._',
+      ].join('\n'),
+    );
+  await interaction.reply({ embeds: [embed], ephemeral: true });
+}
+
+async function handleBuy(
+  interaction: ChatInputCommandInteraction,
+  userId: string,
+): Promise<void> {
+  const slug = interaction.options.getString('item', true);
+  let outcome: string | null = null;
+  let missing = false;
+  let notOnPlaza = false;
+
+  await updateWorld(interaction.guildId!, (w) => {
+    const char = w.chars[userId];
+    if (!char) { missing = true; return; }
+    if (!onPlaza(w, char)) { notOnPlaza = true; return; }
+    const res = buyItem(char, slug);
+    if (!res.ok) { outcome = res.reason ?? 'Could not buy.'; return; }
+    outcome = `🛒 Bought **${res.item?.label}** for ${res.cost}c. Coins left: ${char.coins}.`;
+  });
+
+  if (missing) {
+    await interaction.reply({ content: 'You have not joined. Use `/rpg join` first.', ephemeral: true });
+    return;
+  }
+  if (notOnPlaza) {
+    await interaction.reply({ content: 'You must stand on a 🟧 plaza tile to use the shop.', ephemeral: true });
+    return;
+  }
+  await interaction.reply({ content: outcome ?? 'Nothing happens.', ephemeral: true });
+}
+
+async function handleSell(
+  interaction: ChatInputCommandInteraction,
+  userId: string,
+): Promise<void> {
+  const slug = interaction.options.getString('item', true);
+  let outcome: string | null = null;
+  let missing = false;
+  let notOnPlaza = false;
+
+  await updateWorld(interaction.guildId!, (w) => {
+    const char = w.chars[userId];
+    if (!char) { missing = true; return; }
+    if (!onPlaza(w, char)) { notOnPlaza = true; return; }
+    const res = sellItem(char, slug);
+    if (!res.ok) { outcome = res.reason ?? 'Could not sell.'; return; }
+    outcome = `💰 Sold **${res.item?.label}** for ${res.gained}c. Coins: ${char.coins}.`;
+  });
+
+  if (missing) {
+    await interaction.reply({ content: 'You have not joined. Use `/rpg join` first.', ephemeral: true });
+    return;
+  }
+  if (notOnPlaza) {
+    await interaction.reply({ content: 'You must stand on a 🟧 plaza tile to use the shop.', ephemeral: true });
+    return;
+  }
+  await interaction.reply({ content: outcome ?? 'Nothing happens.', ephemeral: true });
+}
+
+async function handleBounty(
+  interaction: ChatInputCommandInteraction,
+  userId: string,
+): Promise<void> {
+  let outcome: { rolled: boolean; char: Character | null } = { rolled: false, char: null };
+  let missing = false;
+
+  await updateWorld(interaction.guildId!, (w) => {
+    const char = w.chars[userId];
+    if (!char) { missing = true; return; }
+    if (!char.bounty) {
+      rollBounty(char);
+      outcome.rolled = true;
+    }
+    outcome.char = char;
+  });
+
+  if (missing) {
+    await interaction.reply({ content: 'You have not joined. Use `/rpg join` first.', ephemeral: true });
+    return;
+  }
+  const char = outcome.char!;
+  const b = char.bounty;
+  if (!b) {
+    await interaction.reply({ content: 'No bounty available. Try again later.', ephemeral: true });
+    return;
+  }
+  const kind = MOB_KINDS[b.target];
+  const targetLabel = kind ? `${kind.glyph} ${kind.name.toLowerCase()}s` : b.target;
+  const header = outcome.rolled ? '🎯 **New bounty rolled**' : '🎯 **Active bounty**';
+  const embed = new EmbedBuilder()
+    .setColor(0xe67e22)
+    .setTitle(header)
+    .setDescription(
+      [
+        `Slay **${b.goal} ${targetLabel}**`,
+        `Progress: **${b.progress}/${b.goal}**`,
+        `Reward: ${b.xpReward} XP + ${b.coinReward} coins`,
+        '',
+        'Auto-claims the moment the last kill lands. A fresh bounty rolls next time you run `/rpg bounty`.',
+      ].join('\n'),
+    );
+  await interaction.reply({ embeds: [embed], ephemeral: true });
+}
+
+async function handlePlay(
+  interaction: ChatInputCommandInteraction,
+  userId: string,
+): Promise<void> {
+  let missing = false;
+  const world = await updateWorld(interaction.guildId!, (w) => {
+    tickWorld(w);
+    if (!w.chars[userId]) missing = true;
+  });
+
+  if (missing) {
+    await interaction.reply({ content: 'You have not joined. Use `/rpg join` first.', ephemeral: true });
+    return;
+  }
+  const char = world.chars[userId];
+  const embed = buildControllerEmbed(world, char);
+  const rows = buildControllerRows();
+  await interaction.reply({ embeds: [embed], components: rows, ephemeral: true });
+}
+
+async function handleHelp(interaction: ChatInputCommandInteraction): Promise<void> {
+  const embed = new EmbedBuilder()
+    .setColor(0x16a085)
+    .setTitle('🗺️ /rpg quickstart')
+    .setDescription(
+      [
+        '**Step 1.** `/rpg join` — spawn at the plaza.',
+        '**Step 2.** `/rpg play` — open a button-driven controller (recommended).',
+        '**Step 3.** Click direction arrows to walk. Adjacent enemies show a target line — click ⚔ Attack.',
+        '**Step 4.** Loot is auto-collected when you walk over it. Drink a potion with 🧪 when low on HP.',
+        '',
+        '**Combat math** — `d20 + ATK vs 10 + DEF`. Nat 1 misses, nat 20 crits (2× damage). 3-second cooldown between swings.',
+        '**Death** — respawn at the plaza, drop half your coins. Equipment is never lost.',
+        '',
+        '**Other commands**',
+        '`/rpg me` — character sheet, equipped gear, bounty, inventory.',
+        '`/rpg map` — public viewport (no buttons).',
+        '`/rpg shop` `/rpg buy` `/rpg sell` — plaza-tile shop (stand on 🟧).',
+        '`/rpg equip` `/rpg unequip` — manage weapon/armor slots.',
+        '`/rpg bounty` — view or roll a new kill quest.',
+        '`/rpg duel @user` — 1v1 consented PvP (no real damage).',
+        '`/rpg trade @user` — atomic item + coin swap with consent.',
+        '`/rpg top` — XP leaderboard.',
+        '`/rpg leave` — delete your character.',
+      ].join('\n'),
+    );
+  await interaction.reply({ embeds: [embed], ephemeral: true });
 }

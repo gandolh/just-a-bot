@@ -1,11 +1,26 @@
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { ITEMS } from './items.ts';
 
 const here = fileURLToPath(new URL('.', import.meta.url));
 const dataDir = resolve(here, '../../data/rpg');
 
 export type Terrain = '.' | '#' | '~' | 'f' | '^' | '=';
+
+export interface Equipment {
+  weapon: string | null;
+  armor: string | null;
+}
+
+export interface Bounty {
+  target: string;
+  goal: number;
+  progress: number;
+  xpReward: number;
+  coinReward: number;
+  rolledAt: string;
+}
 
 export interface Character {
   userId: string;
@@ -22,6 +37,8 @@ export interface Character {
   kills: number;
   deaths: number;
   inventory: string[];
+  equipment: Equipment;
+  bounty: Bounty | null;
   lastAttackAt: number;
   lastMoveAt: number;
 }
@@ -190,6 +207,10 @@ export async function loadWorld(guildId: string): Promise<World | null> {
     // Backward-compat defaults for fields added after initial release.
     world.duels ??= {};
     world.trades ??= {};
+    for (const c of Object.values(world.chars)) {
+      c.equipment ??= { weapon: null, armor: null };
+      if (c.bounty === undefined) c.bounty = null;
+    }
     cache.set(guildId, world);
     return world;
   } catch (err) {
@@ -351,6 +372,30 @@ export function xpToNext(xp: number): number {
   return lvl * 50 - xp;
 }
 
+export interface EffectiveStats {
+  atk: number;
+  def: number;
+  maxHp: number;
+  bonusAtk: number;
+  bonusDef: number;
+}
+
+export function effectiveStats(char: Character): EffectiveStats {
+  const weapon = char.equipment?.weapon ? ITEMS[char.equipment.weapon] : undefined;
+  const armor = char.equipment?.armor ? ITEMS[char.equipment.armor] : undefined;
+  const bonusAtk = weapon?.atk ?? 0;
+  const bonusDef = armor?.def ?? 0;
+  return {
+    atk: char.atk + bonusAtk,
+    def: char.def + bonusDef,
+    maxHp: char.maxHp,
+    bonusAtk,
+    bonusDef,
+  };
+}
+
+// Kept for backwards compatibility with older imports.
 export function statsFor(char: Character): { atk: number; def: number; maxHp: number } {
-  return { atk: char.atk, def: char.def, maxHp: char.maxHp };
+  const e = effectiveStats(char);
+  return { atk: e.atk, def: e.def, maxHp: e.maxHp };
 }

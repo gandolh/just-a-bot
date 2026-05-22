@@ -1,4 +1,4 @@
-import { Duel, World, nextId, levelFor } from './world.ts';
+import { Duel, World, effectiveStats, nextId, levelFor } from './world.ts';
 
 const DUEL_EXPIRY_MS = 60_000;
 
@@ -80,11 +80,13 @@ export function runDuel(world: World, duelId: string): DuelRunResult | null {
   // Snapshot HP so the real chars aren't permanently damaged.
   let aHp = a.maxHp;
   let bHp = b.maxHp;
+  const aEff = effectiveStats(a);
+  const bEff = effectiveStats(b);
   const MAX_ROUNDS = 30;
 
   for (let round = 0; round < MAX_ROUNDS && aHp > 0 && bHp > 0; round++) {
     // a attacks b
-    const aSwing = resolveSwing(a.atk, b.def);
+    const aSwing = resolveSwing(aEff.atk, bEff.def);
     if (aSwing.hit) {
       bHp -= aSwing.damage;
       duel.log.push(
@@ -96,7 +98,7 @@ export function runDuel(world: World, duelId: string): DuelRunResult | null {
     if (bHp <= 0) break;
 
     // b attacks a
-    const bSwing = resolveSwing(b.atk, a.def);
+    const bSwing = resolveSwing(bEff.atk, aEff.def);
     if (bSwing.hit) {
       aHp -= bSwing.damage;
       duel.log.push(

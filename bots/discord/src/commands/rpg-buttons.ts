@@ -23,6 +23,17 @@ import {
   executeTrade,
 } from '../rpg/trade.ts';
 import type { Trade } from '../rpg/world.ts';
+import {
+  CtlActionResult,
+  CtlDir,
+  buildControllerEmbed,
+  buildControllerRows,
+  ctlAttack,
+  ctlMove,
+  ctlPickup,
+  ctlUsePotion,
+  tickBanner,
+} from '../rpg/controller.ts';
 
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -42,7 +53,75 @@ export async function handleRpgButton(
     } else {
       await handleTradeButton(interaction as ButtonInteraction, parts);
     }
+  } else if (domain === 'ctl') {
+    await handleControllerButton(interaction as ButtonInteraction, parts);
   }
+}
+
+// ── Controller (button-driven movement / combat) ────────────────────────────
+
+async function handleControllerButton(
+  interaction: ButtonInteraction,
+  parts: string[],
+): Promise<void> {
+  if (!interaction.inCachedGuild()) {
+    await interaction.reply({ content: 'Not in a guild.', ephemeral: true });
+    return;
+  }
+  const action = parts[2];
+
+  if (action === 'close') {
+    await interaction.update({ content: '🎮 Controller closed.', embeds: [], components: [] });
+    return;
+  }
+
+  const guildId = interaction.guildId;
+  const userId = interaction.user.id;
+
+  let result: CtlActionResult = { ok: true };
+  let missing = false;
+  let tickText: string | null = null;
+
+  const world = await updateWorld(guildId, (w) => {
+    tickText = tickBanner(w);
+    const char = w.chars[userId];
+    if (!char) { missing = true; return; }
+
+    if (action === 'move') {
+      const dir = parts[3] as CtlDir;
+      result = ctlMove(w, char, dir);
+    } else if (action === 'attack') {
+      result = ctlAttack(w, char);
+    } else if (action === 'pickup') {
+      result = ctlPickup(w, char);
+    } else if (action === 'use') {
+      result = ctlUsePotion(w, char);
+    } else if (action === 'refresh') {
+      result = { ok: true };
+    }
+  });
+
+  if (missing) {
+    await interaction.reply({
+      content: 'You have not joined. Use `/rpg join` first.',
+      ephemeral: true,
+    });
+    return;
+  }
+
+  const char = world.chars[userId];
+  if (!char) {
+    await interaction.update({
+      content: 'Character not found.',
+      embeds: [],
+      components: [],
+    });
+    return;
+  }
+
+  const embed = buildControllerEmbed(world, char, result.banner, tickText ?? undefined);
+  const rows = buildControllerRows();
+  await interaction.update({ embeds: [embed], components: rows });
 }
 
 // ── Duel ────────────────────────────────────────────────────────────────────
