@@ -10,4 +10,5 @@ Project documentation, organized by feature area. Written for future me.
 - [RPG](rpg/README.md) — `/rpg` shared multiplayer world, mobs, loot, leveling
 - [D&D](dnd/README.md) — `/dnd` DM-led campaigns: narration, initiative, monsters
 - [Music](music/README.md) — experimental, may break
-- [Pending features](todo/README.md) — TODO specs for unbuilt features (birthdays, quotes, hangman, trivia, mafia, `/img`, RPG duels/trading, leaderboards)
+- [Trivia](trivia/README.md) — `/trivia` multiple-choice questions via OpenTDB, first correct answer wins
+- [Pending features](todo/README.md) — TODO specs for unbuilt features (birthdays, quotes, hangman, mafia, `/img`, RPG duels/trading, leaderboards)

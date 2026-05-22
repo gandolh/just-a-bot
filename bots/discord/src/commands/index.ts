@@ -16,11 +16,13 @@ import { tictactoe } from './tictactoe.ts';
 import { help } from './help.ts';
 import { rpg } from './rpg.ts';
 import { dnd } from './dnd.ts';
+import { trivia } from './trivia.ts';
 
 const all: Command[] = [
   ping, play, skip, pause, resume, stop, queue, nowplaying,
   coins, slots, blackjack, dice, wordle, tictactoe,
   rpg, dnd,
+  trivia,
   help,
 ];
 

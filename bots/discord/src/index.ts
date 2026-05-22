@@ -6,6 +6,7 @@ import { commands } from './commands/index.ts';
 import { handleBlackjackButton } from './commands/blackjack.ts';
 import { handleWordleMessage, hasWordleGame } from './commands/wordle.ts';
 import { handleTicTacToeButton } from './commands/tictactoe.ts';
+import { handleTriviaButton } from './commands/trivia.ts';
 
 const log = logger.scoped('discord');
 
@@ -35,6 +36,12 @@ client.on(Events.InteractionCreate, async (interaction) => {
         await handleTicTacToeButton(interaction);
       } catch (err) {
         log.error('Tic-tac-toe button failed', err);
+      }
+    } else if (interaction.customId.startsWith('trv:')) {
+      try {
+        await handleTriviaButton(interaction);
+      } catch (err) {
+        log.error('Trivia button failed', err);
       }
     }
     return;
