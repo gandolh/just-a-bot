@@ -16,4 +16,4 @@ Project documentation, organized by feature area. Written for future me.
 - [Hangman](hangman/README.md) — `/hangman` cooperative thread-based guessing game
 - [Trivia](trivia/README.md) — `/trivia` multiple-choice questions via OpenTDB, first correct answer wins
 - [Img](img/README.md) — `/img meme` `/img card` PNG image generation (Satori + resvg)
-- [Pending features](todo/README.md) — TODO specs for unbuilt features (mafia, RPG duels/trading)
+- [Mafia](mafia/README.md) — `/mafia` Werewolf-style social deduction game with DM-based night actions

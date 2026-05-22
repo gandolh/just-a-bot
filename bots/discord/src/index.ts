@@ -1,4 +1,4 @@
-import { Client, Events, GatewayIntentBits } from 'discord.js';
+import { Client, Events, GatewayIntentBits, Partials } from 'discord.js';
 import { logger } from '@bots/shared';
 import { env } from './env.ts';
 import { initPlayer } from './player.ts';
@@ -11,6 +11,7 @@ import { handleQuoteListButton } from './commands/quote.ts';
 import { tickReminders, tickBirthdays } from './reminders/tick.ts';
 import { handleTriviaButton } from './commands/trivia.ts';
 import { handleRpgButton } from './commands/rpg-buttons.ts';
+import { handleMafiaButton } from './commands/mafia.ts';
 
 const log = logger.scoped('discord');
 
@@ -20,7 +21,9 @@ const client = new Client({
     GatewayIntentBits.GuildVoiceStates,
     GatewayIntentBits.GuildMessages,
     GatewayIntentBits.MessageContent,
+    GatewayIntentBits.DirectMessages,
   ],
+  partials: [Partials.Channel],
 });
 
 client.once(Events.ClientReady, (c) => {
@@ -63,6 +66,12 @@ client.on(Events.InteractionCreate, async (interaction) => {
         await handleTriviaButton(interaction);
       } catch (err) {
         log.error('Trivia button failed', err);
+      }
+    } else if (interaction.customId.startsWith('maf:')) {
+      try {
+        await handleMafiaButton(interaction);
+      } catch (err) {
+        log.error('Mafia button failed', err);
       }
     }
     return;
