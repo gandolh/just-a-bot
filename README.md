@@ -1,6 +1,11 @@
 # just-a-bot
 
-A Discord bot for fun: gambling games, a shared multiplayer RPG world, a
-DM-led D&D campaign layer, and (experimental) music playback.
+Hobby chat-bot monorepo. Two bots so far:
 
-See [`docs/`](docs/README.md) for everything else.
+- **Discord** — gambling games, a shared multiplayer RPG world, a DM-led D&D
+  campaign layer, plus quotes/reminders/clock/trivia/etc. See
+  [`docs/discord/`](docs/discord/README.md).
+- **Slack** — Wordle, Tic-Tac-Toe, reminders, world clock, polls. See
+  [`docs/slack/`](docs/slack/README.md).
+
+Cross-bot architecture + install in [`docs/common/`](docs/common/setup.md).

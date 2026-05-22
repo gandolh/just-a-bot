@@ -1,23 +1,17 @@
 # Docs
 
-Project documentation, organized by feature area. Written for future me.
+Project documentation, organized by where the code lives. Written for future me.
 
-## Index
+## Sections
 
-- [Architecture](architecture.md) — monorepo layout, runtime model, data flow
-- [Ops / Setup](ops/setup.md) — registering commands, running the bot, data dirs
-- [Gambling](gambling/README.md) — `/coins` `/slots` `/blackjack` `/dice`
-- [RPG](rpg/README.md) — `/rpg` shared multiplayer world, mobs, loot, leveling
-- [D&D](dnd/README.md) — `/dnd` DM-led campaigns: narration, initiative, monsters
-- [Music](music/README.md) — experimental, may break
-- [Leaderboards](leaderboards/README.md) — `/top` cross-category top 10
-- [Quote Book](quotes/README.md) — `/quote` save/recall memorable server messages, context-menu shortcut
-- [Reminders & Birthdays](reminders/README.md) — `/remindme` one-shot pings, `/birthday` annual wishes, shared tick loop
-- [Hangman](hangman/README.md) — `/hangman` cooperative thread-based guessing game
-- [Trivia](trivia/README.md) — `/trivia` multiple-choice questions via OpenTDB, first correct answer wins
-- [Img](img/README.md) — `/img meme` `/img card` PNG image generation (Satori + resvg)
-- [Mafia](mafia/README.md) — `/mafia` Werewolf-style social deduction game with DM-based night actions
-- [Confession Box](confessions/README.md) — `/confess` anonymous per-guild confession channel with admin setup
-- [Timezone Clock](clock/README.md) — `/clock` register your timezone, see everyone's local time at a glance
-- [Connect Four](connect-four/README.md) — `/c4 @opponent` button-driven 7×6 two-player Connect Four
-- [Slack](slack/README.md) — `/ping` `/help` + app-mention echo, Bolt + Socket Mode
+- **[Common](common/)** — cross-bot patterns
+  - [Architecture](common/architecture.md) — monorepo, runtime, shared package, persistence philosophy
+  - [Setup](common/setup.md) — install + typecheck across workspaces
+- **[Discord bot](discord/)** — `bots/discord/`, all features
+  - [Index](discord/README.md) · [Architecture](discord/architecture.md) · [Setup](discord/setup.md)
+- **[Slack bot](slack/)** — `bots/slack/`
+  - [Index](slack/README.md) — includes Slack-specific setup
+
+The split mirrors the source tree: anything platform-specific (button
+prefixes, embeds vs Block Kit, register-per-guild flow) lives under its bot's
+folder; anything that applies to every bot lives under `common/`.
