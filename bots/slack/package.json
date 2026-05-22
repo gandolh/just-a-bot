@@ -1,0 +1,16 @@
+{
+  "name": "@bots/slack",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc",
+    "start": "tsx src/index.ts",
+    "dev": "tsx watch src/index.ts"
+  },
+  "dependencies": {
+    "@bots/shared": "0.1.0",
+    "@slack/bolt": "4.5.0",
+    "zod": "4.4.3"
+  }
+}

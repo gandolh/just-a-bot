@@ -15,7 +15,9 @@
     "discord:register": "npm run register -w @bots/discord",
     "discord:start": "npm run start -w @bots/discord",
     "whatsapp:dev": "npm run dev -w @bots/whatsapp",
-    "whatsapp:start": "npm run start -w @bots/whatsapp"
+    "whatsapp:start": "npm run start -w @bots/whatsapp",
+    "slack:dev": "npm run dev -w @bots/slack",
+    "slack:start": "npm run start -w @bots/slack"
   },
   "devDependencies": {
     "@types/node": "22.10.5",

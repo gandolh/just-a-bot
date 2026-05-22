@@ -20,3 +20,4 @@ Project documentation, organized by feature area. Written for future me.
 - [Confession Box](confessions/README.md) — `/confess` anonymous per-guild confession channel with admin setup
 - [Timezone Clock](clock/README.md) — `/clock` register your timezone, see everyone's local time at a glance
 - [Connect Four](connect-four/README.md) — `/c4 @opponent` button-driven 7×6 two-player Connect Four
+- [Slack](slack/README.md) — `/ping` `/help` + app-mention echo, Bolt + Socket Mode
