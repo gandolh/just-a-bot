@@ -20,6 +20,7 @@ import { top } from './top.ts';
 import { quote, saveQuoteMenu } from './quote.ts';
 import { remindme } from './remindme.ts';
 import { birthday } from './birthday.ts';
+import { hangman } from './hangman.ts';
 
 const all: Command[] = [
   ping, play, skip, pause, resume, stop, queue, nowplaying,
@@ -28,6 +29,7 @@ const all: Command[] = [
   top,
   quote,
   remindme, birthday,
+  hangman,
   help,
 ];
 

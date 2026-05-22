@@ -13,4 +13,5 @@ Project documentation, organized by feature area. Written for future me.
 - [Leaderboards](leaderboards/README.md) — `/top` cross-category top 10
 - [Quote Book](quotes/README.md) — `/quote` save/recall memorable server messages, context-menu shortcut
 - [Reminders & Birthdays](reminders/README.md) — `/remindme` one-shot pings, `/birthday` annual wishes, shared tick loop
-- [Pending features](todo/README.md) — TODO specs for unbuilt features (hangman, trivia, mafia, `/img`, RPG duels/trading)
+- [Hangman](hangman/README.md) — `/hangman` cooperative thread-based guessing game
+- [Pending features](todo/README.md) — TODO specs for unbuilt features (trivia, mafia, `/img`, RPG duels/trading)

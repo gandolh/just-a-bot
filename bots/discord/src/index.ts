@@ -5,6 +5,7 @@ import { initPlayer } from './player.ts';
 import { commands, contextMenuCommands } from './commands/index.ts';
 import { handleBlackjackButton } from './commands/blackjack.ts';
 import { handleWordleMessage, hasWordleGame } from './commands/wordle.ts';
+import { handleHangmanMessage, hasHangmanGame } from './commands/hangman.ts';
 import { handleTicTacToeButton } from './commands/tictactoe.ts';
 import { handleQuoteListButton } from './commands/quote.ts';
 import { tickReminders, tickBirthdays } from './reminders/tick.ts';
@@ -86,13 +87,23 @@ client.on(Events.InteractionCreate, async (interaction) => {
 client.on(Events.MessageCreate, async (message) => {
   if (message.author.bot) return;
 
-  if (message.channel.isThread() && hasWordleGame(message.channelId)) {
-    try {
-      await handleWordleMessage(message);
-    } catch (err) {
-      log.error('Wordle message handler failed', err);
+  if (message.channel.isThread()) {
+    if (hasWordleGame(message.channelId)) {
+      try {
+        await handleWordleMessage(message);
+      } catch (err) {
+        log.error('Wordle message handler failed', err);
+      }
+      return;
     }
-    return;
+    if (hasHangmanGame(message.channelId)) {
+      try {
+        await handleHangmanMessage(message);
+      } catch (err) {
+        log.error('Hangman message handler failed', err);
+      }
+      return;
+    }
   }
 
   if (!client.user || !message.mentions.has(client.user)) return;
