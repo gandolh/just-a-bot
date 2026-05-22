@@ -13,7 +13,9 @@
     "typecheck": "npm run typecheck --workspaces --if-present",
     "discord:dev": "npm run dev -w @bots/discord",
     "discord:register": "npm run register -w @bots/discord",
-    "discord:start": "npm run start -w @bots/discord"
+    "discord:start": "npm run start -w @bots/discord",
+    "whatsapp:dev": "npm run dev -w @bots/whatsapp",
+    "whatsapp:start": "npm run start -w @bots/whatsapp"
   },
   "devDependencies": {
     "@types/node": "22.10.5",

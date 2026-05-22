@@ -1,5 +1,5 @@
 export interface IncomingMessage {
-  platform: 'discord' | 'telegram' | 'slack';
+  platform: 'discord' | 'telegram' | 'slack' | 'whatsapp';
   userId: string;
   channelId: string;
   text: string;
