@@ -9,5 +9,6 @@ Project documentation, organized by feature area. Written for future me.
 - [Gambling](gambling/README.md) — `/coins` `/slots` `/blackjack` `/dice`
 - [RPG](rpg/README.md) — `/rpg` shared multiplayer world, mobs, loot, leveling
 - [D&D](dnd/README.md) — `/dnd` DM-led campaigns: narration, initiative, monsters
+- [Img](img/README.md) — `/img meme` `/img card` PNG image generation (Satori + resvg)
 - [Music](music/README.md) — experimental, may break
 - [Pending features](todo/README.md) — TODO specs for unbuilt features (birthdays, quotes, hangman, trivia, mafia, `/img`, RPG duels/trading, leaderboards)
