@@ -7,6 +7,7 @@ import { handleBlackjackButton } from './commands/blackjack.ts';
 import { handleWordleMessage, hasWordleGame } from './commands/wordle.ts';
 import { handleTicTacToeButton } from './commands/tictactoe.ts';
 import { handleQuoteListButton } from './commands/quote.ts';
+import { tickReminders, tickBirthdays } from './reminders/tick.ts';
 
 const log = logger.scoped('discord');
 
@@ -105,3 +106,8 @@ client.on(Events.MessageCreate, async (message) => {
 
 await initPlayer(client);
 await client.login(env.DISCORD_TOKEN);
+
+setInterval(() => {
+  tickReminders(client).catch((err) => log.error('tickReminders failed', err));
+  tickBirthdays(client).catch((err) => log.error('tickBirthdays failed', err));
+}, 60_000);

@@ -18,6 +18,8 @@ import { rpg } from './rpg.ts';
 import { dnd } from './dnd.ts';
 import { top } from './top.ts';
 import { quote, saveQuoteMenu } from './quote.ts';
+import { remindme } from './remindme.ts';
+import { birthday } from './birthday.ts';
 
 const all: Command[] = [
   ping, play, skip, pause, resume, stop, queue, nowplaying,
@@ -25,6 +27,7 @@ const all: Command[] = [
   rpg, dnd,
   top,
   quote,
+  remindme, birthday,
   help,
 ];
 
