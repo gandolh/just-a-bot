@@ -2,10 +2,11 @@ import { Client, Events, GatewayIntentBits } from 'discord.js';
 import { logger } from '@bots/shared';
 import { env } from './env.ts';
 import { initPlayer } from './player.ts';
-import { commands } from './commands/index.ts';
+import { commands, contextMenuCommands } from './commands/index.ts';
 import { handleBlackjackButton } from './commands/blackjack.ts';
 import { handleWordleMessage, hasWordleGame } from './commands/wordle.ts';
 import { handleTicTacToeButton } from './commands/tictactoe.ts';
+import { handleQuoteListButton } from './commands/quote.ts';
 
 const log = logger.scoped('discord');
 
@@ -35,6 +36,29 @@ client.on(Events.InteractionCreate, async (interaction) => {
         await handleTicTacToeButton(interaction);
       } catch (err) {
         log.error('Tic-tac-toe button failed', err);
+      }
+    } else if (interaction.customId.startsWith('quote:list:')) {
+      try {
+        await handleQuoteListButton(interaction);
+      } catch (err) {
+        log.error('Quote list button failed', err);
+      }
+    }
+    return;
+  }
+
+  if (interaction.isMessageContextMenuCommand()) {
+    const cmd = contextMenuCommands.get(interaction.commandName);
+    if (!cmd) return;
+    try {
+      await cmd.execute(interaction);
+    } catch (err) {
+      log.error(`Context menu command ${interaction.commandName} failed`, err);
+      const message = 'Something went wrong running that command.';
+      if (interaction.deferred || interaction.replied) {
+        await interaction.followUp({ content: message, ephemeral: true }).catch(() => {});
+      } else {
+        await interaction.reply({ content: message, ephemeral: true }).catch(() => {});
       }
     }
     return;

@@ -11,4 +11,5 @@ Project documentation, organized by feature area. Written for future me.
 - [D&D](dnd/README.md) — `/dnd` DM-led campaigns: narration, initiative, monsters
 - [Music](music/README.md) — experimental, may break
 - [Leaderboards](leaderboards/README.md) — `/top` cross-category top 10
-- [Pending features](todo/README.md) — TODO specs for unbuilt features (birthdays, quotes, hangman, trivia, mafia, `/img`, RPG duels/trading)
+- [Quote Book](quotes/README.md) — `/quote` save/recall memorable server messages, context-menu shortcut
+- [Pending features](todo/README.md) — TODO specs for unbuilt features (birthdays, hangman, trivia, mafia, `/img`, RPG duels/trading)

@@ -1,11 +1,14 @@
 import { REST, Routes } from 'discord.js';
 import { logger } from '@bots/shared';
 import { env } from './env.ts';
-import { commands } from './commands/index.ts';
+import { commands, contextMenuCommands } from './commands/index.ts';
 
 const log = logger.scoped('discord:register');
 
-const body = Array.from(commands.values()).map((c) => c.data.toJSON());
+const body = [
+  ...Array.from(commands.values()).map((c) => c.data.toJSON()),
+  ...Array.from(contextMenuCommands.values()).map((c) => c.data.toJSON()),
+];
 
 const rest = new REST({ version: '10' }).setToken(env.DISCORD_TOKEN);
 
