@@ -9,6 +9,7 @@ import { handleHangmanMessage, hasHangmanGame } from './commands/hangman.ts';
 import { handleTicTacToeButton } from './commands/tictactoe.ts';
 import { handleQuoteListButton } from './commands/quote.ts';
 import { tickReminders, tickBirthdays } from './reminders/tick.ts';
+import { handleTriviaButton } from './commands/trivia.ts';
 
 const log = logger.scoped('discord');
 
@@ -44,6 +45,12 @@ client.on(Events.InteractionCreate, async (interaction) => {
         await handleQuoteListButton(interaction);
       } catch (err) {
         log.error('Quote list button failed', err);
+      }
+    } else if (interaction.customId.startsWith('trv:')) {
+      try {
+        await handleTriviaButton(interaction);
+      } catch (err) {
+        log.error('Trivia button failed', err);
       }
     }
     return;
