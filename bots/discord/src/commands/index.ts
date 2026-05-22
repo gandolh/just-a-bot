@@ -22,6 +22,7 @@ import { remindme } from './remindme.ts';
 import { birthday } from './birthday.ts';
 import { hangman } from './hangman.ts';
 import { trivia } from './trivia.ts';
+import { img } from './img.ts';
 
 const all: Command[] = [
   ping, play, skip, pause, resume, stop, queue, nowplaying,
@@ -32,6 +33,7 @@ const all: Command[] = [
   remindme, birthday,
   hangman,
   trivia,
+  img,
   help,
 ];
 

@@ -15,4 +15,5 @@ Project documentation, organized by feature area. Written for future me.
 - [Reminders & Birthdays](reminders/README.md) — `/remindme` one-shot pings, `/birthday` annual wishes, shared tick loop
 - [Hangman](hangman/README.md) — `/hangman` cooperative thread-based guessing game
 - [Trivia](trivia/README.md) — `/trivia` multiple-choice questions via OpenTDB, first correct answer wins
-- [Pending features](todo/README.md) — TODO specs for unbuilt features (mafia, `/img`, RPG duels/trading)
+- [Img](img/README.md) — `/img meme` `/img card` PNG image generation (Satori + resvg)
+- [Pending features](todo/README.md) — TODO specs for unbuilt features (mafia, RPG duels/trading)
