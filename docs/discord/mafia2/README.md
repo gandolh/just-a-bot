@@ -1,6 +1,6 @@
 # Mafia2 — TODO
 
-Status: **not started**. Design spec only. No code exists yet.
+Status: **milestones 1–5 built** (workspace, OAuth + session, engine link, instance lifecycle, lobby + day dashboard + 3-role night). End-to-end pipe verified via smoke tests; not yet exercised inside a real Discord client (needs OAuth credentials + cloudflared tunnel). Remaining: validation hardening, full role suite, mobile polish, verification submission.
 
 A second Mafia implementation that runs as a Discord **Activity** (voice-channel embedded app) instead of a thread + DMs. Lives alongside the existing `/mafia` — both ship, the original is untouched. Shared game-logic code is fine (extract into `shared/` or `bots/discord/src/mafia/` as needed); UX paths stay separate.
 
@@ -266,19 +266,19 @@ Items required before requesting Discord's verification review (graduates the Ac
 - **Reconnect (single player, brief network blip):** session token survives; SPA reopens WS with the same token, BFF restores the existing socket-userId mapping. Already implicit but should be tested.
 - **Multi-channel per guild:** current bot keys games by `guildId` only. If two voice channels in the same guild both want to play, only one wins. Out of scope for v1.
 
-## Milestones (rough)
+## Milestones
 
-1. **Workspace scaffolding** — `bots/mafia-activity/` with empty backend + Vite + React shell. `patchUrlMappings` in place. Hello-world iframe loadable in Discord via named cloudflared tunnel.
-2. **OAuth + session** — `/api/token` exchange, HMAC session, WS `hello` handshake.
-3. **Engine link** — bot connects to activity backend WS, pushes existing game state from a manually-started game. SPA renders a JSON dump. Proves the pipe end-to-end.
-4. **Instance lifecycle** — channelId↔instanceId reconciliation, `instance-ended` debounce, game-cancel-on-empty.
-5. **Lobby + day dashboard** — extract reusable engine code, wire start/vote/lock through SPA. Existing 3 roles only.
-6. **Validation layer** — server-side action validation. Audit by deliberately sending malformed actions from DevTools.
-7. **Night phase + redaction** — first new mechanic. Verify in DevTools that no other player's role leaks.
-8. **Full role suite** — detective, vigilante, jester. Each new role = redaction rule + UI panel + win-condition update.
-9. **Mobile pass** — safe areas, WS-failure screen, portrait stack fallback, thermal handling, touch targets.
-10. **Audio + polish** — sound effects with gesture resume, speaking indicators (if scope granted), animations.
-11. **Verification submission** — launch checklist green, submit to Discord review.
+1. ✅ **Workspace scaffolding** — `bots/mafia-activity/` workspace with Node `http`+`ws` backend (tsx-direct, no HTTP framework), Vite + React 19 SPA with `patchUrlMappings` as the literal first executable line.
+2. ✅ **OAuth + session** — `/api/token` exchanges code with Discord, fetches `/users/@me`, signs HMAC session token (2h TTL). `/play` WS requires valid session on `hello`, else closes 4401.
+3. ✅ **Engine link** — bot has a WS client (`bots/discord/src/mafia2/link.ts`) that connects to the activity backend's `/engine` port with shared-token auth, exponential-backoff reconnect, pushes state on every engine mutation. Backend forwards state to subscribed sockets per channel.
+4. ✅ **Instance lifecycle** — `instances.ts` tracks `instanceId → sockets`, `channelId → instanceId`. 30s debounce on empty instance → emit `instance-ended` → bot cancels game. New `instanceId` for active channel ends the old one.
+5. ✅ **Lobby + day dashboard + 3-role night** — parallel `mafia2` engine in `bots/discord/src/mafia2/`, reuses `assignRoles`/`alivePlayers`/`aliveByRole`/`checkWin` from `bots/discord/src/mafia/roles.ts`. SPA has Lobby / Day / Night / Result / Spectator views. Day phase: live-tweakable votes, LOCK button at T-30s, all-locked or timeout resolution. Night: role-private kill/save pickers. Server-side action validation in `dispatcher.ts` covers phase/role/alive/target legality.
+6. ⏳ **Validation hardening** — fuzz-test malformed action frames from DevTools, audit redaction frames (no role leaks), add per-socket rate limiting.
+7. ⏳ **Night-phase polish** — atmospheric loop, role-result reveals, mafia coordination UX.
+8. ⏳ **Full role suite** — detective, vigilante, jester. Each = engine extension + redaction rule + UI panel + win-condition update.
+9. ⏳ **Mobile pass** — safe-area inset fallback verified, WS-failure error card, narrow-width portrait stack, thermal-state subscription, ≥44px touch targets.
+10. ⏳ **Audio + polish** — sound effects gated on first gesture (`AudioContext.resume()`), speaking indicators (degrade if `rpc.voice.read` not granted), arrow animations.
+11. ⏳ **Verification submission** — launch checklist green, submit to Discord review.
 
 ## Out of scope for v1
 
