@@ -19,3 +19,4 @@ Project documentation, organized by feature area. Written for future me.
 - [Mafia](mafia/README.md) — `/mafia` Werewolf-style social deduction game with DM-based night actions
 - [Confession Box](confessions/README.md) — `/confess` anonymous per-guild confession channel with admin setup
 - [Timezone Clock](clock/README.md) — `/clock` register your timezone, see everyone's local time at a glance
+- [Connect Four](connect-four/README.md) — `/c4 @opponent` button-driven 7×6 two-player Connect Four

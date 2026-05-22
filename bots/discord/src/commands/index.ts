@@ -26,10 +26,11 @@ import { img } from './img.ts';
 import { mafia } from './mafia.ts';
 import { confess } from './confess.ts';
 import { clock } from './clock.ts';
+import { connectFour } from './connect-four.ts';
 
 const all: Command[] = [
   ping, play, skip, pause, resume, stop, queue, nowplaying,
-  coins, slots, blackjack, dice, wordle, tictactoe,
+  coins, slots, blackjack, dice, wordle, tictactoe, connectFour,
   rpg, dnd, mafia, confess,
   clock,
   top,

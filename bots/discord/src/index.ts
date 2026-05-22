@@ -12,6 +12,7 @@ import { tickReminders, tickBirthdays } from './reminders/tick.ts';
 import { handleTriviaButton } from './commands/trivia.ts';
 import { handleRpgButton } from './commands/rpg-buttons.ts';
 import { handleMafiaButton } from './commands/mafia.ts';
+import { handleConnectFourButton } from './commands/connect-four.ts';
 
 const log = logger.scoped('discord');
 
@@ -72,6 +73,12 @@ client.on(Events.InteractionCreate, async (interaction) => {
         await handleMafiaButton(interaction);
       } catch (err) {
         log.error('Mafia button failed', err);
+      }
+    } else if (interaction.customId.startsWith('c4:')) {
+      try {
+        await handleConnectFourButton(interaction);
+      } catch (err) {
+        log.error('Connect Four button failed', err);
       }
     }
     return;
