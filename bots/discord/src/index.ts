@@ -1,4 +1,4 @@
-import { Client, Events, GatewayIntentBits } from 'discord.js';
+import { Client, Events, GatewayIntentBits, Partials } from 'discord.js';
 import { logger } from '@bots/shared';
 import { env } from './env.ts';
 import { initPlayer } from './player.ts';
@@ -6,6 +6,7 @@ import { commands } from './commands/index.ts';
 import { handleBlackjackButton } from './commands/blackjack.ts';
 import { handleWordleMessage, hasWordleGame } from './commands/wordle.ts';
 import { handleTicTacToeButton } from './commands/tictactoe.ts';
+import { handleMafiaButton } from './commands/mafia.ts';
 
 const log = logger.scoped('discord');
 
@@ -15,7 +16,9 @@ const client = new Client({
     GatewayIntentBits.GuildVoiceStates,
     GatewayIntentBits.GuildMessages,
     GatewayIntentBits.MessageContent,
+    GatewayIntentBits.DirectMessages,
   ],
+  partials: [Partials.Channel],
 });
 
 client.once(Events.ClientReady, (c) => {
@@ -35,6 +38,12 @@ client.on(Events.InteractionCreate, async (interaction) => {
         await handleTicTacToeButton(interaction);
       } catch (err) {
         log.error('Tic-tac-toe button failed', err);
+      }
+    } else if (interaction.customId.startsWith('maf:')) {
+      try {
+        await handleMafiaButton(interaction);
+      } catch (err) {
+        log.error('Mafia button failed', err);
       }
     }
     return;
