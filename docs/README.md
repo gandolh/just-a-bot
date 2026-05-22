@@ -10,4 +10,5 @@ Project documentation, organized by feature area. Written for future me.
 - [RPG](rpg/README.md) — `/rpg` shared multiplayer world, mobs, loot, leveling
 - [D&D](dnd/README.md) — `/dnd` DM-led campaigns: narration, initiative, monsters
 - [Music](music/README.md) — experimental, may break
-- [Pending features](todo/README.md) — TODO specs for unbuilt features (birthdays, quotes, hangman, trivia, mafia, `/img`, RPG duels/trading, leaderboards)
+- [Quote Book](quotes/README.md) — `/quote` save/recall memorable server messages, context-menu shortcut
+- [Pending features](todo/README.md) — TODO specs for unbuilt features (birthdays, hangman, trivia, mafia, `/img`, RPG duels/trading, leaderboards)

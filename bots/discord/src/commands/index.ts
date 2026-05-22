@@ -1,4 +1,4 @@
-import type { Command } from './types.ts';
+import type { Command, ContextMenuCommand } from './types.ts';
 import { ping } from './ping.ts';
 import { play } from './play.ts';
 import { skip } from './skip.ts';
@@ -16,12 +16,19 @@ import { tictactoe } from './tictactoe.ts';
 import { help } from './help.ts';
 import { rpg } from './rpg.ts';
 import { dnd } from './dnd.ts';
+import { quote, saveQuoteMenu } from './quote.ts';
 
 const all: Command[] = [
   ping, play, skip, pause, resume, stop, queue, nowplaying,
   coins, slots, blackjack, dice, wordle, tictactoe,
   rpg, dnd,
+  quote,
   help,
 ];
 
+const allContextMenus: ContextMenuCommand[] = [saveQuoteMenu];
+
 export const commands = new Map<string, Command>(all.map((c) => [c.data.name, c]));
+export const contextMenuCommands = new Map<string, ContextMenuCommand>(
+  allContextMenus.map((c) => [c.data.name, c]),
+);
