@@ -24,11 +24,13 @@ import { hangman } from './hangman.ts';
 import { trivia } from './trivia.ts';
 import { img } from './img.ts';
 import { mafia } from './mafia.ts';
+import { clock } from './clock.ts';
 
 const all: Command[] = [
   ping, play, skip, pause, resume, stop, queue, nowplaying,
   coins, slots, blackjack, dice, wordle, tictactoe,
   rpg, dnd, mafia,
+  clock,
   top,
   quote,
   remindme, birthday,
