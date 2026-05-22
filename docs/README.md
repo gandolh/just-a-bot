@@ -17,3 +17,4 @@ Project documentation, organized by feature area. Written for future me.
 - [Trivia](trivia/README.md) — `/trivia` multiple-choice questions via OpenTDB, first correct answer wins
 - [Img](img/README.md) — `/img meme` `/img card` PNG image generation (Satori + resvg)
 - [Mafia](mafia/README.md) — `/mafia` Werewolf-style social deduction game with DM-based night actions
+- [Connect Four](connect-four/README.md) — `/c4 @opponent` button-driven 7×6 two-player Connect Four
