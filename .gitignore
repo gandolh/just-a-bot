@@ -68,6 +68,11 @@ web_modules/
 # Runtime wallet data (gambling balances)
 bots/*/data/
 
+# VPS deploy / connect scripts (personal, host-specific)
+deploy.sh
+deploy.local.sh
+stop.sh
+
 # dotenv environment variable files
 .env
 .env.*

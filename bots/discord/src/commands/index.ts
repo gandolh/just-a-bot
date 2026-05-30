@@ -15,7 +15,7 @@ import { wordle } from './wordle.ts';
 import { tictactoe } from './tictactoe.ts';
 import { help } from './help.ts';
 import { rpg } from './rpg.ts';
-import { dnd } from './dnd.ts';
+// import { dnd } from './dnd.ts';
 import { top } from './top.ts';
 import { quote, saveQuoteMenu } from './quote.ts';
 import { remindme } from './remindme.ts';
@@ -25,7 +25,7 @@ import { trivia } from './trivia.ts';
 import { img } from './img.ts';
 import { post } from './post.ts';
 import { mafia } from './mafia.ts';
-import { mafia2 } from './mafia2.ts';
+// import { mafia2 } from './mafia2.ts';
 import { confess } from './confess.ts';
 import { clock } from './clock.ts';
 import { connectFour } from './connect-four.ts';
@@ -34,7 +34,7 @@ import { ask } from './ask.ts';
 const all: Command[] = [
   ping, play, skip, pause, resume, stop, queue, nowplaying,
   coins, slots, blackjack, dice, wordle, tictactoe, connectFour,
-  rpg, dnd, mafia, mafia2, confess,
+  rpg, mafia, confess,
   clock,
   top,
   quote,
