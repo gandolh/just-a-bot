@@ -16,7 +16,16 @@ function tokenEmoji(token: string): string {
   return TERRAIN_EMOJI[token] ?? OUT_OF_BOUNDS;
 }
 
-export function renderViewport(world: World, center: [number, number], radius = 7): string {
+// A bright marker for the viewing player, so "you" never blends into the other
+// adventurers and mobs sharing the map.
+const SELF_MARKER = '🟨';
+
+export function renderViewport(
+  world: World,
+  center: [number, number],
+  radius = 7,
+  self?: [number, number],
+): string {
   const halfW = radius;
   const halfH = Math.floor(radius * 0.7);
   const startR = center[0] - halfH;
@@ -38,6 +47,8 @@ export function renderViewport(world: World, center: [number, number], radius = 
     if (c.pos[0] < startR || c.pos[0] > endR || c.pos[1] < startC || c.pos[1] > endC) continue;
     cellEmoji.set(`${c.pos[0]},${c.pos[1]}`, c.glyph);
   }
+  // The viewing player's own tile gets the bright marker, drawn last so it wins.
+  if (self) cellEmoji.set(`${self[0]},${self[1]}`, SELF_MARKER);
 
   const rows: string[] = [];
   for (let r = startR; r <= endR; r++) {
@@ -103,6 +114,7 @@ export function listNearby(world: World, center: [number, number], radius = 7): 
 
 export function legend(): string {
   return [
+    `${SELF_MARKER} you`,
     `${TERRAIN_EMOJI['.']} ground`,
     `${TERRAIN_EMOJI['=']} plaza`,
     `${TERRAIN_EMOJI['f']} forest`,
@@ -111,4 +123,10 @@ export function legend(): string {
     `${TERRAIN_EMOJI['#']} wall`,
     `${LOOT_EMOJI} loot`,
   ].join(' • ');
+}
+
+// Compact legend for the controller — just the essentials a player needs to
+// read the screen at a glance.
+export function mapLegend(): string {
+  return `${SELF_MARKER} you • 👹 enemy • ${LOOT_EMOJI} loot • ${TERRAIN_EMOJI['=']} plaza`;
 }

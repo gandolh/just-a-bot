@@ -11,6 +11,7 @@ import { handleHangmanMessage, hasHangmanGame } from './commands/hangman.ts';
 import { handleTicTacToeButton } from './commands/tictactoe.ts';
 import { handleQuoteListButton } from './commands/quote.ts';
 import { tickReminders, tickBirthdays } from './reminders/tick.ts';
+import { tickCrier } from './rpg/crier.ts';
 import { handleTriviaButton } from './commands/trivia.ts';
 import { handleRpgButton } from './commands/rpg-buttons.ts';
 import { handleMafiaButton } from './commands/mafia.ts';
@@ -36,12 +37,16 @@ client.once(Events.ClientReady, (c) => {
 });
 
 client.on(Events.InteractionCreate, async (interaction) => {
-  if (interaction.isButton() || interaction.isStringSelectMenu()) {
+  if (
+    interaction.isButton() ||
+    interaction.isStringSelectMenu() ||
+    interaction.isModalSubmit()
+  ) {
     if (interaction.customId.startsWith('rpg:')) {
       try {
         await handleRpgButton(interaction);
       } catch (err) {
-        log.error('RPG button failed', err);
+        log.error('RPG interaction failed', err);
       }
       return;
     }
@@ -195,3 +200,9 @@ setInterval(() => {
   tickReminders(client).catch((err) => log.error('tickReminders failed', err));
   tickBirthdays(client).catch((err) => log.error('tickBirthdays failed', err));
 }, 60_000);
+
+// The RPG town crier drains pending world events more frequently so notable
+// moments are announced while they're still fresh.
+setInterval(() => {
+  tickCrier(client).catch((err) => log.error('tickCrier failed', err));
+}, 20_000);

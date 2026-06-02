@@ -4,10 +4,15 @@ import {
   ButtonInteraction,
   ButtonStyle,
   EmbedBuilder,
+  ModalBuilder,
+  ModalSubmitInteraction,
   StringSelectMenuBuilder,
   StringSelectMenuInteraction,
+  TextInputBuilder,
+  TextInputStyle,
 } from 'discord.js';
-import { updateWorld } from '../rpg/world.ts';
+import { getOrCreateWorld, updateWorld } from '../rpg/world.ts';
+import { makeCharacter } from './rpg.ts';
 import {
   startDuel,
   declineDuel,
@@ -22,30 +27,52 @@ import {
   cancelTrade,
   executeTrade,
 } from '../rpg/trade.ts';
-import type { Trade } from '../rpg/world.ts';
+import type { Character, Trade } from '../rpg/world.ts';
 import {
   CtlActionResult,
   CtlDir,
+  CtlScreen,
   buildControllerEmbed,
   buildControllerRows,
+  ctlApproach,
   ctlAttack,
+  ctlBuy,
+  ctlEquip,
   ctlMove,
   ctlPickup,
+  ctlRerollBounty,
+  ctlSell,
+  ctlUseItem,
+  ctlUnequip,
   ctlUsePotion,
-  tickBanner,
+  nearbyPlayers,
 } from '../rpg/controller.ts';
+import {
+  closeSession,
+  isWalking,
+  openSession,
+  sessionSpeed,
+  setSpeed,
+  setWalk,
+} from '../rpg/autowalk.ts';
+import { getItem } from '../rpg/items.ts';
 
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 export async function handleRpgButton(
-  interaction: ButtonInteraction | StringSelectMenuInteraction,
+  interaction:
+    | ButtonInteraction
+    | StringSelectMenuInteraction
+    | ModalSubmitInteraction,
 ): Promise<void> {
   const parts = interaction.customId.split(':');
   const domain = parts[1];
 
-  if (domain === 'duel') {
+  if (domain === 'create') {
+    await handleCreate(interaction, parts);
+  } else if (domain === 'duel') {
     await handleDuelButton(interaction as ButtonInteraction, parts);
   } else if (domain === 'trade') {
     if (interaction.isStringSelectMenu()) {
@@ -54,14 +81,92 @@ export async function handleRpgButton(
       await handleTradeButton(interaction as ButtonInteraction, parts);
     }
   } else if (domain === 'ctl') {
-    await handleControllerButton(interaction as ButtonInteraction, parts);
+    await handleControllerButton(
+      interaction as ButtonInteraction | StringSelectMenuInteraction,
+      parts,
+    );
+  }
+}
+
+// ── Character creation (start → modal → controller) ──────────────────────────
+
+async function handleCreate(
+  interaction:
+    | ButtonInteraction
+    | StringSelectMenuInteraction
+    | ModalSubmitInteraction,
+  parts: string[],
+): Promise<void> {
+  const action = parts[2];
+
+  // Step 1: the "Create character" button opens a modal.
+  if (action === 'open' && interaction.isButton()) {
+    const modal = new ModalBuilder()
+      .setCustomId('rpg:create:submit')
+      .setTitle('Create your character');
+
+    const nameInput = new TextInputBuilder()
+      .setCustomId('name')
+      .setLabel('Character name')
+      .setStyle(TextInputStyle.Short)
+      .setMaxLength(24)
+      .setRequired(false)
+      .setPlaceholder('Defaults to your Discord name');
+
+    const glyphInput = new TextInputBuilder()
+      .setCustomId('glyph')
+      .setLabel('Emoji to represent you (optional)')
+      .setStyle(TextInputStyle.Short)
+      .setMaxLength(8)
+      .setRequired(false)
+      .setPlaceholder('e.g. 🧙 — leave blank to auto-pick');
+
+    modal.addComponents(
+      new ActionRowBuilder<TextInputBuilder>().addComponents(nameInput),
+      new ActionRowBuilder<TextInputBuilder>().addComponents(glyphInput),
+    );
+    await interaction.showModal(modal);
+    return;
+  }
+
+  // Step 2: modal submit creates the character and opens the controller.
+  if (action === 'submit' && interaction.isModalSubmit()) {
+    if (!interaction.inGuild()) {
+      await interaction.reply({ content: 'Use this in a server.', ephemeral: true });
+      return;
+    }
+    const guildId = interaction.guildId;
+    const userId = interaction.user.id;
+    const rawName = interaction.fields.getTextInputValue('name')?.trim();
+    const rawGlyph = interaction.fields.getTextInputValue('glyph')?.trim();
+    const name = rawName || interaction.user.username;
+    const glyph = rawGlyph?.match(/\p{Extended_Pictographic}/u)?.[0] ?? null;
+
+    const world = await updateWorld(guildId, (w) => {
+      // Guard against double-submit / a character created in a race.
+      if (w.chars[userId]) {
+        w.chars[userId].away = false;
+        return;
+      }
+      w.chars[userId] = makeCharacter(w, userId, name, glyph);
+    }, { urgent: true });
+
+    const char = world.chars[userId];
+    const tip =
+      '👋 Welcome! Tap a direction to start walking that way — you keep going until you press ⏹ Stop, change direction, or hit something. ⏱ toggles speed. Attack lights up next to a foe; heal with 🧪; shop at 🏪 Town on the plaza.';
+    const embed = buildControllerEmbed(world, char, tip, undefined, 'world');
+    const rows = buildControllerRows('world', char, world, { walking: false, speed: 1 });
+    await interaction.reply({ embeds: [embed], components: rows, ephemeral: true });
+    // Start the world clock for this player; the engine re-renders here.
+    openSession(interaction, guildId, userId);
+    return;
   }
 }
 
 // ── Controller (button-driven movement / combat) ────────────────────────────
 
 async function handleControllerButton(
-  interaction: ButtonInteraction,
+  interaction: ButtonInteraction | StringSelectMenuInteraction,
   parts: string[],
 ): Promise<void> {
   if (!interaction.inGuild()) {
@@ -69,41 +174,115 @@ async function handleControllerButton(
     return;
   }
   const action = parts[2];
-
-  if (action === 'close') {
-    await interaction.update({ content: '🎮 Controller closed.', embeds: [], components: [] });
-    return;
-  }
-
   const guildId = interaction.guildId;
   const userId = interaction.user.id;
 
+  if (action === 'exit') {
+    await updateWorld(guildId, (w) => {
+      const char = w.chars[userId];
+      if (char) char.away = true;
+    }, { urgent: true });
+    closeSession(guildId, userId); // stop the clock for us (freezes world if last)
+    await interaction.update({
+      content: '🚪 You step away from the world. You are safe — mobs cannot reach you. Use `/rpg start` to return.',
+      embeds: [],
+      components: [],
+    });
+    return;
+  }
+
+  // Duel / trade from the Nearby screen: posts a public proposal in the channel,
+  // then refreshes the (ephemeral) controller back to the Nearby screen.
+  if (action === 'duel' || action === 'trade') {
+    await handleSocialInitiation(interaction as ButtonInteraction, action, parts[3], guildId, userId);
+    return;
+  }
+
+  // Acting through the controller (re)opens the live session: keeps the world
+  // clock running and gives the engine this interaction to re-render through.
+  openSession(interaction as ButtonInteraction, guildId, userId, sessionSpeed(userId));
+
+  // Stop / speed adjust the walk without mutating the world.
+  if (action === 'stop') { setWalk(userId, null); }
+  if (action === 'speed') { setSpeed(userId, sessionSpeed(userId) === 1 ? 2 : 1); }
+
+  let screen: CtlScreen = 'world';
   let result: CtlActionResult = { ok: true };
   let missing = false;
-  let tickText: string | null = null;
 
   const world = await updateWorld(guildId, (w) => {
-    tickText = tickBanner(w);
     const char = w.chars[userId];
     if (!char) { missing = true; return; }
+    // Acting through the controller means the player is present again.
+    char.away = false;
 
-    if (action === 'move') {
-      const dir = parts[3] as CtlDir;
-      result = ctlMove(w, char, dir);
-    } else if (action === 'attack') {
-      result = ctlAttack(w, char);
-    } else if (action === 'pickup') {
-      result = ctlPickup(w, char);
-    } else if (action === 'use') {
-      result = ctlUsePotion(w, char);
-    } else if (action === 'refresh') {
-      result = { ok: true };
+    switch (action) {
+      case 'screen':
+        screen = (parts[3] as CtlScreen) ?? 'world';
+        // Leaving the world screen stops any walk.
+        if (screen !== 'world') setWalk(userId, null);
+        break;
+
+      // Pressing an arrow starts (or redirects) a continuous walk that way; the
+      // engine advances it tile-by-tile. Take one step now for instant feedback.
+      case 'move': {
+        const dir = parts[3] as CtlDir;
+        setWalk(userId, dir);
+        result = ctlMove(w, char, dir);
+        break;
+      }
+      case 'attack':
+        setWalk(userId, null);
+        result = ctlAttack(w, char);
+        break;
+      case 'approach':
+        result = ctlApproach(w, char);
+        break;
+      case 'pickup':
+        result = ctlPickup(w, char);
+        break;
+      case 'use':
+        result = ctlUsePotion(w, char);
+        break;
+
+      // Bag screen actions.
+      case 'bagsel': {
+        screen = 'bag';
+        setWalk(userId, null);
+        const slug = interaction.isStringSelectMenu() ? interaction.values[0] : '';
+        result = applyBagSelection(char, slug);
+        break;
+      }
+      case 'unequip':
+        screen = 'bag';
+        result = ctlUnequip(char, parts[3] as 'weapon' | 'armor');
+        break;
+
+      // Town screen actions.
+      case 'buysel': {
+        screen = 'town';
+        const slug = interaction.isStringSelectMenu() ? interaction.values[0] : '';
+        result = ctlBuy(w, char, slug);
+        break;
+      }
+      case 'sellsel': {
+        screen = 'town';
+        const slug = interaction.isStringSelectMenu() ? interaction.values[0] : '';
+        result = ctlSell(w, char, slug);
+        break;
+      }
+
+      // Sheet screen actions.
+      case 'bounty':
+        screen = 'sheet';
+        result = ctlRerollBounty(char);
+        break;
     }
-  });
+  }, { urgent: true });
 
   if (missing) {
     await interaction.reply({
-      content: 'You have not joined. Use `/rpg join` first.',
+      content: 'You have not joined. Use `/rpg start` first.',
       ephemeral: true,
     });
     return;
@@ -111,17 +290,142 @@ async function handleControllerButton(
 
   const char = world.chars[userId];
   if (!char) {
-    await interaction.update({
-      content: 'Character not found.',
-      embeds: [],
-      components: [],
-    });
+    await interaction.update({ content: 'Character not found.', embeds: [], components: [] });
     return;
   }
 
-  const embed = buildControllerEmbed(world, char, result.banner, tickText ?? undefined);
-  const rows = buildControllerRows();
+  const walk = { walking: isWalking(userId), speed: sessionSpeed(userId) };
+  const embed = buildControllerEmbed(world, char, result.banner, undefined, screen);
+  const rows = buildControllerRows(screen, char, world, walk);
   await interaction.update({ embeds: [embed], components: rows });
+}
+
+// A bag selection equips weapons/armor and drinks consumables. Materials have
+// no bag action — they're sold at the plaza (🏪 Town).
+function applyBagSelection(char: Character, slug: string): CtlActionResult {
+  if (!slug) return { ok: true };
+  const item = getItem(slug);
+  if (!item) return { ok: false, banner: 'Unknown item.' };
+  if (item.kind === 'weapon' || item.kind === 'armor') return ctlEquip(char, slug);
+  if (item.kind === 'consumable') return ctlUseItem(char, slug);
+  // Materials: nothing to do in the bag besides sell at town.
+  return { ok: false, banner: `${item.label} can only be sold at the plaza (🏪 Town).` };
+}
+
+// Initiate a duel or trade against a nearby player from the Nearby screen.
+// Posts a public proposal in the channel and refreshes the ephemeral controller.
+async function handleSocialInitiation(
+  interaction: ButtonInteraction,
+  kind: 'duel' | 'trade',
+  targetId: string,
+  guildId: string,
+  userId: string,
+): Promise<void> {
+  const world = await getOrCreateWorld(guildId);
+  const self = world.chars[userId];
+  const target = world.chars[targetId];
+
+  // Re-validate proximity at click time — the target may have wandered off.
+  const refreshNearby = async (banner: string): Promise<void> => {
+    const w = await getOrCreateWorld(guildId);
+    const c = w.chars[userId];
+    if (!c) {
+      await interaction.update({ content: 'Character not found.', embeds: [], components: [] });
+      return;
+    }
+    const embed = buildControllerEmbed(w, c, banner, undefined, 'nearby');
+    const rows = buildControllerRows('nearby', c, w);
+    await interaction.update({ embeds: [embed], components: rows });
+  };
+
+  if (!self || !target) {
+    await refreshNearby('That adventurer is no longer here.');
+    return;
+  }
+  if (!nearbyPlayers(world, self).some((p) => p.userId === targetId)) {
+    await refreshNearby(`${target.glyph} ${target.name} moved out of reach.`);
+    return;
+  }
+
+  // Acknowledge on the controller first, then post the public proposal so the
+  // target (and onlookers) can see and respond to it in the channel.
+  await refreshNearby(
+    kind === 'duel'
+      ? `⚔️ Challenge sent to ${target.glyph} ${target.name} — see the channel.`
+      : `🤝 Trade proposed to ${target.glyph} ${target.name} — see the channel.`,
+  );
+
+  if (kind === 'duel') {
+    await postDuelProposal(interaction, guildId, userId, targetId, self, target);
+  } else {
+    await postTradeProposal(interaction, guildId, userId, targetId);
+  }
+}
+
+async function postDuelProposal(
+  interaction: ButtonInteraction,
+  guildId: string,
+  challengerId: string,
+  defenderId: string,
+  challenger: Character,
+  defender: Character,
+): Promise<void> {
+  const sent = await interaction.followUp({
+    content: `⚔️ ${challenger.glyph} **${challenger.name}** challenges ${defender.glyph} **${defender.name}** to a duel!`,
+    ephemeral: false,
+  });
+
+  let duelId = '';
+  await updateWorld(guildId, (w) => {
+    duelId = startDuel(w, challengerId, defenderId, sent.id, sent.channelId).id;
+  });
+
+  const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
+    new ButtonBuilder().setCustomId(`rpg:duel:accept:${duelId}`).setLabel('Accept').setStyle(ButtonStyle.Success),
+    new ButtonBuilder().setCustomId(`rpg:duel:decline:${duelId}`).setLabel('Decline').setStyle(ButtonStyle.Danger),
+  );
+  await sent.edit({
+    content: `⚔️ ${challenger.glyph} **${challenger.name}** challenges ${defender.glyph} **${defender.name}** to a duel!\n<@${defenderId}> — do you accept? (expires in 60s)`,
+    components: [row],
+  });
+}
+
+async function postTradeProposal(
+  interaction: ButtonInteraction,
+  guildId: string,
+  aId: string,
+  bId: string,
+): Promise<void> {
+  const embed = new EmbedBuilder()
+    .setColor(0xe67e22)
+    .setTitle('🤝 Trade Proposal')
+    .addFields(
+      { name: `⏳ <@${aId}> offers`, value: 'Coins: 0\nItems: —', inline: true },
+      { name: `⏳ <@${bId}> offers`, value: 'Coins: 0\nItems: —', inline: true },
+    )
+    .setFooter({ text: 'Both sides must confirm to execute. Any change resets confirmations.' });
+
+  const sent = await interaction.followUp({ embeds: [embed], ephemeral: false });
+
+  let tradeId = '';
+  await updateWorld(guildId, (w) => {
+    tradeId = startTrade(w, aId, bId, sent.id, sent.channelId).id;
+  });
+
+  const rows = [
+    new ActionRowBuilder<ButtonBuilder>().addComponents(
+      new ButtonBuilder().setCustomId(`rpg:trade:coins:${tradeId}:a:10`).setLabel('A +10 coins').setStyle(ButtonStyle.Primary),
+      new ButtonBuilder().setCustomId(`rpg:trade:coins:${tradeId}:a:-10`).setLabel('A -10 coins').setStyle(ButtonStyle.Secondary),
+      new ButtonBuilder().setCustomId(`rpg:trade:coins:${tradeId}:b:10`).setLabel('B +10 coins').setStyle(ButtonStyle.Primary),
+      new ButtonBuilder().setCustomId(`rpg:trade:coins:${tradeId}:b:-10`).setLabel('B -10 coins').setStyle(ButtonStyle.Secondary),
+    ),
+    new ActionRowBuilder<ButtonBuilder>().addComponents(
+      new ButtonBuilder().setCustomId(`rpg:trade:confirm:${tradeId}:a`).setLabel('✅ Confirm (A)').setStyle(ButtonStyle.Success),
+      new ButtonBuilder().setCustomId(`rpg:trade:confirm:${tradeId}:b`).setLabel('✅ Confirm (B)').setStyle(ButtonStyle.Success),
+      new ButtonBuilder().setCustomId(`rpg:trade:cancel:${tradeId}`).setLabel('❌ Cancel').setStyle(ButtonStyle.Danger),
+    ),
+  ];
+  await sent.edit({ embeds: [embed], components: rows });
 }
 
 // ── Duel ────────────────────────────────────────────────────────────────────
@@ -550,7 +854,3 @@ async function handleTradeSelect(
   );
   await interaction.update({ embeds: [embed], components });
 }
-
-// ── Public factory helpers used by rpg.ts ────────────────────────────────────
-
-export { startDuel, startTrade };

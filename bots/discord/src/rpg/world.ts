@@ -39,8 +39,15 @@ export interface Character {
   inventory: string[];
   equipment: Equipment;
   bounty: Bounty | null;
+  // World-tick of the last attack / last move (see world.tick).
   lastAttackAt: number;
   lastMoveAt: number;
+  // When true the player has exited the controller: they still exist in the
+  // world but cannot be targeted by mobs and do not block movement.
+  away: boolean;
+  // World-tick until which a freshly-respawned player is protected: they cannot
+  // be targeted by mobs and cannot attack. 0 means not protected.
+  downUntil: number;
 }
 
 export interface MobKind {
@@ -53,7 +60,9 @@ export interface MobKind {
   xp: number;
   coins: [number, number];
   loot: { item: string; chance: number }[];
-  speedMs: number;
+  // Minimum ticks between this mob's steps (≥ 1 — a mob never acts more than
+  // once per tick). See TICKS_PER_SECOND.
+  speedTicks: number;
   aggroRange: number;
 }
 
@@ -62,6 +71,7 @@ export interface Mob {
   kind: string;
   pos: [number, number];
   hp: number;
+  // World-tick of this mob's last step.
   lastStepAt: number;
 }
 
@@ -113,9 +123,21 @@ export interface World {
   duels: Record<string, Duel>;
   trades: Record<string, Trade>;
   nextId: number;
+  // World-tick of the last population-evolution step.
   lastSpawnAt: number;
+  // Monotonic simulation clock. Advances one per engine tick while the guild has
+  // active players; frozen otherwise. All other *At fields are in this unit.
+  tick: number;
   updatedAt: string;
+  // Town crier: where to announce notable events, and the pending queue.
+  crierChannelId: string | null;
+  crierQueue: string[];
 }
+
+// The simulation runs at this many ticks per real-time second (Minecraft-style
+// 20 TPS → one tick is 50ms). A normal-speed move costs ~1s of ticks.
+export const TICKS_PER_SECOND = 20;
+export const MS_PER_TICK = 1000 / TICKS_PER_SECOND;
 
 export const MOB_KINDS: Record<string, MobKind> = {
   slime: {
@@ -125,7 +147,7 @@ export const MOB_KINDS: Record<string, MobKind> = {
     hp: 8, atk: 2, def: 0, xp: 5,
     coins: [0, 2],
     loot: [{ item: 'slime-jelly', chance: 0.3 }],
-    speedMs: 4500,
+    speedTicks: 90,
     aggroRange: 3,
   },
   goblin: {
@@ -138,7 +160,7 @@ export const MOB_KINDS: Record<string, MobKind> = {
       { item: 'rusty-dagger', chance: 0.2 },
       { item: 'healing-potion', chance: 0.15 },
     ],
-    speedMs: 3500,
+    speedTicks: 70,
     aggroRange: 5,
   },
   wolf: {
@@ -148,7 +170,7 @@ export const MOB_KINDS: Record<string, MobKind> = {
     hp: 18, atk: 5, def: 1, xp: 18,
     coins: [0, 3],
     loot: [{ item: 'wolf-pelt', chance: 0.4 }],
-    speedMs: 2500,
+    speedTicks: 50,
     aggroRange: 6,
   },
   bandit: {
@@ -161,7 +183,7 @@ export const MOB_KINDS: Record<string, MobKind> = {
       { item: 'healing-potion', chance: 0.25 },
       { item: 'leather-armor', chance: 0.1 },
     ],
-    speedMs: 3500,
+    speedTicks: 70,
     aggroRange: 5,
   },
   orc: {
@@ -174,7 +196,7 @@ export const MOB_KINDS: Record<string, MobKind> = {
       { item: 'iron-sword', chance: 0.15 },
       { item: 'healing-potion', chance: 0.3 },
     ],
-    speedMs: 4000,
+    speedTicks: 80,
     aggroRange: 5,
   },
   troll: {
@@ -187,7 +209,7 @@ export const MOB_KINDS: Record<string, MobKind> = {
       { item: 'troll-tooth', chance: 0.6 },
       { item: 'greatsword', chance: 0.1 },
     ],
-    speedMs: 5000,
+    speedTicks: 100,
     aggroRange: 4,
   },
 };
@@ -195,8 +217,85 @@ export const MOB_KINDS: Record<string, MobKind> = {
 const cache = new Map<string, World>();
 const writeChains = new Map<string, Promise<void>>();
 
+// Debounced persistence. The in-memory cache is always authoritative, so reads
+// never see stale data even before a write lands. Disk writes for a guild are
+// coalesced to at most one per DEBOUNCE_MS — navigation (frequent, low-stakes)
+// rides this; important actions force an immediate flush.
+const DEBOUNCE_MS = 2500;
+const dirty = new Set<string>();
+const flushTimers = new Map<string, NodeJS.Timeout>();
+
+// The data directory is created once, not on every write.
+let dataDirReady: Promise<void> | null = null;
+function ensureDataDir(): Promise<void> {
+  if (!dataDirReady) dataDirReady = mkdir(dataDir, { recursive: true }).then(() => undefined);
+  return dataDirReady;
+}
+
 function pathFor(guildId: string): string {
   return resolve(dataDir, `${guildId}.json`);
+}
+
+// Serialize the current cached world for a guild to disk, chained so concurrent
+// flushes for the same guild never interleave.
+function flush(guildId: string): Promise<void> {
+  const world = cache.get(guildId);
+  if (!world) return Promise.resolve();
+  dirty.delete(guildId);
+  const timer = flushTimers.get(guildId);
+  if (timer) { clearTimeout(timer); flushTimers.delete(guildId); }
+
+  const snapshot = JSON.stringify(world);
+  const prev = writeChains.get(guildId) ?? Promise.resolve();
+  const next = prev.then(async () => {
+    await ensureDataDir();
+    await writeFile(pathFor(guildId), snapshot, 'utf8');
+  });
+  writeChains.set(guildId, next);
+  return next;
+}
+
+// Mark a guild's world dirty and schedule a debounced flush. Exported so the
+// engine (which mutates the cached world directly each tick) can request a
+// periodic snapshot without writing on every tick.
+export function markDirty(guildId: string): void {
+  scheduleFlush(guildId);
+}
+
+// Mark a guild's world dirty and schedule a debounced flush.
+function scheduleFlush(guildId: string): void {
+  dirty.add(guildId);
+  if (flushTimers.has(guildId)) return;
+  const timer = setTimeout(() => {
+    flushTimers.delete(guildId);
+    if (dirty.has(guildId)) void flush(guildId);
+  }, DEBOUNCE_MS);
+  // Don't keep the process alive solely for a pending save.
+  if (typeof timer.unref === 'function') timer.unref();
+  flushTimers.set(guildId, timer);
+}
+
+// Flush every dirty world now — called on shutdown so the last debounce window
+// isn't lost.
+export async function flushAllWorlds(): Promise<void> {
+  await Promise.all([...dirty].map((g) => flush(g)));
+}
+
+// Force an immediate flush for one guild — used when an action that started as
+// debounced navigation turns out to matter (e.g. a mob killed the player on the
+// tick of a move press).
+export async function flushWorld(guildId: string): Promise<void> {
+  await flush(guildId);
+}
+
+let shutdownHooked = false;
+function hookShutdown(): void {
+  if (shutdownHooked) return;
+  shutdownHooked = true;
+  const onExit = () => { void flushAllWorlds(); };
+  process.once('SIGINT', onExit);
+  process.once('SIGTERM', onExit);
+  process.once('beforeExit', onExit);
 }
 
 export async function loadWorld(guildId: string): Promise<World | null> {
@@ -207,9 +306,14 @@ export async function loadWorld(guildId: string): Promise<World | null> {
     // Backward-compat defaults for fields added after initial release.
     world.duels ??= {};
     world.trades ??= {};
+    world.crierChannelId ??= null;
+    world.crierQueue ??= [];
+    world.tick ??= 0;
     for (const c of Object.values(world.chars)) {
       c.equipment ??= { weapon: null, armor: null };
       if (c.bounty === undefined) c.bounty = null;
+      c.away ??= false;
+      c.downUntil ??= 0;
     }
     cache.set(guildId, world);
     return world;
@@ -222,25 +326,42 @@ export async function loadWorld(guildId: string): Promise<World | null> {
 async function persist(guildId: string, world: World): Promise<void> {
   world.updatedAt = new Date().toISOString();
   cache.set(guildId, world);
-  const snapshot = JSON.stringify(world);
-  const prev = writeChains.get(guildId) ?? Promise.resolve();
-  const next = prev.then(async () => {
-    await mkdir(dataDir, { recursive: true });
-    await writeFile(pathFor(guildId), snapshot, 'utf8');
-  });
-  writeChains.set(guildId, next);
-  await next;
+  await flush(guildId);
 }
 
 export async function updateWorld(
   guildId: string,
   mutate: (world: World) => void | Promise<void>,
+  opts?: { urgent?: boolean },
 ): Promise<World> {
+  hookShutdown();
   let world = await loadWorld(guildId);
   if (!world) world = await getOrCreateWorld(guildId);
   await mutate(world);
-  await persist(guildId, world);
+  world.updatedAt = new Date().toISOString();
+  cache.set(guildId, world);
+  // Important actions persist immediately; everything else (movement, browsing)
+  // is debounced so the controller can re-render without waiting on disk.
+  if (opts?.urgent) await flush(guildId);
+  else scheduleFlush(guildId);
   return world;
+}
+
+// Drain every cached world's crier queue. Returns the channel + lines to post
+// and clears the queues (persisting the cleared state). The caller does the
+// actual Discord I/O so this module stays free of the client.
+export async function drainCrierQueues(): Promise<
+  { guildId: string; channelId: string; lines: string[] }[]
+> {
+  const out: { guildId: string; channelId: string; lines: string[] }[] = [];
+  for (const [guildId, world] of cache) {
+    if (!world.crierChannelId) continue;
+    if (!world.crierQueue || world.crierQueue.length === 0) continue;
+    out.push({ guildId, channelId: world.crierChannelId, lines: [...world.crierQueue] });
+    world.crierQueue = [];
+    await persist(guildId, world);
+  }
+  return out;
 }
 
 export async function getOrCreateWorld(guildId: string): Promise<World> {
@@ -308,8 +429,21 @@ export function generateWorld(guildId: string, width: number, height: number): W
     trades: {},
     nextId: 1,
     lastSpawnAt: 0,
+    tick: 0,
     updatedAt: new Date().toISOString(),
+    crierChannelId: null,
+    crierQueue: [],
   };
+}
+
+// Push a notable event to the town-crier queue (capped to avoid unbounded
+// growth if nobody is around to drain it).
+export function crier(world: World, line: string): void {
+  world.crierQueue ??= [];
+  world.crierQueue.push(line);
+  if (world.crierQueue.length > 20) {
+    world.crierQueue.splice(0, world.crierQueue.length - 20);
+  }
 }
 
 export function terrainAt(world: World, row: number, col: number): string {
@@ -323,7 +457,7 @@ export function isWalkable(token: string): boolean {
 
 export function entityAt(world: World, row: number, col: number): Character | Mob | null {
   for (const c of Object.values(world.chars)) {
-    if (c.hp > 0 && c.pos[0] === row && c.pos[1] === col) return c;
+    if (c.hp > 0 && !c.away && c.pos[0] === row && c.pos[1] === col) return c;
   }
   for (const m of Object.values(world.mobs)) {
     if (m.pos[0] === row && m.pos[1] === col) return m;

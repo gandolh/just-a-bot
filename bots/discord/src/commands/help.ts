@@ -56,8 +56,9 @@ const GROUPS: Group[] = [
     text: [
       'A shared persistent world per server. Drop in, fight mobs, level up.',
       '',
-      '**Join & info:** `/rpg join` `/rpg me` `/rpg leave` `/rpg top`',
-      '**Play:** `/rpg move <dir>` `/rpg look` `/rpg attack` `/rpg pickup` `/rpg use` `/rpg map`',
+      '**`/rpg start`** — enter the world (creates your character the first time) and open the button controller: arrows to walk, ⚔ to attack, 🧪 to heal.',
+      '**`/rpg exit`** — step away. You stay in the world but mobs cannot attack you.',
+      '**`/rpg duel @user`** · **`/rpg trade @user`** — play with others.',
       '',
       'Mobs spawn automatically and hunt down adventurers in range.',
       'Walk over loot to auto-collect. Die → respawn at the plaza, drop half your coins.',

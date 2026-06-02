@@ -4,14 +4,20 @@ import {
   MOB_KINDS,
   World,
   cheby,
+  crier,
   effectiveStats,
   findOpenCell,
   levelFor,
   nextId,
 } from './world.ts';
+import { ITEMS } from './items.ts';
 import { BountyClaim, onKill } from './bounty.ts';
 
-export const ATTACK_COOLDOWN_MS = 3000;
+// All durations are in world ticks (20 TPS). 3s cooldown, 8s respawn grace.
+export const ATTACK_COOLDOWN_TICKS = 60;
+// After dying, a player is protected (untargetable, can't attack) for a moment
+// so they cannot be instantly re-killed nor farm by suicide-rushing.
+export const RESPAWN_PROTECT_TICKS = 160;
 
 export interface AttackResult {
   attacker: string;
@@ -72,7 +78,7 @@ export function charAttackMob(
       ? `${char.glyph} **${char.name}** hits ${kind?.glyph ?? '👹'} ${kind?.name ?? mob.kind} for **${res.damage}**${res.crit ? ' 💥 crit!' : ''}`
       : `${char.glyph} **${char.name}** swings at ${kind?.glyph ?? '👹'} ${kind?.name ?? mob.kind} — miss.`,
   };
-  char.lastAttackAt = Date.now();
+  char.lastAttackAt = world.tick;
   if (res.hit) mob.hp -= res.damage;
 
   if (mob.hp <= 0) {
@@ -155,6 +161,18 @@ function killMob(world: World, char: Character, mob: Mob): KillResult {
     char.atk += 1 * gained;
     char.def += 1 * gained;
     char.hp = char.maxHp; // full heal on level up
+    crier(world, `✨ ${char.glyph} **${char.name}** reached level **${afterLevel}**!`);
+  }
+
+  // Slaying the apex mob, or a genuinely rare drop, is worth announcing.
+  if (kind.slug === 'troll') {
+    crier(world, `🧌 ${char.glyph} **${char.name}** felled a **Troll**!`);
+  }
+  for (const item of drops) {
+    const def = ITEMS[item];
+    if (item === 'greatsword') {
+      crier(world, `🪓 ${char.glyph} **${char.name}** found a **${def?.label ?? item}**!`);
+    }
   }
 
   const bounty = onKill(char, kind.slug);
@@ -171,6 +189,7 @@ function killMob(world: World, char: Character, mob: Mob): KillResult {
 
 function handleDeath(world: World, char: Character): void {
   char.deaths++;
+  crier(world, `💀 ${char.glyph} **${char.name}** fell in the wild and respawned at the plaza.`);
   char.hp = char.maxHp;
   // Drop half their coins as loot on the death tile.
   const dropped = Math.floor(char.coins / 2);
@@ -182,8 +201,16 @@ function handleDeath(world: World, char: Character): void {
   // Respawn at a clear cell near the world spawn.
   const cell = findOpenCell(world, world.spawn, 8) ?? world.spawn;
   char.pos = cell;
+  // Brief protection so the player isn't immediately re-killed at the plaza.
+  char.downUntil = world.tick + RESPAWN_PROTECT_TICKS;
 }
 
-export function attackCooldownRemainingMs(char: Character): number {
-  return Math.max(0, ATTACK_COOLDOWN_MS - (Date.now() - char.lastAttackAt));
+// Remaining ticks of post-respawn protection (0 if none).
+export function respawnProtectRemainingTicks(char: Character, tick: number): number {
+  return Math.max(0, char.downUntil - tick);
+}
+
+// Remaining ticks of attack cooldown (0 if ready).
+export function attackCooldownRemainingTicks(char: Character, tick: number): number {
+  return Math.max(0, ATTACK_COOLDOWN_TICKS - (tick - char.lastAttackAt));
 }
