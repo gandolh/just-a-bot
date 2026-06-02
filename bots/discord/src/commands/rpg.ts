@@ -145,7 +145,7 @@ const data = new SlashCommandBuilder()
 export const rpg: Command = {
   data,
   async execute(interaction: ChatInputCommandInteraction) {
-    if (!interaction.inCachedGuild()) {
+    if (!interaction.inGuild()) {
       await interaction.reply({ content: 'Use this in a server.', ephemeral: true });
       return;
     }

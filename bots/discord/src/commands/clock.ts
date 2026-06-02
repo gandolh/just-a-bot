@@ -100,12 +100,13 @@ export const clock: Command = {
     }
 
     // sub === 'show'
-    if (!interaction.inCachedGuild()) {
+    if (!interaction.inGuild()) {
       await interaction.reply({ content: 'Use this in a server.', ephemeral: true });
       return;
     }
 
     const all = await getAllTimezones();
+    const guild = await interaction.client.guilds.fetch(interaction.guildId).catch(() => null);
     const registeredIds = Object.keys(all);
 
     if (registeredIds.length === 0) {
@@ -116,7 +117,7 @@ export const clock: Command = {
       return;
     }
 
-    const members = await interaction.guild.members.fetch({ user: registeredIds }).catch(() => null);
+    const members = await guild?.members.fetch({ user: registeredIds }).catch(() => null) ?? null;
 
     const guildEntries = registeredIds
       .filter((id) => members?.has(id))

@@ -32,7 +32,7 @@ const data = new SlashCommandBuilder()
 export const top: Command = {
   data,
   async execute(interaction: ChatInputCommandInteraction) {
-    if (!interaction.inCachedGuild()) {
+    if (!interaction.inGuild()) {
       await interaction.reply({ content: 'Use this in a server.', ephemeral: true });
       return;
     }
@@ -46,9 +46,11 @@ export const top: Command = {
       return;
     }
 
-    // Resolve Discord display names for users still in the guild.
+    // Resolve Discord display names for users still in the guild. Fetch the guild
+    // on demand rather than relying on it being in the cache.
     const ids = entries.map((e) => e.userId);
-    const members = await interaction.guild.members.fetch({ user: ids }).catch(() => null);
+    const guild = await interaction.client.guilds.fetch(interaction.guildId).catch(() => null);
+    const members = await guild?.members.fetch({ user: ids }).catch(() => null) ?? null;
 
     const lines = entries.map((e, i) => {
       const memberName = members?.get(e.userId)?.displayName;

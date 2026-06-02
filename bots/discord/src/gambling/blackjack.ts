@@ -83,6 +83,7 @@ export function newGame(userId: string, bet: number): Game {
 }
 
 export async function settle(game: Game, outcome: Outcome): Promise<string> {
+  game.finished = true;
   const stake = game.doubled ? game.bet * 2 : game.bet;
   let delta = 0;
   let label = '';

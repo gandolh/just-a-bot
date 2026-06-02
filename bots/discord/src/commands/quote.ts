@@ -63,7 +63,7 @@ const data = new SlashCommandBuilder()
 export const quote: Command = {
   data,
   async execute(interaction: ChatInputCommandInteraction) {
-    if (!interaction.inCachedGuild()) {
+    if (!interaction.inGuild()) {
       await interaction.reply({ content: 'Use this in a server.', ephemeral: true });
       return;
     }
@@ -86,7 +86,7 @@ const saveQuoteData = new ContextMenuCommandBuilder()
 export const saveQuoteMenu: ContextMenuCommand = {
   data: saveQuoteData,
   async execute(interaction: MessageContextMenuCommandInteraction) {
-    if (!interaction.inCachedGuild()) {
+    if (!interaction.inGuild()) {
       await interaction.reply({ content: 'Use this in a server.', ephemeral: true });
       return;
     }
@@ -122,7 +122,7 @@ async function handleAdd(interaction: ChatInputCommandInteraction): Promise<void
 
   await interaction.deferReply({ ephemeral: true });
 
-  const channel = interaction.guild!.channels.cache.get(channelId);
+  const channel = await interaction.client.channels.fetch(channelId).catch(() => null);
   if (!channel || !channel.isTextBased()) {
     await interaction.editReply('Could not find that channel.');
     return;

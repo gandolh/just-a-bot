@@ -40,7 +40,7 @@ const data = new SlashCommandBuilder()
 export const confess: Command = {
   data,
   async execute(interaction: ChatInputCommandInteraction) {
-    if (!interaction.inCachedGuild()) {
+    if (!interaction.inGuild()) {
       await interaction.reply({ content: 'Use this in a server.', ephemeral: true });
       return;
     }
@@ -103,7 +103,7 @@ async function handleSubmit(interaction: ChatInputCommandInteraction): Promise<v
     return;
   }
 
-  const targetChannel = interaction.guild!.channels.cache.get(store.channelId);
+  const targetChannel = await interaction.client.channels.fetch(store.channelId).catch(() => null);
   if (!targetChannel || !(targetChannel instanceof TextChannel)) {
     await interaction.reply({
       content: 'The configured confession channel no longer exists. Ask an admin to run `/confess set-channel` again.',

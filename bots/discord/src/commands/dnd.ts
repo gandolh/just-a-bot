@@ -163,7 +163,7 @@ const data = new SlashCommandBuilder()
 export const dnd: Command = {
   data,
   async execute(interaction: ChatInputCommandInteraction) {
-    if (!interaction.inCachedGuild()) {
+    if (!interaction.inGuild()) {
       await replyEphemeral(interaction, 'Use this in a server.');
       return;
     }

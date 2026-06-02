@@ -64,7 +64,7 @@ async function handleControllerButton(
   interaction: ButtonInteraction,
   parts: string[],
 ): Promise<void> {
-  if (!interaction.inCachedGuild()) {
+  if (!interaction.inGuild()) {
     await interaction.reply({ content: 'Not in a guild.', ephemeral: true });
     return;
   }
@@ -133,7 +133,7 @@ async function handleDuelButton(
   const action = parts[2];
   const duelId = parts[3];
 
-  if (!interaction.inCachedGuild()) {
+  if (!interaction.inGuild()) {
     await interaction.reply({ content: 'Not in a guild.', ephemeral: true });
     return;
   }
@@ -230,7 +230,7 @@ async function handleDuelButton(
     });
 
   } else if (action === 'decline') {
-    if (!interaction.inCachedGuild()) return;
+    if (!interaction.inGuild()) return;
 
     let declined = false;
     let challengerMention = '';
@@ -365,7 +365,7 @@ async function handleTradeButton(
   const action = parts[2];
   const tradeId = parts[3];
 
-  if (!interaction.inCachedGuild()) {
+  if (!interaction.inGuild()) {
     await interaction.reply({ content: 'Not in a guild.', ephemeral: true });
     return;
   }
@@ -500,7 +500,7 @@ async function handleTradeSelect(
   const tradeId = parts[3];
   const side = parts[4] as 'a' | 'b';
 
-  if (!interaction.inCachedGuild()) {
+  if (!interaction.inGuild()) {
     await interaction.reply({ content: 'Not in a guild.', ephemeral: true });
     return;
   }
