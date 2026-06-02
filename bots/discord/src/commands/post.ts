@@ -16,7 +16,7 @@ import { cardSquareTemplate } from '../img/templates/card-square.ts';
 import { postImage } from '../instagram/client.ts';
 
 const log = logger.scoped('post');
-const SIZE = 1080;
+const SIZE = 256;
 
 interface PendingPost {
   ownerId: string;
@@ -44,7 +44,7 @@ const data = new SlashCommandBuilder()
   .addSubcommand((s) =>
     s
       .setName('meme')
-      .setDescription('Classic top/bottom-text meme (1080×1080)')
+      .setDescription('Classic top/bottom-text meme (256×256)')
       .addStringOption((o) =>
         o.setName('top').setDescription('Top caption').setRequired(true).setMaxLength(120),
       )
@@ -68,7 +68,7 @@ const data = new SlashCommandBuilder()
   .addSubcommand((s) =>
     s
       .setName('card')
-      .setDescription('Announcement/quote card (1080×1080)')
+      .setDescription('Announcement/quote card (256×256)')
       .addStringOption((o) =>
         o.setName('title').setDescription('Card title').setRequired(true).setMaxLength(120),
       )
