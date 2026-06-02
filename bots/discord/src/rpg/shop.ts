@@ -1,13 +1,5 @@
-import { Character, World } from './world.ts';
+import { Character } from './world.ts';
 import { getItem, ItemDef, shopCatalog } from './items.ts';
-
-// The shop sits on the central plaza — players must stand on a plaza tile (`=`)
-// to interact. This avoids a separate NPC entity and keeps the spawn area
-// useful for high-level players too.
-export function onPlaza(world: World, char: Character): boolean {
-  const row = world.grid[char.pos[0]];
-  return row?.[char.pos[1]] === '=';
-}
 
 export interface BuyResult {
   ok: boolean;

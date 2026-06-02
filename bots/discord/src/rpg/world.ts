@@ -22,11 +22,24 @@ export interface Bounty {
   rolledAt: string;
 }
 
+// A transient combat encounter the player is currently in (not tile-based).
+export interface Encounter {
+  mobKind: string;   // MOB_KINDS slug
+  mobHp: number;
+  log: string[];     // recent swing lines
+}
+
 export interface Character {
   userId: string;
   name: string;
   glyph: string;
-  pos: [number, number];
+  // Current named location (see locations.ts). Replaces tile position.
+  locationId: string;
+  // Active explore-combat encounter, if any.
+  encounter: Encounter | null;
+  // Legacy tile position — retained for backward-compat on load; unused by the
+  // location model.
+  pos?: [number, number];
   hp: number;
   maxHp: number;
   atk: number;
@@ -134,10 +147,12 @@ export interface World {
   crierQueue: string[];
 }
 
-// The simulation runs at this many ticks per real-time second (Minecraft-style
-// 20 TPS → one tick is 50ms). A normal-speed move costs ~1s of ticks.
-export const TICKS_PER_SECOND = 20;
-export const MS_PER_TICK = 1000 / TICKS_PER_SECOND;
+// One tick is one second — the natural beat of this grid game (a normal move
+// takes one tick). The whole sim, walk cadence, and render all run on this one
+// clock; there is deliberately no sub-second resolution.
+export const MS_PER_TICK = 1000;
+// Seconds-per-tick is 1, so "ticks" and "seconds" are interchangeable here.
+export const TICKS_PER_SECOND = 1;
 
 export const MOB_KINDS: Record<string, MobKind> = {
   slime: {
@@ -147,7 +162,7 @@ export const MOB_KINDS: Record<string, MobKind> = {
     hp: 8, atk: 2, def: 0, xp: 5,
     coins: [0, 2],
     loot: [{ item: 'slime-jelly', chance: 0.3 }],
-    speedTicks: 90,
+    speedTicks: 5,
     aggroRange: 3,
   },
   goblin: {
@@ -160,7 +175,7 @@ export const MOB_KINDS: Record<string, MobKind> = {
       { item: 'rusty-dagger', chance: 0.2 },
       { item: 'healing-potion', chance: 0.15 },
     ],
-    speedTicks: 70,
+    speedTicks: 4,
     aggroRange: 5,
   },
   wolf: {
@@ -170,7 +185,7 @@ export const MOB_KINDS: Record<string, MobKind> = {
     hp: 18, atk: 5, def: 1, xp: 18,
     coins: [0, 3],
     loot: [{ item: 'wolf-pelt', chance: 0.4 }],
-    speedTicks: 50,
+    speedTicks: 3,
     aggroRange: 6,
   },
   bandit: {
@@ -183,7 +198,7 @@ export const MOB_KINDS: Record<string, MobKind> = {
       { item: 'healing-potion', chance: 0.25 },
       { item: 'leather-armor', chance: 0.1 },
     ],
-    speedTicks: 70,
+    speedTicks: 4,
     aggroRange: 5,
   },
   orc: {
@@ -196,7 +211,7 @@ export const MOB_KINDS: Record<string, MobKind> = {
       { item: 'iron-sword', chance: 0.15 },
       { item: 'healing-potion', chance: 0.3 },
     ],
-    speedTicks: 80,
+    speedTicks: 4,
     aggroRange: 5,
   },
   troll: {
@@ -209,7 +224,7 @@ export const MOB_KINDS: Record<string, MobKind> = {
       { item: 'troll-tooth', chance: 0.6 },
       { item: 'greatsword', chance: 0.1 },
     ],
-    speedTicks: 100,
+    speedTicks: 5,
     aggroRange: 4,
   },
 };
@@ -314,6 +329,8 @@ export async function loadWorld(guildId: string): Promise<World | null> {
       if (c.bounty === undefined) c.bounty = null;
       c.away ??= false;
       c.downUntil ??= 0;
+      c.locationId ??= 'plaza';
+      if (c.encounter === undefined) c.encounter = null;
     }
     cache.set(guildId, world);
     return world;
@@ -457,7 +474,7 @@ export function isWalkable(token: string): boolean {
 
 export function entityAt(world: World, row: number, col: number): Character | Mob | null {
   for (const c of Object.values(world.chars)) {
-    if (c.hp > 0 && !c.away && c.pos[0] === row && c.pos[1] === col) return c;
+    if (c.hp > 0 && !c.away && c.pos && c.pos[0] === row && c.pos[1] === col) return c;
   }
   for (const m of Object.values(world.mobs)) {
     if (m.pos[0] === row && m.pos[1] === col) return m;

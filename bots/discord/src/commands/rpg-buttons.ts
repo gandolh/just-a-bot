@@ -29,33 +29,23 @@ import {
 } from '../rpg/trade.ts';
 import type { Character, Trade } from '../rpg/world.ts';
 import {
-  CtlActionResult,
-  CtlDir,
-  CtlScreen,
-  buildControllerEmbed,
-  buildControllerRows,
-  ctlApproach,
-  ctlAttack,
-  ctlBuy,
-  ctlEquip,
-  ctlMove,
-  ctlPickup,
-  ctlRerollBounty,
-  ctlSell,
-  ctlUseItem,
-  ctlUnequip,
-  ctlUsePotion,
+  Screen,
+  applyBagSelection,
+  buildEmbed,
+  buildRows,
+  doBuy,
+  doRerollBounty,
+  doRest,
+  doSell,
+  doUnequip,
+  doUseItem,
+  hasPotion,
   nearbyPlayers,
-} from '../rpg/controller.ts';
-import {
-  closeSession,
-  isWalking,
-  openSession,
-  sessionSpeed,
-  setSpeed,
-  setWalk,
-} from '../rpg/autowalk.ts';
-import { getItem } from '../rpg/items.ts';
+  pushCombatLog,
+} from '../rpg/locationui.ts';
+import { getLocation, buildLocations } from '../rpg/locations.ts';
+import { fightRound, fleeEncounter, startEncounter } from '../rpg/combat.ts';
+import { rollExplore, rollTravelEncounter } from '../rpg/encounter.ts';
 
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -153,12 +143,10 @@ async function handleCreate(
 
     const char = world.chars[userId];
     const tip =
-      '👋 Welcome! Tap a direction to start walking that way — you keep going until you press ⏹ Stop, change direction, or hit something. ⏱ toggles speed. Attack lights up next to a foe; heal with 🧪; shop at 🏪 Town on the plaza.';
-    const embed = buildControllerEmbed(world, char, tip, undefined, 'world');
-    const rows = buildControllerRows('world', char, world, { walking: false, speed: 1 });
+      '👋 Welcome! 🔍 Explore your surroundings to find foes and loot, 🏕️ Rest to heal, and travel between places with the buttons below. 🏪 Town (at the plaza) to shop.';
+    const embed = buildEmbed(world, char, 'location', tip);
+    const rows = buildRows(world, char, 'location');
     await interaction.reply({ embeds: [embed], components: rows, ephemeral: true });
-    // Start the world clock for this player; the engine re-renders here.
-    openSession(interaction, guildId, userId);
     return;
   }
 }
@@ -182,7 +170,6 @@ async function handleControllerButton(
       const char = w.chars[userId];
       if (char) char.away = true;
     }, { urgent: true });
-    closeSession(guildId, userId); // stop the clock for us (freezes world if last)
     await interaction.update({
       content: '🚪 You step away from the world. You are safe — mobs cannot reach you. Use `/rpg start` to return.',
       embeds: [],
@@ -198,93 +185,120 @@ async function handleControllerButton(
     return;
   }
 
-  // Acting through the controller (re)opens the live session: keeps the world
-  // clock running and gives the engine this interaction to re-render through.
-  openSession(interaction as ButtonInteraction, guildId, userId, sessionSpeed(userId));
-
-  // Stop / speed adjust the walk without mutating the world.
-  if (action === 'stop') { setWalk(userId, null); }
-  if (action === 'speed') { setSpeed(userId, sessionSpeed(userId) === 1 ? 2 : 1); }
-
-  let screen: CtlScreen = 'world';
-  let result: CtlActionResult = { ok: true };
+  let screen: Screen = 'location';
+  let banner: string | undefined;
   let missing = false;
 
   const world = await updateWorld(guildId, (w) => {
     const char = w.chars[userId];
     if (!char) { missing = true; return; }
-    // Acting through the controller means the player is present again.
     char.away = false;
+
+    // If mid-combat, stay on the combat screen by default.
+    if (char.encounter) screen = 'combat';
 
     switch (action) {
       case 'screen':
-        screen = (parts[3] as CtlScreen) ?? 'world';
-        // Leaving the world screen stops any walk.
-        if (screen !== 'world') setWalk(userId, null);
+        screen = (parts[3] as Screen) ?? 'location';
         break;
 
-      // Pressing an arrow starts (or redirects) a continuous walk that way; the
-      // engine advances it tile-by-tile. Take one step now for instant feedback.
-      case 'move': {
-        const dir = parts[3] as CtlDir;
-        setWalk(userId, dir);
-        result = ctlMove(w, char, dir);
+      // ── Location actions ──
+      case 'explore': {
+        const loc = getLocation(w, char.locationId);
+        if (!loc) break;
+        const ev = rollExplore(w, char, loc);
+        if (ev.kind === 'combat') {
+          screen = 'combat';
+          banner = '⚔️ You run into a foe!';
+        } else {
+          banner = ev.text;
+        }
         break;
       }
-      case 'attack':
-        setWalk(userId, null);
-        result = ctlAttack(w, char);
+      case 'rest':
+        banner = doRest(char).banner;
         break;
-      case 'approach':
-        result = ctlApproach(w, char);
+      case 'travel': {
+        const destId = parts[3];
+        const loc = getLocation(w, char.locationId);
+        const dest = getLocation(w, destId);
+        if (!dest || !loc || !loc.exits.includes(destId)) { banner = 'You cannot go there from here.'; break; }
+        char.locationId = destId;
+        // Travel risk: a wandering foe may intercept.
+        const ambush = rollTravelEncounter(dest);
+        if (ambush) {
+          startEncounter(char, ambush);
+          screen = 'combat';
+          banner = `⚠️ On the road to ${dest.name}, you are ambushed!`;
+        } else {
+          banner = `🧭 You travel to ${dest.glyph} ${dest.name}.`;
+        }
         break;
-      case 'pickup':
-        result = ctlPickup(w, char);
-        break;
-      case 'use':
-        result = ctlUsePotion(w, char);
-        break;
+      }
 
-      // Bag screen actions.
+      // ── Combat actions ──
+      case 'fight': {
+        if (!char.encounter) { screen = 'location'; break; }
+        const r = fightRound(w, char);
+        pushCombatLog(char, r.playerLog);
+        if (r.mobLog) pushCombatLog(char, r.mobLog);
+        if (r.kill) {
+          const k = r.kill;
+          const extra = k.leveledUp ? ` ✨ Level ${k.newLevel}!` : '';
+          const bounty = k.bounty ? ` 🎯 Bounty complete! +${k.bounty.xp} XP, +${k.bounty.coins}c.` : '';
+          banner = `☠️ Defeated! +${k.xp} XP, +${k.coins}c${k.drops.length ? `, dropped ${k.drops.join(', ')}` : ''}.${extra}${bounty}`;
+          screen = 'location';
+        } else if (r.died) {
+          banner = '💀 You fell — carried back to the plaza, lighter of coin.';
+          screen = 'location';
+        } else {
+          screen = 'combat';
+        }
+        break;
+      }
+      case 'flee': {
+        const f = fleeEncounter(w, char);
+        banner = f.log;
+        screen = 'location';
+        break;
+      }
+      case 'combatpotion': {
+        banner = doUseItem(char, 'healing-potion').banner;
+        screen = char.encounter ? 'combat' : 'location';
+        break;
+      }
+
+      // ── Bag ──
       case 'bagsel': {
         screen = 'bag';
-        setWalk(userId, null);
-        const slug = interaction.isStringSelectMenu() ? interaction.values[0] : '';
-        result = applyBagSelection(char, slug);
+        banner = applyBagSelection(char, interaction.isStringSelectMenu() ? interaction.values[0] : '').banner;
         break;
       }
       case 'unequip':
         screen = 'bag';
-        result = ctlUnequip(char, parts[3] as 'weapon' | 'armor');
+        banner = doUnequip(char, parts[3] as 'weapon' | 'armor').banner;
         break;
 
-      // Town screen actions.
-      case 'buysel': {
+      // ── Town ──
+      case 'buysel':
         screen = 'town';
-        const slug = interaction.isStringSelectMenu() ? interaction.values[0] : '';
-        result = ctlBuy(w, char, slug);
+        banner = doBuy(char, interaction.isStringSelectMenu() ? interaction.values[0] : '').banner;
         break;
-      }
-      case 'sellsel': {
+      case 'sellsel':
         screen = 'town';
-        const slug = interaction.isStringSelectMenu() ? interaction.values[0] : '';
-        result = ctlSell(w, char, slug);
+        banner = doSell(char, interaction.isStringSelectMenu() ? interaction.values[0] : '').banner;
         break;
-      }
 
-      // Sheet screen actions.
+      // ── Sheet ──
       case 'bounty':
         screen = 'sheet';
-        result = ctlRerollBounty(char);
+        banner = doRerollBounty(char).banner;
         break;
     }
   }, { urgent: true });
 
   if (missing) {
-    await interaction.reply({
-      content: 'You have not joined. Use `/rpg start` first.',
-      ephemeral: true,
-    });
+    await interaction.reply({ content: 'You have not joined. Use `/rpg start` first.', ephemeral: true });
     return;
   }
 
@@ -294,22 +308,10 @@ async function handleControllerButton(
     return;
   }
 
-  const walk = { walking: isWalking(userId), speed: sessionSpeed(userId) };
-  const embed = buildControllerEmbed(world, char, result.banner, undefined, screen);
-  const rows = buildControllerRows(screen, char, world, walk);
-  await interaction.update({ embeds: [embed], components: rows });
-}
-
-// A bag selection equips weapons/armor and drinks consumables. Materials have
-// no bag action — they're sold at the plaza (🏪 Town).
-function applyBagSelection(char: Character, slug: string): CtlActionResult {
-  if (!slug) return { ok: true };
-  const item = getItem(slug);
-  if (!item) return { ok: false, banner: 'Unknown item.' };
-  if (item.kind === 'weapon' || item.kind === 'armor') return ctlEquip(char, slug);
-  if (item.kind === 'consumable') return ctlUseItem(char, slug);
-  // Materials: nothing to do in the bag besides sell at town.
-  return { ok: false, banner: `${item.label} can only be sold at the plaza (🏪 Town).` };
+  await interaction.update({
+    embeds: [buildEmbed(world, char, screen, banner)],
+    components: buildRows(world, char, screen),
+  });
 }
 
 // Initiate a duel or trade against a nearby player from the Nearby screen.
@@ -333,8 +335,8 @@ async function handleSocialInitiation(
       await interaction.update({ content: 'Character not found.', embeds: [], components: [] });
       return;
     }
-    const embed = buildControllerEmbed(w, c, banner, undefined, 'nearby');
-    const rows = buildControllerRows('nearby', c, w);
+    const embed = buildEmbed(w, c, 'nearby', banner);
+    const rows = buildRows(w, c, 'nearby');
     await interaction.update({ embeds: [embed], components: rows });
   };
 

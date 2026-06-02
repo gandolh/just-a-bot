@@ -10,16 +10,14 @@ import type { Command } from './types.ts';
 import {
   Character,
   World,
-  findOpenCell,
   getOrCreateWorld,
   updateWorld,
 } from '../rpg/world.ts';
 import { rollBounty } from '../rpg/bounty.ts';
-import { closeSession, openSession } from '../rpg/autowalk.ts';
+import { STARTING_LOCATION } from '../rpg/locations.ts';
 import {
-  buildControllerEmbed,
-  buildControllerRows,
-} from '../rpg/controller.ts';
+  buildLocationView,
+} from '../rpg/locationui.ts';
 
 const PC_GLYPHS = ['🧙', '🧝', '🧛', '🧟', '🧞', '🧜', '🦸', '🥷', '👤', '🧚'];
 
@@ -36,12 +34,12 @@ export function makeCharacter(
   name: string,
   glyph: string | null,
 ): Character {
-  const cell = findOpenCell(world, world.spawn, 6) ?? world.spawn;
   const fresh: Character = {
     userId,
     name,
     glyph: glyph ?? pickGlyph(world),
-    pos: cell,
+    locationId: STARTING_LOCATION,
+    encounter: null,
     hp: 20,
     maxHp: 20,
     atk: 3,
@@ -134,13 +132,10 @@ async function handleStart(
     return;
   }
 
-  // Returning player: open the controller straight away.
+  // Returning player: open the location screen straight away.
   const char = world.chars[userId];
-  const embed = buildControllerEmbed(world, char, undefined, undefined, 'world');
-  const rows = buildControllerRows('world', char, world, { walking: false, speed: 1 });
-  await interaction.reply({ embeds: [embed], components: rows, ephemeral: true });
-  // Start the world clock for this player and let the engine re-render here.
-  openSession(interaction, interaction.guildId!, userId);
+  const view = buildLocationView(world, char, char.encounter ? 'combat' : 'location');
+  await interaction.reply({ ...view, ephemeral: true });
 }
 
 async function handleExit(
@@ -154,7 +149,6 @@ async function handleExit(
     hadChar = true;
     char.away = true;
   }, { urgent: true });
-  closeSession(interaction.guildId!, userId);
 
   if (!hadChar) {
     await interaction.reply({ content: 'You have no character. Use `/rpg start` to begin.', ephemeral: true });
@@ -172,16 +166,17 @@ async function handleHelp(interaction: ChatInputCommandInteraction): Promise<voi
     .setTitle('🗺️ /rpg — how to play')
     .setDescription(
       [
-        '**`/rpg start`** — enter the world. The first time, you create a character; after that it just drops you back in with the controller.',
-        '**The controller** — the panel has arrow buttons to walk. Each press moves you and re-renders the map. Loot is picked up automatically when you walk over it.',
-        '• **⚔ Attack** — strike an adjacent enemy (3s cooldown). The button lights up when a foe is in range.',
-        '• **🏃 Approach** — auto-step toward the nearest enemy.',
-        '• **🧪 Potion** — heal if you carry a healing potion. **🎒 Bag** — equip/use items. **🏪 Town** — buy/sell on the plaza. **📋 Me** — your sheet & bounty.',
-        '• **👥 Nearby** — appears when another adventurer is within reach; open it to **⚔ Duel** or **🤝 Trade** with them.',
-        '• **🚪 Exit** — step away. Your character stays in the world but **mobs cannot attack you** — you just exist until you `/rpg start` again.',
+        '**`/rpg start`** — enter the world. The first time you create a character; after that it drops you straight back where you left off.',
+        'You are always **at a place** — the Plaza and the wilds beyond it. A place shows what you can do and where you can go:',
+        '• **🔍 Explore** — search the area: you might run into a foe (→ a fight), find loot or coins, or just flavour.',
+        '• **🏕️ Rest** — recover some HP.',
+        '• **Travel buttons** — move to a connected place. The further from the Plaza, the more dangerous — and travel itself can be ambushed.',
+        '• **🎒 Bag** — equip/use items. **📋 Me** — sheet & bounty. **🏪 Town** (at the Plaza) — buy/sell.',
+        '• **👥 Nearby** — appears when another adventurer is in the same place; open it to **⚔ Duel** or **🤝 Trade**.',
+        '• **🚪 Exit** — step away; your character stays safe in the world until you `/rpg start` again.',
         '',
-        '**Combat math** — `d20 + ATK vs 10 + DEF`. Nat 1 misses, nat 20 crits (2× damage).',
-        '**Death** — respawn at the plaza, drop half your coins. Equipment is never lost.',
+        '**Combat** — turn-based: **⚔ Attack**, **🏃 Flee**, or **🧪 Potion**. Math is `d20 + ATK vs 10 + DEF`; nat 1 misses, nat 20 crits.',
+        '**Death** — you wake at the Plaza, lighter of coin. Equipment is never lost.',
       ].join('\n'),
     );
   await interaction.reply({ embeds: [embed], ephemeral: true });

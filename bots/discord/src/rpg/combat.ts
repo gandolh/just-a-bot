@@ -1,33 +1,17 @@
 import {
   Character,
-  Mob,
+  Encounter,
   MOB_KINDS,
   World,
-  cheby,
   crier,
   effectiveStats,
-  findOpenCell,
   levelFor,
-  nextId,
 } from './world.ts';
 import { ITEMS } from './items.ts';
 import { BountyClaim, onKill } from './bounty.ts';
 
-// All durations are in world ticks (20 TPS). 3s cooldown, 8s respawn grace.
-export const ATTACK_COOLDOWN_TICKS = 60;
-// After dying, a player is protected (untargetable, can't attack) for a moment
-// so they cannot be instantly re-killed nor farm by suicide-rushing.
-export const RESPAWN_PROTECT_TICKS = 160;
-
-export interface AttackResult {
-  attacker: string;
-  target: string;
-  hit: boolean;
-  damage: number;
-  crit: boolean;
-  miss: boolean;
-  log: string;
-}
+// Encounter combat is turn-based and location-based (no tiles). Each "round" the
+// player swings at the encounter mob; if it survives, it swings back.
 
 export interface KillResult {
   xp: number;
@@ -38,8 +22,19 @@ export interface KillResult {
   bounty?: BountyClaim | null;
 }
 
+export interface RoundResult {
+  playerLog: string;
+  mobLog?: string;
+  kill?: KillResult | null;
+  died?: boolean;
+}
+
 function roll(sides: number): number {
   return 1 + Math.floor(Math.random() * sides);
+}
+
+function randInt(min: number, max: number): number {
+  return min + Math.floor(Math.random() * (max - min + 1));
 }
 
 function computeHit(atk: number, def: number): { hit: boolean; crit: boolean; damage: number } {
@@ -54,86 +49,82 @@ function computeHit(atk: number, def: number): { hit: boolean; crit: boolean; da
   return { hit: true, crit: d20 === 20, damage };
 }
 
-// Character attacks mob. Returns null if mob is out of reach. Caller must
-// already have verified the cooldown.
-export function charAttackMob(
-  world: World,
-  char: Character,
-  mob: Mob,
-): { attack: AttackResult; counter: AttackResult | null; kill: KillResult | null } | null {
-  if (cheby(char.pos, mob.pos) > 1) return null;
+// Start an encounter against a mob kind (sets char.encounter).
+export function startEncounter(char: Character, mobKind: string): void {
+  const kind = MOB_KINDS[mobKind];
+  char.encounter = { mobKind, mobHp: kind?.hp ?? 1, log: [] };
+}
 
-  const kind = MOB_KINDS[mob.kind];
-  const def = kind?.def ?? 0;
+// Resolve one combat round: the player attacks the encounter mob, then the mob
+// counter-attacks if it survives. Mutates char/encounter and may award a kill or
+// kill the player.
+export function fightRound(world: World, char: Character): RoundResult {
+  const enc = char.encounter;
+  if (!enc) return { playerLog: 'No foe to fight.' };
+  const kind = MOB_KINDS[enc.mobKind];
+  const glyph = kind?.glyph ?? '👹';
+  const name = kind?.name ?? enc.mobKind;
   const eff = effectiveStats(char);
-  const res = computeHit(eff.atk, def);
-  const attack: AttackResult = {
-    attacker: char.name,
-    target: kind?.name ?? mob.kind,
-    hit: res.hit,
-    damage: res.damage,
-    crit: res.crit,
-    miss: !res.hit,
-    log: res.hit
-      ? `${char.glyph} **${char.name}** hits ${kind?.glyph ?? '👹'} ${kind?.name ?? mob.kind} for **${res.damage}**${res.crit ? ' 💥 crit!' : ''}`
-      : `${char.glyph} **${char.name}** swings at ${kind?.glyph ?? '👹'} ${kind?.name ?? mob.kind} — miss.`,
-  };
-  char.lastAttackAt = world.tick;
-  if (res.hit) mob.hp -= res.damage;
 
-  if (mob.hp <= 0) {
-    const kill = killMob(world, char, mob);
-    return { attack, counter: null, kill };
+  // Player swing.
+  const a = computeHit(eff.atk, kind?.def ?? 0);
+  let playerLog: string;
+  if (a.hit) {
+    enc.mobHp -= a.damage;
+    playerLog = `${char.glyph} You hit the ${glyph} ${name} for **${a.damage}**${a.crit ? ' 💥 crit!' : ''}`;
+  } else {
+    playerLog = `${char.glyph} You swing at the ${glyph} ${name} — miss.`;
   }
 
-  // Counter-attack from the mob.
-  const counterRes = computeHit(kind?.atk ?? 1, eff.def);
-  const counter: AttackResult = {
-    attacker: kind?.name ?? mob.kind,
-    target: char.name,
-    hit: counterRes.hit,
-    damage: counterRes.damage,
-    crit: counterRes.crit,
-    miss: !counterRes.hit,
-    log: counterRes.hit
-      ? `${kind?.glyph ?? '👹'} **${kind?.name ?? mob.kind}** strikes ${char.glyph} ${char.name} for **${counterRes.damage}**${counterRes.crit ? ' 💥 crit!' : ''}`
-      : `${kind?.glyph ?? '👹'} **${kind?.name ?? mob.kind}** lunges at ${char.glyph} ${char.name} — miss.`,
-  };
-  if (counterRes.hit) char.hp -= counterRes.damage;
+  if (enc.mobHp <= 0) {
+    const kill = awardKill(world, char, enc.mobKind);
+    char.encounter = null;
+    return { playerLog, kill };
+  }
 
-  if (char.hp <= 0) handleDeath(world, char);
+  // Mob counter.
+  const c = computeHit(kind?.atk ?? 1, eff.def);
+  let mobLog: string;
+  if (c.hit) {
+    char.hp -= c.damage;
+    mobLog = `${glyph} The ${name} strikes you for **${c.damage}**${c.crit ? ' 💥 crit!' : ''}`;
+  } else {
+    mobLog = `${glyph} The ${name} lunges — miss.`;
+  }
 
-  return { attack, counter, kill: null };
+  if (char.hp <= 0) {
+    handleDeath(world, char);
+    return { playerLog, mobLog, died: true };
+  }
+  return { playerLog, mobLog };
 }
 
-// Mob attacks a character. Used by the tick step.
-export function mobAttackChar(world: World, mob: Mob, char: Character): AttackResult {
-  const kind = MOB_KINDS[mob.kind];
+// Flee an encounter. Returns true if you got away, false if the mob gets a
+// parting shot (and may down you).
+export function fleeEncounter(world: World, char: Character): { escaped: boolean; log: string; died?: boolean } {
+  const enc = char.encounter;
+  if (!enc) return { escaped: true, log: 'There is nothing to flee.' };
+  const kind = MOB_KINDS[enc.mobKind];
+  char.encounter = null;
+  // 70% clean getaway; otherwise a parting hit.
+  if (Math.random() < 0.7) {
+    return { escaped: true, log: '🏃 You slip away to safety.' };
+  }
   const eff = effectiveStats(char);
-  const res = computeHit(kind?.atk ?? 1, eff.def);
-  if (res.hit) char.hp -= res.damage;
-  const log = res.hit
-    ? `${kind?.glyph ?? '👹'} **${kind?.name ?? mob.kind}** strikes ${char.glyph} ${char.name} for **${res.damage}**${res.crit ? ' 💥 crit!' : ''}`
-    : `${kind?.glyph ?? '👹'} **${kind?.name ?? mob.kind}** swings at ${char.glyph} ${char.name} — miss.`;
-  if (char.hp <= 0) handleDeath(world, char);
-  return {
-    attacker: kind?.name ?? mob.kind,
-    target: char.name,
-    hit: res.hit,
-    damage: res.damage,
-    crit: res.crit,
-    miss: !res.hit,
-    log,
-  };
+  const c = computeHit(kind?.atk ?? 1, eff.def);
+  if (c.hit) {
+    char.hp -= c.damage;
+    if (char.hp <= 0) {
+      handleDeath(world, char);
+      return { escaped: true, log: `🏃 You flee, but the ${kind?.name ?? 'foe'} fells you as you turn!`, died: true };
+    }
+    return { escaped: true, log: `🏃 You flee — the ${kind?.name ?? 'foe'} catches you for **${c.damage}** on the way out.` };
+  }
+  return { escaped: true, log: '🏃 You break away, narrowly dodging a parting blow.' };
 }
 
-function randInt(min: number, max: number): number {
-  return min + Math.floor(Math.random() * (max - min + 1));
-}
-
-function killMob(world: World, char: Character, mob: Mob): KillResult {
-  const kind = MOB_KINDS[mob.kind];
-  delete world.mobs[mob.id];
+function awardKill(world: World, char: Character, mobKind: string): KillResult {
+  const kind = MOB_KINDS[mobKind];
   if (!kind) return { xp: 0, coins: 0, drops: [], leveledUp: false };
 
   const coins = randInt(kind.coins[0], kind.coins[1]);
@@ -141,12 +132,8 @@ function killMob(world: World, char: Character, mob: Mob): KillResult {
   for (const entry of kind.loot) {
     if (Math.random() < entry.chance) drops.push(entry.item);
   }
-  // Drop loot as a tile right where the mob fell.
-  for (const item of drops) {
-    const id = nextId(world, 'loot');
-    world.loot[id] = { id, item, pos: [mob.pos[0], mob.pos[1]] };
-  }
-  // Coins go straight to the wallet (no need to walk over them).
+  // Loot goes straight to the bag, coins to the wallet (no tiles to walk over).
+  for (const item of drops) char.inventory.push(item);
   char.coins += coins;
   char.kills++;
 
@@ -160,57 +147,31 @@ function killMob(world: World, char: Character, mob: Mob): KillResult {
     char.maxHp += 4 * gained;
     char.atk += 1 * gained;
     char.def += 1 * gained;
-    char.hp = char.maxHp; // full heal on level up
+    char.hp = char.maxHp;
     crier(world, `✨ ${char.glyph} **${char.name}** reached level **${afterLevel}**!`);
   }
 
-  // Slaying the apex mob, or a genuinely rare drop, is worth announcing.
   if (kind.slug === 'troll') {
     crier(world, `🧌 ${char.glyph} **${char.name}** felled a **Troll**!`);
   }
   for (const item of drops) {
-    const def = ITEMS[item];
     if (item === 'greatsword') {
-      crier(world, `🪓 ${char.glyph} **${char.name}** found a **${def?.label ?? item}**!`);
+      crier(world, `🪓 ${char.glyph} **${char.name}** found a **${ITEMS[item]?.label ?? item}**!`);
     }
   }
 
   const bounty = onKill(char, kind.slug);
-
-  return {
-    xp: kind.xp,
-    coins,
-    drops,
-    leveledUp,
-    newLevel: leveledUp ? afterLevel : undefined,
-    bounty,
-  };
+  return { xp: kind.xp, coins, drops, leveledUp, newLevel: leveledUp ? afterLevel : undefined, bounty };
 }
 
 function handleDeath(world: World, char: Character): void {
   char.deaths++;
-  crier(world, `💀 ${char.glyph} **${char.name}** fell in the wild and respawned at the plaza.`);
+  crier(world, `💀 ${char.glyph} **${char.name}** fell in the wild and was carried back to the plaza.`);
   char.hp = char.maxHp;
-  // Drop half their coins as loot on the death tile.
+  char.encounter = null;
+  // Drop half their coins as the cost of defeat.
   const dropped = Math.floor(char.coins / 2);
-  if (dropped > 0) {
-    char.coins -= dropped;
-    const id = nextId(world, 'loot');
-    world.loot[id] = { id, item: `${dropped}-coins`, pos: [char.pos[0], char.pos[1]] };
-  }
-  // Respawn at a clear cell near the world spawn.
-  const cell = findOpenCell(world, world.spawn, 8) ?? world.spawn;
-  char.pos = cell;
-  // Brief protection so the player isn't immediately re-killed at the plaza.
-  char.downUntil = world.tick + RESPAWN_PROTECT_TICKS;
-}
-
-// Remaining ticks of post-respawn protection (0 if none).
-export function respawnProtectRemainingTicks(char: Character, tick: number): number {
-  return Math.max(0, char.downUntil - tick);
-}
-
-// Remaining ticks of attack cooldown (0 if ready).
-export function attackCooldownRemainingTicks(char: Character, tick: number): number {
-  return Math.max(0, ATTACK_COOLDOWN_TICKS - (tick - char.lastAttackAt));
+  char.coins -= dropped;
+  // Wake up safe at the hub.
+  char.locationId = 'plaza';
 }
