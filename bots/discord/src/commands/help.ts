@@ -35,7 +35,9 @@ const GROUPS: Group[] = [
       { name: '/coins add', desc: 'Add coins to your account (0 – 100,000)' },
       { name: '/slots', desc: '5×5 slot machine, 12 paylines' },
       { name: '/blackjack', desc: 'Play a hand vs the dealer (hit / stand / double)' },
+      { name: '/blackjack2', desc: 'Challenge another player — both play one shared dealer' },
       { name: '/dice', desc: 'Roll 2d6 against the bot — biggest dice wins' },
+      { name: '/dice2', desc: 'Challenge another player to a 2d6 duel — winner takes the pot' },
     ],
   },
   {
@@ -44,6 +46,8 @@ const GROUPS: Group[] = [
     entries: [
       { name: '/wordle', desc: 'Start a Wordle game in a thread (type guesses, `delete` removes it)' },
       { name: '/tictactoe', desc: 'Play tic-tac-toe with buttons (mention an opponent or play the bot)' },
+      { name: '/c4', desc: 'Play Connect Four against the bot' },
+      { name: '/c42', desc: 'Challenge another player to Connect Four' },
     ],
   },
   {

@@ -4,6 +4,8 @@ import { env } from './env.ts';
 import { initPlayer } from './player.ts';
 import { commands, contextMenuCommands } from './commands/index.ts';
 import { handleBlackjackButton } from './commands/blackjack.ts';
+import { handleBlackjack2Button } from './commands/blackjack2.ts';
+import { handleDice2Button } from './commands/dice2.ts';
 import { handleWordleMessage, hasWordleGame } from './commands/wordle.ts';
 import { handleHangmanMessage, hasHangmanGame } from './commands/hangman.ts';
 import { handleTicTacToeButton } from './commands/tictactoe.ts';
@@ -46,11 +48,23 @@ client.on(Events.InteractionCreate, async (interaction) => {
   }
 
   if (interaction.isButton()) {
-    if (interaction.customId.startsWith('bj:')) {
+    if (interaction.customId.startsWith('bj2:')) {
+      try {
+        await handleBlackjack2Button(interaction);
+      } catch (err) {
+        log.error('Blackjack 2P button failed', err);
+      }
+    } else if (interaction.customId.startsWith('bj:')) {
       try {
         await handleBlackjackButton(interaction);
       } catch (err) {
         log.error('Blackjack button failed', err);
+      }
+    } else if (interaction.customId.startsWith('dice2:')) {
+      try {
+        await handleDice2Button(interaction);
+      } catch (err) {
+        log.error('Dice 2P button failed', err);
       }
     } else if (interaction.customId.startsWith('ttt:')) {
       try {

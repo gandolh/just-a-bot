@@ -10,7 +10,9 @@ import { nowplaying } from './nowplaying.ts';
 import { coins } from './coins.ts';
 import { slots } from './slots.ts';
 import { blackjack } from './blackjack.ts';
+import { blackjack2 } from './blackjack2.ts';
 import { dice } from './dice.ts';
+import { dice2 } from './dice2.ts';
 import { wordle } from './wordle.ts';
 import { tictactoe } from './tictactoe.ts';
 import { help } from './help.ts';
@@ -28,12 +30,12 @@ import { mafia } from './mafia.ts';
 // import { mafia2 } from './mafia2.ts';
 import { confess } from './confess.ts';
 import { clock } from './clock.ts';
-import { connectFour } from './connect-four.ts';
+import { connectFour, connectFour2 } from './connect-four.ts';
 import { ask } from './ask.ts';
 
 const all: Command[] = [
   ping, play, skip, pause, resume, stop, queue, nowplaying,
-  coins, slots, blackjack, dice, wordle, tictactoe, connectFour,
+  coins, slots, blackjack, blackjack2, dice, dice2, wordle, tictactoe, connectFour, connectFour2,
   rpg, mafia, confess,
   clock,
   top,

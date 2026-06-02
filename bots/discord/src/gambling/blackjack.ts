@@ -152,3 +152,45 @@ export function hit(game: Game): number {
   game.player.push(game.deck.pop()!);
   return handValue(game.player).total;
 }
+
+/**
+ * Resolve a single player's hand against a finished dealer hand and pay out.
+ * Used by the multi-player table where one shared dealer is settled against
+ * each seat independently. Returns the result label for that seat.
+ */
+export async function settleHand(
+  userId: string,
+  stake: number,
+  player: Card[],
+  dealer: Card[],
+): Promise<{ delta: number; label: string }> {
+  const p = handValue(player).total;
+  const d = handValue(dealer).total;
+  const playerBJ = isBlackjack(player);
+
+  let delta: number;
+  let label: string;
+  if (p > 21) {
+    delta = -stake;
+    label = 'busts — loses';
+  } else if (playerBJ && !isBlackjack(dealer)) {
+    delta = Math.floor(stake * 1.5);
+    label = 'blackjack! 3:2';
+  } else if (d > 21) {
+    delta = stake;
+    label = 'wins (dealer bust)';
+  } else if (p > d) {
+    delta = stake;
+    label = 'wins';
+  } else if (p < d) {
+    delta = -stake;
+    label = 'loses';
+  } else {
+    delta = 0;
+    label = 'push';
+  }
+
+  if (delta > 0) await credit(userId, stake + delta);
+  else if (delta === 0) await credit(userId, stake);
+  return { delta, label };
+}
