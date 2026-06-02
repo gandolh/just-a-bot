@@ -23,7 +23,7 @@
     "mafia-activity:build": "npm run build -w @bots/mafia-activity",
     "mafia-activity:start": "npm run start -w @bots/mafia-activity",
     "deploy:pre": "tsx deploy/index.ts pre-deploy",
-    "deploy": "tsx deploy/index.ts deploy",
+    "deploy:push": "tsx deploy/index.ts deploy",
     "deploy:status": "tsx deploy/index.ts status",
     "deploy:logs": "tsx deploy/index.ts logs",
     "deploy:stop": "tsx deploy/index.ts stop"
