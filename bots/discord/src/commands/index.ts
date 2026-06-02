@@ -25,7 +25,7 @@ import { birthday } from './birthday.ts';
 import { hangman } from './hangman.ts';
 import { trivia } from './trivia.ts';
 import { img } from './img.ts';
-import { post } from './post.ts';
+// import { post } from './post.ts';
 import { mafia } from './mafia.ts';
 // import { mafia2 } from './mafia2.ts';
 import { confess } from './confess.ts';
@@ -44,7 +44,7 @@ const all: Command[] = [
   hangman,
   trivia,
   img,
-  post,
+  // post,  // hidden for now
   ask,
   help,
 ];
