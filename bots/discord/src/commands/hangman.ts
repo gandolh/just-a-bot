@@ -91,11 +91,6 @@ export const hangman: Command = {
             )
             .setRequired(false),
         ),
-    )
-    .addSubcommand((sub) =>
-      sub
-        .setName('give-up')
-        .setDescription('Reveal the word and end the current game (starter or admin only)'),
     ) as SlashCommandBuilder,
 
   async execute(interaction: ChatInputCommandInteraction) {
@@ -103,8 +98,6 @@ export const hangman: Command = {
 
     if (sub === 'start') {
       await handleStart(interaction);
-    } else if (sub === 'give-up') {
-      await handleGiveUp(interaction);
     }
   },
 };
@@ -138,50 +131,10 @@ async function handleStart(interaction: ChatInputCommandInteraction): Promise<vo
   await thread.send(
     [
       `Guess letters one at a time by typing a single letter in this thread.`,
-      `6 wrong guesses and it's game over. Type \`/hangman give-up\` to reveal the word early.`,
+      `6 wrong guesses and it's game over.`,
       '',
       initialState,
     ].join('\n'),
   );
 }
 
-async function handleGiveUp(interaction: ChatInputCommandInteraction): Promise<void> {
-  if (!interaction.channel?.isThread()) {
-    await interaction.reply({
-      content: 'Use this command inside the Hangman thread.',
-      ephemeral: true,
-    });
-    return;
-  }
-
-  const game = games.get(interaction.channelId);
-  if (!game) {
-    await interaction.reply({
-      content: 'There is no active Hangman game in this thread.',
-      ephemeral: true,
-    });
-    return;
-  }
-
-  const member = await interaction.guild?.members.fetch(interaction.user.id).catch(() => null);
-  const isAdmin = member?.permissions.has('Administrator') ?? false;
-
-  if (interaction.user.id !== game.starterId && !isAdmin) {
-    await interaction.reply({
-      content: 'Only the player who started this game (or an admin) can give up.',
-      ephemeral: true,
-    });
-    return;
-  }
-
-  game.revealed = game.word.split('');
-  game.state = 'lost';
-  const finalRender = renderState(game);
-
-  await interaction.reply(
-    `${finalRender}\n\n🏳️ <@${game.starterId}> gave up. The word was **${game.word}**.`,
-  );
-
-  games.delete(interaction.channelId);
-  await interaction.channel.setArchived(true, 'Hangman game ended (give-up)').catch(() => {});
-}

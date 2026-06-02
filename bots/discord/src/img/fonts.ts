@@ -21,7 +21,7 @@ export const fonts: Font[] = [
   },
   {
     name: 'Anton',
-    data: readFileSync(resolve(dir, 'Anton-Regular.woff')),
+    data: readFileSync(resolve(dir, 'Anton-Regular.ttf')),
     weight: 400,
     style: 'normal',
   },

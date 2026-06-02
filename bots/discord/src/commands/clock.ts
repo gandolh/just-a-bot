@@ -124,10 +124,24 @@ export const clock: Command = {
       .map((id) => ({ userId: id, tz: all[id] }));
 
     if (guildEntries.length === 0) {
-      await interaction.reply({
-        content: 'No one in this server has set a timezone. Try `/clock set timezone:Continent/City`.',
-        ephemeral: true,
+      // People have registered, but none could be resolved as members of this
+      // guild — either they aren't in this server or the member fetch failed.
+      // Fall back to showing everyone registered rather than claiming nobody is.
+      const fallbackEntries = registeredIds.map((id) => ({ userId: id, tz: all[id] }));
+      fallbackEntries.sort((a, b) => getUtcOffsetMinutes(a.tz) - getUtcOffsetMinutes(b.tz));
+
+      const fallbackLines = fallbackEntries.map((e) => {
+        const displayName = members?.get(e.userId)?.displayName ?? `<@${e.userId}>`;
+        return `**${displayName}** (${e.tz})\n${formatLocalTime(e.tz)}`;
       });
+
+      const fallbackEmbed = new EmbedBuilder()
+        .setColor(0x3498db)
+        .setTitle('🕐 World Clock')
+        .setDescription(fallbackLines.join('\n\n'))
+        .setFooter({ text: new Date().toUTCString() });
+
+      await interaction.reply({ embeds: [fallbackEmbed] });
       return;
     }
 

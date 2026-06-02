@@ -1,9 +1,9 @@
 import {
+  ChannelType,
   ChatInputCommandInteraction,
   EmbedBuilder,
   PermissionFlagsBits,
   SlashCommandBuilder,
-  TextChannel,
 } from 'discord.js';
 import type { Command } from './types.ts';
 import { loadStore, setChannel, addConfession } from '../confessions/store.ts';
@@ -21,7 +21,16 @@ const data = new SlashCommandBuilder()
       .setName('set-channel')
       .setDescription('Set the channel where confessions are posted (admin only)')
       .addChannelOption((o) =>
-        o.setName('channel').setDescription('Target channel').setRequired(true),
+        o
+          .setName('channel')
+          .setDescription('Target channel')
+          .setRequired(true)
+          .addChannelTypes(
+            ChannelType.GuildText,
+            ChannelType.GuildAnnouncement,
+            ChannelType.PublicThread,
+            ChannelType.PrivateThread,
+          ),
       ),
   )
   .addSubcommand((s) =>
@@ -60,14 +69,20 @@ async function handleSetChannel(interaction: ChatInputCommandInteraction): Promi
   }
 
   const channel = interaction.options.getChannel('channel', true);
-  if (!(channel instanceof TextChannel)) {
+  const allowedTypes: ChannelType[] = [
+    ChannelType.GuildText,
+    ChannelType.GuildAnnouncement,
+    ChannelType.PublicThread,
+    ChannelType.PrivateThread,
+  ];
+  if (!allowedTypes.includes(channel.type)) {
     await interaction.reply({ content: 'Please select a text channel.', ephemeral: true });
     return;
   }
 
   await setChannel(interaction.guildId!, channel.id);
   await interaction.reply({
-    content: `Confessions will now be posted in ${channel}.`,
+    content: `Confessions will now be posted in <#${channel.id}>.`,
     ephemeral: true,
   });
 }
@@ -103,18 +118,37 @@ async function handleSubmit(interaction: ChatInputCommandInteraction): Promise<v
     return;
   }
 
-  const targetChannel = await interaction.client.channels.fetch(store.channelId).catch(() => null);
-  if (!targetChannel || !(targetChannel instanceof TextChannel)) {
+  let fetchError: unknown;
+  const targetChannel = await interaction.client.channels
+    .fetch(store.channelId)
+    .catch((err: unknown) => {
+      fetchError = err;
+      return null;
+    });
+
+  if (!targetChannel) {
+    // 50001 Missing Access → the bot can't see the channel (permissions).
+    // Anything else (e.g. 10003 Unknown Channel) → it's gone or renamed.
+    const code = (fetchError as { code?: number } | undefined)?.code;
+    const content =
+      code === 50001
+        ? "I can't access the confession channel. Give me **View Channel** and **Send Messages** permission there, then try again."
+        : 'The configured confession channel no longer exists. Ask an admin to run `/confess set-channel` again.';
+    await interaction.reply({ content, ephemeral: true });
+    return;
+  }
+
+  if (!targetChannel.isTextBased() || !('send' in targetChannel)) {
     await interaction.reply({
-      content: 'The configured confession channel no longer exists. Ask an admin to run `/confess set-channel` again.',
+      content: 'The configured confession channel is not a text channel. Ask an admin to run `/confess set-channel` again.',
       ephemeral: true,
     });
     return;
   }
 
+  // Record the confession first so it gets a stable ID, but only commit the
+  // cooldown after the post actually succeeds.
   const entry = await addConfession(interaction.guildId!, text);
-
-  cooldowns.set(`${interaction.guildId!}:${userId}`, Date.now());
 
   const embed = new EmbedBuilder()
     .setTitle(`Anonymous Confession #${entry.id}`)
@@ -122,7 +156,17 @@ async function handleSubmit(interaction: ChatInputCommandInteraction): Promise<v
     .setColor(0x5865f2)
     .setFooter({ text: new Date(entry.postedAt).toUTCString() });
 
-  await targetChannel.send({ embeds: [embed] });
+  try {
+    await targetChannel.send({ embeds: [embed] });
+  } catch {
+    await interaction.reply({
+      content: "I couldn't post to the confession channel — check that I have **Send Messages** permission there.",
+      ephemeral: true,
+    });
+    return;
+  }
+
+  cooldowns.set(`${interaction.guildId!}:${userId}`, Date.now());
 
   await interaction.reply({
     content: `Posted. ID: #${entry.id}`,
