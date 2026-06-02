@@ -1,0 +1,10 @@
+{
+  "name": "@bots/deploy",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "deploy tool (run via tsx). Not a workspace.",
+  "scripts": {
+    "typecheck": "tsc"
+  }
+}
