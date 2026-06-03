@@ -195,9 +195,9 @@ function deploy(cfg: Config): void {
     ssh(cfg, `cd ${cfg.remoteDir} && npm ci`);
   }
 
-  // 4. mafia-activity client build is disabled for now (mirrors ecosystem
+  // 4. dice-activity client build is disabled for now (mirrors ecosystem
   //    config). Re-enable when that bot ships:
-  //    ssh(cfg, `cd ${cfg.remoteDir} && npm run mafia-activity:build`);
+  //    ssh(cfg, `cd ${cfg.remoteDir} && npm run dice-activity:build`);
 
   // 5. (Re)start under pm2.
   log.step("Starting bots under pm2...");

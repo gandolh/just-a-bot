@@ -44,5 +44,5 @@ npx tsx deploy/index.ts help
 - `deploy/.env` is gitignored (the global `.env` rule). `.env.example` is tracked.
 - `pre-deploy` uses `sudo` on the server for apt / global npm / the pm2 boot
   unit — the SSH user needs sudo. The phase is safe to re-run anytime.
-- The mafia-activity client build is disabled (see the commented block in
+- The dice-activity client build is disabled (see the commented block in
   `index.ts` and `ecosystem.config.cjs`); re-enable both together.

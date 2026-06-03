@@ -15,11 +15,12 @@ const schema = z.object({
   OLLAMA_HOST: z.string().url().default('https://ollama.com'),
   OLLAMA_MODEL: z.string().default('gpt-oss:120b'),
 
-  // /mafia2 — Activity-based variant. All optional: if unset, the slash command
-  // still registers but reports "not configured" and the engine link stays down.
-  MAFIA_ACTIVITY_WS_URL: z.string().url().optional(),
-  MAFIA_ACTIVITY_TOKEN: z.string().min(16).optional(),
-  MAFIA2_ACTIVITY_URL: z.string().url().optional(),
+  // /dicetable — voice-channel Activity. All optional: if unset, the slash
+  // command still registers but reports "not configured" and the engine link
+  // stays down.
+  DICE_ACTIVITY_WS_URL: z.string().url().optional(),
+  DICE_ACTIVITY_TOKEN: z.string().min(16).optional(),
+  DICETABLE_ACTIVITY_URL: z.string().url().optional(),
 
   // /post — Instagram publishing. Optional: command still registers but reports
   // "not configured" if either is missing.

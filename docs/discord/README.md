@@ -22,7 +22,7 @@ smaller features.
 - [Img](img/README.md) — `/img meme` `/img card` PNG image generation (Satori + resvg)
 - [Post](post/README.md) — `/post meme` `/post card` render 1080×1080, preview in Discord, approve & publish to Instagram via Graph API
 - [Mafia](mafia/README.md) — `/mafia` Werewolf-style social deduction game with DM-based night actions
-- [Mafia2](mafia2/README.md) — `/mafia2` voice-channel **Activity** version, live tension dashboard, role-scoped state. Milestones 1–5 built; not yet exercised in a live Discord client.
+- [Dice Table](dicetable/README.md) — `/dicetable` voice-channel **Activity**: players ante coins, everyone rolls 2d6, biggest roll takes the pot. Replaced the former Mafia Activity.
 - [Confession Box](confessions/README.md) — `/confess` anonymous per-guild confession channel with admin setup
 - [Timezone Clock](clock/README.md) — `/clock` register your timezone, see everyone's local time at a glance
 - [Connect Four](connect-four/README.md) — `/c4 @opponent` button-driven 7×6 two-player Connect Four

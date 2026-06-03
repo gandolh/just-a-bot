@@ -17,7 +17,7 @@ import { handleRpgButton } from './commands/rpg-buttons.ts';
 import { handleMafiaButton } from './commands/mafia.ts';
 import { handleConnectFourButton } from './commands/connect-four.ts';
 import { handleInstagramButton } from './commands/post.ts';
-import { startLink as startMafia2Link } from './mafia2/link.ts';
+import { startLink as startDiceTableLink } from './dicetable/link.ts';
 
 const log = logger.scoped('discord');
 
@@ -192,8 +192,8 @@ client.on(Events.MessageCreate, async (message) => {
 await initPlayer(client);
 await client.login(env.DISCORD_TOKEN);
 
-if (env.MAFIA_ACTIVITY_WS_URL && env.MAFIA_ACTIVITY_TOKEN) {
-  startMafia2Link({ url: env.MAFIA_ACTIVITY_WS_URL, token: env.MAFIA_ACTIVITY_TOKEN });
+if (env.DICE_ACTIVITY_WS_URL && env.DICE_ACTIVITY_TOKEN) {
+  startDiceTableLink({ url: env.DICE_ACTIVITY_WS_URL, token: env.DICE_ACTIVITY_TOKEN });
 }
 
 setInterval(() => {
