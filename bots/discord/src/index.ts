@@ -6,6 +6,7 @@ import { commands, contextMenuCommands } from './commands/index.ts';
 import { handleBlackjackButton } from './commands/blackjack.ts';
 import { handleBlackjack2Button } from './commands/blackjack2.ts';
 import { handleDice2Button } from './commands/dice2.ts';
+import { handleSlotsButton } from './commands/slots.ts';
 import { handleWordleMessage, hasWordleGame } from './commands/wordle.ts';
 import { handleHangmanMessage, hasHangmanGame } from './commands/hangman.ts';
 import { handleTicTacToeButton } from './commands/tictactoe.ts';
@@ -70,6 +71,12 @@ client.on(Events.InteractionCreate, async (interaction) => {
         await handleDice2Button(interaction);
       } catch (err) {
         log.error('Dice 2P button failed', err);
+      }
+    } else if (interaction.customId.startsWith('slots:')) {
+      try {
+        await handleSlotsButton(interaction);
+      } catch (err) {
+        log.error('Slots button failed', err);
       }
     } else if (interaction.customId.startsWith('ttt:')) {
       try {
