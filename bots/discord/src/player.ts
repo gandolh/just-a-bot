@@ -72,7 +72,11 @@ let player: Player | undefined;
 export async function initPlayer(client: Client): Promise<Player> {
   if (player) return player;
 
-  player = new Player(client as never);
+  // skipFFmpeg:false forces ffmpeg to transcode every stream to Opus. SoundCloud
+  // serves MP3/AAC (and HLS previews); with skipFFmpeg enabled discord-player
+  // pipes those straight to the Opus packetizer, which produces no decodable
+  // audio (the track "plays" ~120 ms then finishes). ffmpeg handles all of them.
+  player = new Player(client as never, { skipFFmpeg: false });
 
   // Primary provider: SoundCloud (+ Spotify/Apple metadata bridges) from the
   // bundled default extractors. Bump SoundCloud's priority so it's preferred.
