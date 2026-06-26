@@ -33,6 +33,9 @@ async function streamWithYtDlp(track: Track): Promise<Readable> {
     noProgress: true,
     noPlaylist: true,
     quiet: true,
+    // On flagged datacenter/VPS IPs YouTube returns "Sign in to confirm you're
+    // not a bot" without authentication; a cookies.txt sidesteps it.
+    ...(env.YT_COOKIES_FILE ? { cookies: env.YT_COOKIES_FILE } : {}),
   });
   // Surface the failure instead of leaving an unhandled rejection; the empty
   // stdout that follows makes discord-player skip the track gracefully.
