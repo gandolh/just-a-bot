@@ -11,6 +11,7 @@
   ],
   "scripts": {
     "typecheck": "npm run typecheck --workspaces --if-present",
+    "music:update-ytdlp": "node_modules/youtube-dl-exec/bin/yt-dlp -U",
     "discord:dev": "npm run dev -w @bots/discord",
     "discord:register": "npm run register -w @bots/discord",
     "discord:start": "npm run start -w @bots/discord",

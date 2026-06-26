@@ -37,7 +37,9 @@ export const play: Command = {
           leaveOnEmpty: true,
           leaveOnEmptyCooldown: 60_000,
           selfDeaf: true,
-          volume: 80,
+          // 100 = bypass discord-player's software PCM volume filter (any value
+          // != 100 resamples and degrades quality).
+          volume: 100,
         },
       });
 

@@ -1,8 +1,10 @@
+import type { Readable } from 'node:stream';
 import type { Client } from 'discord.js';
-import { Player } from 'discord-player';
+import { Player, type Track } from 'discord-player';
 import { DefaultExtractors } from '@discord-player/extractor';
 import { YoutubeExtractor } from 'discord-player-youtubei';
 import ffmpegStatic from 'ffmpeg-static';
+import youtubeDl from 'youtube-dl-exec';
 import { logger } from '@bots/shared';
 import { env } from './env.ts';
 
@@ -13,6 +15,44 @@ if (ffmpegPath) {
   process.env.FFMPEG_PATH = ffmpegPath;
 }
 
+// YouTube now forces SABR streaming + PO tokens on the innertube WEB/MWEB
+// clients, which is why the bot would join voice and play nothing: discord-
+// player-youtubei resolves metadata fine (so the track "queues"), but its
+// youtubei.js stream cascade can hand back a stream that passes a HEAD check
+// yet yields no audio. yt-dlp (bundled binary, kept current via `yt-dlp -U`)
+// still extracts a working ANDROID_VR audio stream, so we stream through it
+// directly instead of relying on the extractor's flaky client cascade.
+async function streamWithYtDlp(track: Track): Promise<Readable> {
+  // Prefer Opus/WebM @ 48 kHz — Discord's native codec + sample rate — so
+  // ffmpeg remuxes instead of transcoding from AAC (better quality, no resample).
+  const format = track.live ? 'best[height<=360]' : 'bestaudio[acodec=opus]/bestaudio';
+  const dl = youtubeDl.exec(track.url, {
+    format,
+    output: '-',
+    noWarnings: true,
+    noProgress: true,
+    noPlaylist: true,
+    quiet: true,
+  });
+  // Surface the failure instead of leaving an unhandled rejection; the empty
+  // stdout that follows makes discord-player skip the track gracefully.
+  dl.catch((err) => log.error(`yt-dlp failed for "${track.title}"`, err));
+
+  const stream = dl.stdout;
+  if (!stream) throw new Error('yt-dlp produced no audio stream');
+
+  const kill = () => {
+    if (!dl.killed) {
+      stream.removeAllListeners();
+      dl.kill();
+    }
+  };
+  stream.on('close', kill);
+  stream.on('error', kill);
+  stream.on('end', kill);
+  return stream;
+}
+
 let player: Player | undefined;
 
 export async function initPlayer(client: Client): Promise<Player> {
@@ -21,6 +61,7 @@ export async function initPlayer(client: Client): Promise<Player> {
   player = new Player(client as never);
   await player.extractors.register(YoutubeExtractor, {
     ...(env.YT_COOKIE ? { cookie: env.YT_COOKIE } : {}),
+    createStream: (track) => streamWithYtDlp(track),
   });
   await player.extractors.loadMulti(DefaultExtractors);
 

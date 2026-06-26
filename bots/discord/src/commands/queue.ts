@@ -1,5 +1,5 @@
 import { SlashCommandBuilder } from 'discord.js';
-import { useQueue } from 'discord-player';
+import { getActiveQueue } from './_music.ts';
 import type { Command } from './types.ts';
 
 const MAX_LISTED = 10;
@@ -7,9 +7,12 @@ const MAX_LISTED = 10;
 export const queue: Command = {
   data: new SlashCommandBuilder().setName('queue').setDescription('Show the current queue'),
   async execute(interaction) {
-    if (!interaction.inCachedGuild()) return;
-    const q = useQueue(interaction.guildId);
-    if (!q || (!q.currentTrack && q.tracks.size === 0)) {
+    const q = await getActiveQueue(interaction, {
+      requireTrack: false,
+      emptyMessage: 'The queue is empty.',
+    });
+    if (!q) return;
+    if (!q.currentTrack && q.tracks.size === 0) {
       await interaction.reply({ content: 'The queue is empty.', ephemeral: true });
       return;
     }

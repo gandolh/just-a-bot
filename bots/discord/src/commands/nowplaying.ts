@@ -1,5 +1,5 @@
 import { SlashCommandBuilder } from 'discord.js';
-import { useQueue } from 'discord-player';
+import { getActiveQueue } from './_music.ts';
 import type { Command } from './types.ts';
 
 export const nowplaying: Command = {
@@ -7,13 +7,9 @@ export const nowplaying: Command = {
     .setName('nowplaying')
     .setDescription('Show the currently playing track'),
   async execute(interaction) {
-    if (!interaction.inCachedGuild()) return;
-    const queue = useQueue(interaction.guildId);
-    if (!queue || !queue.currentTrack) {
-      await interaction.reply({ content: 'Nothing is playing.', ephemeral: true });
-      return;
-    }
-    const track = queue.currentTrack;
+    const queue = await getActiveQueue(interaction);
+    if (!queue) return;
+    const track = queue.currentTrack!;
     const bar = queue.node.createProgressBar({ length: 18 });
     await interaction.reply(`**${track.title}**\n${bar ?? ''}`);
   },
