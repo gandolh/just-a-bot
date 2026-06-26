@@ -45,6 +45,17 @@ A graceful SIGINT/SIGTERM shutdown was also added to
 hygiene for clean `tsx watch` reloads and pm2 restarts, but not the cause here.
 The `ephemeral: true` deprecation warning (142 sites) is separate and still open.
 
+## [2026-06-26] incident | VPS music silent — YouTube anti-bot block
+
+After ruling out the duplicate-instance 40060 (ran VPS-only), `/play` still
+joined and was silent while all other commands worked. `pm2 logs` showed yt-dlp
+exiting code 1 with `Sign in to confirm you're not a bot` — YouTube blocks the
+Hetzner datacenter IP and won't stream without auth (works on residential/local
+IPs). Fix: added `YT_COOKIES_FILE` env → passed to yt-dlp as `--cookies` in
+[player.ts](../bots/discord/src/player.ts) `streamWithYtDlp`. User must drop a
+Netscape `cookies.txt` on the VPS and set the env var. See
+[music.md](wiki/music.md).
+
 ## [2026-06-26] done | Brief 01 — music audio quality + code cleanup
 
 Shipped: `volume: 100`; yt-dlp format `bestaudio[acodec=opus]/bestaudio`

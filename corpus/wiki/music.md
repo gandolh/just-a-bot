@@ -52,12 +52,28 @@ still extracts a working audio stream, so we bypass the cascade with a
 - Encoding stack is native (`@discordjs/opus` + `sodium-native`), not the slow
   `opusscript` fallback.
 
+## VPS / datacenter IPs need cookies (2026-06-26)
+
+On the Hetzner VPS, playback joined voice but was silent while every other
+command worked. `pm2 logs` showed yt-dlp dying with
+`ERROR: [youtube] <id>: Sign in to confirm you're not a bot` — YouTube flags
+datacenter IPs and refuses to stream without an authenticated session. (It
+works from residential/local IPs, which is why it played locally.) The empty
+stream makes discord-player log "Now playing" then "Finished" in ~120 ms.
+
+Fix: set **`YT_COOKIES_FILE`** in the VPS `.env` to a Netscape-format
+`cookies.txt` from a logged-in (ideally throwaway) YouTube account;
+`streamWithYtDlp` passes it to yt-dlp via `--cookies`. Cookies expire (~2 weeks)
+and must be refreshed. `YT_COOKIE` (header string, used by the youtubei
+metadata extractor) is separate and unrelated to this.
+
 ## Maintenance
 
 The bundled yt-dlp binary goes stale (YouTube changes frequently) and
 `npm install` may reset it to the pinned version. Keep it current with
-`yt-dlp -U` on `node_modules/youtube-dl-exec/bin/yt-dlp`. Stale yt-dlp is the
-most likely cause if playback breaks again.
+`yt-dlp -U` on `node_modules/youtube-dl-exec/bin/yt-dlp` (or
+`npm run music:update-ytdlp`). Stale yt-dlp and the VPS cookie block above are
+the two most likely causes if playback breaks again.
 
 ## Open threads
 
