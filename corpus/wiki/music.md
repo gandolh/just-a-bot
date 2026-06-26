@@ -44,6 +44,22 @@ Configured in [player.ts](../../bots/discord/src/player.ts) `initPlayer`:
 `nodeOptions`: `leaveOnEnd`/`leaveOnEmpty` (60 s cooldown), `selfDeaf: true`,
 `volume: 100`.
 
+## `skipFFmpeg: false` is required (2026-06-26)
+
+The `Player` is constructed with `{ skipFFmpeg: false }`. SoundCloud serves
+MP3/AAC (and HLS previews); with discord-player's default `skipFFmpeg` it pipes
+the raw stream straight to the Opus packetizer, which produces no decodable
+audio — the track "plays" ~120 ms then finishes (silent). Forcing ffmpeg
+transcodes everything to Opus. Symptom to watch for if this regresses:
+`playbackDuration: 120` and an immediate `Finished` in `pm2 logs`.
+
+## Caveat: SoundCloud 30-second previews
+
+Some SoundCloud tracks (Go+ / not freely streamable) return only a **0:30
+preview** — the extractor reports `durationMS: 30000`. There's no cookie-free way
+around this; full playback only works for freely-streamable tracks. This is part
+of the SoundCloud catalog trade-off, separate from the `skipFFmpeg` bug above.
+
 ## Why YouTube is disabled (the big decision)
 
 YouTube enforces **SABR streaming + PO tokens** and blocks datacenter IPs. The
