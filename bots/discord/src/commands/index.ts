@@ -8,6 +8,7 @@ import { stop } from './stop.ts';
 import { queue } from './queue.ts';
 import { nowplaying } from './nowplaying.ts';
 import { coins } from './coins.ts';
+import { give } from './give.ts';
 import { slots } from './slots.ts';
 import { blackjack } from './blackjack.ts';
 import { blackjack2 } from './blackjack2.ts';
@@ -35,7 +36,7 @@ import { ask } from './ask.ts';
 
 const all: Command[] = [
   ping, play, skip, pause, resume, stop, queue, nowplaying,
-  coins, slots, blackjack, blackjack2, dice, dice2, dicetable, wordle, tictactoe, connectFour, connectFour2,
+  coins, give, slots, blackjack, blackjack2, dice, dice2, dicetable, wordle, tictactoe, connectFour, connectFour2,
   rpg, mafia, confess,
   clock,
   top,

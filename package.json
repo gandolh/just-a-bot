@@ -22,12 +22,7 @@
     "dice-activity:dev:server": "npm run dev:server -w @bots/dice-activity",
     "dice-activity:dev:client": "npm run dev:client -w @bots/dice-activity",
     "dice-activity:build": "npm run build -w @bots/dice-activity",
-    "dice-activity:start": "npm run start -w @bots/dice-activity",
-    "deploy:pre": "tsx deploy/index.ts pre-deploy",
-    "deploy:push": "tsx deploy/index.ts deploy",
-    "deploy:status": "tsx deploy/index.ts status",
-    "deploy:logs": "tsx deploy/index.ts logs",
-    "deploy:stop": "tsx deploy/index.ts stop"
+    "dice-activity:start": "npm run start -w @bots/dice-activity"
   },
   "devDependencies": {
     "@types/node": "22.10.5",
