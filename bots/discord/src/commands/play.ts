@@ -8,7 +8,7 @@ export const play: Command = {
     .setName('play')
     .setDescription('Play a song or add it to the queue')
     .addStringOption((opt) =>
-      opt.setName('query').setDescription('YouTube/Spotify URL or search query').setRequired(true),
+      opt.setName('query').setDescription('SoundCloud URL or search query').setRequired(true),
     ),
   async execute(interaction) {
     if (!interaction.inCachedGuild()) {
@@ -29,7 +29,9 @@ export const play: Command = {
     const player = getPlayer();
     try {
       const { track } = await player.play(voiceChannel as never, query, {
-        searchEngine: QueryType.YOUTUBE_SEARCH,
+        // SoundCloud is the default source: it streams natively (no yt-dlp) and
+        // doesn't IP-block datacenter/VPS hosts the way YouTube does.
+        searchEngine: QueryType.SOUNDCLOUD_SEARCH,
         nodeOptions: {
           metadata: { channel: interaction.channel },
           leaveOnEnd: true,

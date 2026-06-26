@@ -1,7 +1,7 @@
 import type { Readable } from 'node:stream';
 import type { Client } from 'discord.js';
 import { Player, type Track } from 'discord-player';
-import { DefaultExtractors } from '@discord-player/extractor';
+import { DefaultExtractors, SoundCloudExtractor } from '@discord-player/extractor';
 import { YoutubeExtractor } from 'discord-player-youtubei';
 import ffmpegStatic from 'ffmpeg-static';
 import youtubeDl from 'youtube-dl-exec';
@@ -10,18 +10,29 @@ import { env } from './env.ts';
 
 const log = logger.scoped('discord:player');
 
+// --- Providers ---------------------------------------------------------------
+// PRIMARY (temporary): SoundCloud. Streams natively via the bundled default
+//   extractors — no yt-dlp, no auth, and not IP-blocked on our VPS.
+// SECONDARY (DISABLED): YouTube via discord-player-youtubei + yt-dlp. Disabled
+//   because YouTube blocks our VPS datacenter IP with "Sign in to confirm you're
+//   not a bot". The code is kept and marked @deprecated; flip YOUTUBE_ENABLED
+//   to re-enable once that's resolved (cookies/proxy/PO-token).
+//   Tracking: corpus/todos/revisit-youtube-provider.md
+const YOUTUBE_ENABLED: boolean = false;
+
 const ffmpegPath = ffmpegStatic as unknown as string | null;
 if (ffmpegPath) {
   process.env.FFMPEG_PATH = ffmpegPath;
 }
 
-// YouTube now forces SABR streaming + PO tokens on the innertube WEB/MWEB
-// clients, which is why the bot would join voice and play nothing: discord-
-// player-youtubei resolves metadata fine (so the track "queues"), but its
-// youtubei.js stream cascade can hand back a stream that passes a HEAD check
-// yet yields no audio. yt-dlp (bundled binary, kept current via `yt-dlp -U`)
-// still extracts a working ANDROID_VR audio stream, so we stream through it
-// directly instead of relying on the extractor's flaky client cascade.
+/**
+ * @deprecated YouTube streaming is disabled (see YOUTUBE_ENABLED) — YouTube
+ * blocks our VPS IP. Kept for when it's re-enabled. Streams audio via yt-dlp.
+ *
+ * YouTube forces SABR + PO tokens on its innertube clients, so discord-player-
+ * youtubei resolves metadata but its stream cascade can yield no audio. yt-dlp
+ * extracts a working stream directly, bypassing that cascade.
+ */
 async function streamWithYtDlp(track: Track): Promise<Readable> {
   // Prefer Opus/WebM @ 48 kHz — Discord's native codec + sample rate — so
   // ffmpeg remuxes instead of transcoding from AAC (better quality, no resample).
@@ -62,14 +73,22 @@ export async function initPlayer(client: Client): Promise<Player> {
   if (player) return player;
 
   player = new Player(client as never);
-  await player.extractors.register(YoutubeExtractor, {
-    ...(env.YT_COOKIE ? { cookie: env.YT_COOKIE } : {}),
-    createStream: (track) => streamWithYtDlp(track),
-  });
-  await player.extractors.loadMulti(DefaultExtractors);
 
-  const yt = player.extractors.get(YoutubeExtractor.identifier);
-  if (yt) yt.priority = 100;
+  // Primary provider: SoundCloud (+ Spotify/Apple metadata bridges) from the
+  // bundled default extractors. Bump SoundCloud's priority so it's preferred.
+  await player.extractors.loadMulti(DefaultExtractors);
+  const sc = player.extractors.get(SoundCloudExtractor.identifier);
+  if (sc) sc.priority = 100;
+
+  // Secondary provider: YouTube — DISABLED (see YOUTUBE_ENABLED note above).
+  if (YOUTUBE_ENABLED) {
+    await player.extractors.register(YoutubeExtractor, {
+      ...(env.YT_COOKIE ? { cookie: env.YT_COOKIE } : {}),
+      createStream: (track) => streamWithYtDlp(track),
+    });
+    const yt = player.extractors.get(YoutubeExtractor.identifier);
+    if (yt) yt.priority = 50;
+  }
 
   player.on('debug', (msg) => log.debug(`player: ${msg}`));
   player.events.on('debug', (_q, msg) => log.debug(`queue: ${msg}`));
