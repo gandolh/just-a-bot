@@ -1,12 +1,15 @@
 import type { Command, ContextMenuCommand } from './types.ts';
 import { ping } from './ping.ts';
-import { play } from './play.ts';
-import { skip } from './skip.ts';
-import { pause } from './pause.ts';
-import { resume } from './resume.ts';
-import { stop } from './stop.ts';
-import { queue } from './queue.ts';
-import { nowplaying } from './nowplaying.ts';
+// Music commands disabled — no working audio source from the VPS (YouTube is
+// IP-blocked; SoundCloud returns previews/empty streams). Code is kept intact;
+// re-enable per corpus/todos/reenable-music.md
+// import { play } from './play.ts';
+// import { skip } from './skip.ts';
+// import { pause } from './pause.ts';
+// import { resume } from './resume.ts';
+// import { stop } from './stop.ts';
+// import { queue } from './queue.ts';
+// import { nowplaying } from './nowplaying.ts';
 import { coins } from './coins.ts';
 import { give } from './give.ts';
 import { slots } from './slots.ts';
@@ -35,7 +38,8 @@ import { connectFour, connectFour2 } from './connect-four.ts';
 import { ask } from './ask.ts';
 
 const all: Command[] = [
-  ping, play, skip, pause, resume, stop, queue, nowplaying,
+  ping,
+  // play, skip, pause, resume, stop, queue, nowplaying — disabled (see corpus/todos/reenable-music.md)
   coins, give, slots, blackjack, blackjack2, dice, dice2, dicetable, wordle, tictactoe, connectFour, connectFour2,
   rpg, mafia, confess,
   clock,
