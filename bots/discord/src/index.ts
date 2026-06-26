@@ -203,13 +203,30 @@ if (env.DICE_ACTIVITY_WS_URL && env.DICE_ACTIVITY_TOKEN) {
   startDiceTableLink({ url: env.DICE_ACTIVITY_WS_URL, token: env.DICE_ACTIVITY_TOKEN });
 }
 
-setInterval(() => {
+const reminderTimer = setInterval(() => {
   tickReminders(client).catch((err) => log.error('tickReminders failed', err));
   tickBirthdays(client).catch((err) => log.error('tickBirthdays failed', err));
 }, 60_000);
 
 // The RPG town crier drains pending world events more frequently so notable
 // moments are announced while they're still fresh.
-setInterval(() => {
+const crierTimer = setInterval(() => {
   tickCrier(client).catch((err) => log.error('tickCrier failed', err));
 }, 20_000);
+
+// Close the gateway connection promptly on exit. Without this, `tsx watch`
+// reloads (and pm2 restarts) leave the old session lingering ~40s, so Discord
+// briefly delivers each interaction to BOTH the old and new process — the loser
+// hits "Interaction has already been acknowledged" (40060). Destroying the
+// client closes the socket immediately, removing that overlap window.
+let shuttingDown = false;
+const shutdown = (signal: string) => {
+  if (shuttingDown) return;
+  shuttingDown = true;
+  log.info(`Received ${signal}, shutting down…`);
+  clearInterval(reminderTimer);
+  clearInterval(crierTimer);
+  void client.destroy().finally(() => process.exit(0));
+};
+process.once('SIGINT', () => shutdown('SIGINT'));
+process.once('SIGTERM', () => shutdown('SIGTERM'));
