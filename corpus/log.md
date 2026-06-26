@@ -27,14 +27,23 @@ music-code improvements.
 ## [2026-06-26] incident | DiscordAPIError 40060 on /play (duplicate interaction)
 
 `/play` threw "Interaction has already been acknowledged" (40060) at
-`deferReply`. Root cause: running under `tsx watch` (`discord:dev`) — on
-file-save reloads the old gateway session lingers ~40s, so Discord delivered the
-interaction to both the old and new process; the loser's `deferReply` 40060'd.
-Not a double-registered listener and not a music bug. Fixed by a graceful
-SIGINT/SIGTERM shutdown in [index.ts](../bots/discord/src/index.ts) that calls
-`client.destroy()` (closes the socket immediately, killing the overlap window).
-Operational rule: never run `discord:dev` and `discord:start` at once. The
-`ephemeral: true` deprecation warning (142 sites) is separate and still open.
+`deferReply`. **Root cause: the same `DISCORD_TOKEN` was running in two places at
+once — local `discord:dev` AND the VPS (pm2) deployment.** Discord delivers each
+interaction to every live gateway session of a bot, so both instances ran
+`execute` and called `deferReply`; the loser of the race 40060'd. Verified there
+is only one local process and exactly one `InteractionCreate` listener in code,
+so it is NOT a double-registered listener, NOT a music bug, and NOT (primarily)
+the tsx-watch reload overlap.
+
+Fix / rule: one running instance per bot token. Best practice — use a **separate
+Discord application + token for local dev** (set in local `.env`), leaving the
+VPS on the production token; `env.ts` + `GUILD_ID` already support this with no
+code change.
+
+A graceful SIGINT/SIGTERM shutdown was also added to
+[index.ts](../bots/discord/src/index.ts) (`client.destroy()` on exit) — good
+hygiene for clean `tsx watch` reloads and pm2 restarts, but not the cause here.
+The `ephemeral: true` deprecation warning (142 sites) is separate and still open.
 
 ## [2026-06-26] done | Brief 01 — music audio quality + code cleanup
 
