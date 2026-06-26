@@ -11,10 +11,14 @@ Settled tech/design choices. Don't relitigate without an explicit revisit + a
 - **Env validated with Zod** through `@bots/shared`'s `loadEnv` — fail fast on
   bad config; optional integrations degrade to "not configured" rather than
   crash.
-- **Music: discord-player 7.2.0 + discord-player-youtubei (beta) for
-  metadata/search, but stream via yt-dlp** (`youtube-dl-exec`) through a
-  `createStream` override — the youtubei.js stream cascade is unreliable under
-  YouTube's SABR/PO-token enforcement. See [music.md](music.md). _(2026-06-26)_
+- **Music source: SoundCloud is the (temporary) primary provider; YouTube is the
+  disabled secondary.** SoundCloud streams natively via discord-player's default
+  extractors — no auth, no yt-dlp, not IP-blocked on the VPS. YouTube
+  (discord-player-youtubei + yt-dlp `createStream` override) is kept in code but
+  gated behind `YOUTUBE_ENABLED = false` and marked `@deprecated`, because
+  YouTube blocks the VPS datacenter IP. Re-enable per
+  [todo](../todos/revisit-youtube-provider.md). See [music.md](music.md).
+  _(2026-06-26)_
 - **Music feature variants ship as sibling commands** (e.g. `dice` → `dice2`,
   `blackjack` → `blackjack2`) sharing extracted code, rather than rewriting the
   original. Same applies to other major UX variants.

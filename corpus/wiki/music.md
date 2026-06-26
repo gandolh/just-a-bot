@@ -5,41 +5,54 @@ The Discord bot's music stack. Code lives in
 [commands/](../../bots/discord/src/commands/) (`play`, `queue`, `skip`, `stop`,
 `pause`, `resume`, `nowplaying`).
 
+## Providers (2026-06-26)
+
+Configured in [player.ts](../../bots/discord/src/player.ts) `initPlayer`:
+
+- **SoundCloud — PRIMARY (temporary, active).** Comes from
+  `@discord-player/extractor`'s `DefaultExtractors`; we bump
+  `SoundCloudExtractor.priority = 100`. `/play` searches it via
+  `QueryType.SOUNDCLOUD_SEARCH`. Streams **natively** (no yt-dlp, no auth) and
+  isn't IP-blocked on the VPS. Trade-off: smaller catalog than YouTube.
+- **YouTube — SECONDARY, DISABLED.** discord-player-youtubei +
+  `streamWithYtDlp` (yt-dlp `createStream` override) are kept in code but gated
+  behind `const YOUTUBE_ENABLED = false` and marked `@deprecated`, because
+  YouTube blocks the VPS datacenter IP. Flip the flag to re-enable. See
+  [todo](../todos/revisit-youtube-provider.md).
+
 ## Stack
 
 - **discord-player 7.2.0** — queue/player orchestration (`Player` singleton).
-- **discord-player-youtubei (3.0.0-beta.4)** — YouTube **metadata + search**
-  extractor (registered with priority 100).
-- **@discord-player/extractor 7.2.0** — fallback extractors (Spotify/SoundCloud
-  metadata, etc.), loaded via `DefaultExtractors`.
+- **@discord-player/extractor 7.2.0** — default extractors incl. the active
+  **SoundCloud** source, loaded via `DefaultExtractors`.
+- **discord-player-youtubei (3.0.0-beta.4)** — YouTube extractor (disabled).
 - **@discordjs/voice 0.19.2 + @discordjs/opus + sodium-native** — voice
   transport + Opus encoding + encryption (native, no slow `opusscript` path).
 - **ffmpeg-static** — audio transcode/remux.
-- **youtube-dl-exec (yt-dlp)** — the actual **audio stream** source.
+- **youtube-dl-exec (yt-dlp)** — audio stream source for the *disabled* YouTube
+  path only.
 
-## How a `/play` flows
+## How a `/play` flows (SoundCloud)
 
 1. [play.ts](../../bots/discord/src/commands/play.ts) validates the user is in a
    voice channel, then calls `player.play(channel, query, { searchEngine:
-   YOUTUBE_SEARCH, nodeOptions })`.
-2. discord-player-youtubei resolves the query → a `Track` (metadata only).
-3. To stream, discord-player calls our **`createStream` override** in
-   [player.ts](../../bots/discord/src/player.ts) (`streamWithYtDlp`), which runs
-   yt-dlp (`output: '-'`) and returns the stdout `Readable`.
-4. discord-player pipes that through ffmpeg → Opus → `@discordjs/voice`.
+   SOUNDCLOUD_SEARCH, nodeOptions })`.
+2. The SoundCloud extractor resolves the query → a `Track` and streams it
+   natively.
+3. discord-player pipes that through ffmpeg → Opus → `@discordjs/voice`.
 
 `nodeOptions`: `leaveOnEnd`/`leaveOnEmpty` (60 s cooldown), `selfDeaf: true`,
 `volume: 100`.
 
-## Why we stream via yt-dlp (the big decision)
+## Why YouTube is disabled (the big decision)
 
-YouTube enforces **SABR streaming + PO tokens** on its WEB/MWEB innertube
-clients. The youtubei.js stream cascade inside discord-player-youtubei
-(ANDROID_VR → MWEB → WEB_EMBEDDED → SABR → yt-dlp) became unreliable: metadata
-still resolves (so a track "queues"), but the chosen stream can pass a HEAD
-check yet deliver **no audio** — the bot joins voice and sits silent. yt-dlp
-still extracts a working audio stream, so we bypass the cascade with a
-`createStream` override. Fixed 2026-06-26 — see [log.md](../log.md).
+YouTube enforces **SABR streaming + PO tokens** and blocks datacenter IPs. The
+youtubei.js stream cascade yielded no audio, so we bypassed it with a yt-dlp
+`createStream` override — which worked locally but hit YouTube's
+**"Sign in to confirm you're not a bot"** wall on the VPS (silent playback). With
+no low-maintenance cookie-free bypass, YouTube was demoted to a disabled
+secondary and **SoundCloud** made the active primary. History in
+[log.md](../log.md).
 
 ## Audio quality
 

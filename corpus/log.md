@@ -56,6 +56,16 @@ IPs). Fix: added `YT_COOKIES_FILE` env → passed to yt-dlp as `--cookies` in
 Netscape `cookies.txt` on the VPS and set the env var. See
 [music.md](wiki/music.md).
 
+## [2026-06-26] decision | SoundCloud primary, YouTube disabled secondary
+
+With no low-maintenance cookie-free way past YouTube's VPS IP block, switched the
+music source: **SoundCloud** is now the temporary primary provider (active,
+streams natively, `SOUNDCLOUD_SEARCH`), and **YouTube** is the disabled secondary
+(`YOUTUBE_ENABLED = false` in [player.ts](../bots/discord/src/player.ts), yt-dlp
+path kept + `@deprecated`). Music commands stay live. Filed
+[todo](todos/revisit-youtube-provider.md) to re-enable YouTube later. Wiki:
+[music.md](wiki/music.md), [decisions.md](wiki/decisions.md).
+
 ## [2026-06-26] done | Brief 01 — music audio quality + code cleanup
 
 Shipped: `volume: 100`; yt-dlp format `bestaudio[acodec=opus]/bestaudio`
