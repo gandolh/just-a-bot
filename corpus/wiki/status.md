@@ -2,21 +2,20 @@
 
 Where things stand right now.
 
-## Music (`/play`)
+## Music (`/play`) — SHELVED
 
-- **Provider model:** SoundCloud = temporary **primary** (active, streams
-  natively); YouTube = **disabled secondary** (`YOUTUBE_ENABLED = false`, kept +
-  deprecated) because it blocks the VPS IP. Commands stay live on SoundCloud.
-  See [music.md](music.md); re-enable YouTube per
-  [todo](../todos/revisit-youtube-provider.md).
-- **Why YouTube is off (VPS):** datacenter IP gets "Sign in to confirm you're not
-  a bot" → silent playback. Worked locally only. The yt-dlp cookies path
-  (`YT_COOKIES_FILE`) is wired but unused while YouTube is disabled.
-- **Quality (done):** [brief 01](../briefs/done/01-music-audio-quality.md) —
-  `volume: 100`; shared `getActiveQueue` helper; `music:update-ytdlp` script.
-  (The Opus-format selection applies to the disabled yt-dlp path.)
-- **Deferred:** true Opus passthrough — needs live voice testing. See
-  [open-questions.md](open-questions.md).
+- **Disabled.** The music commands (play/skip/pause/resume/stop/queue/nowplaying)
+  are **commented out** of [commands/index.ts](../../bots/discord/src/commands/index.ts)
+  so they don't appear in Discord. No VPS-viable audio source: YouTube IP-blocked,
+  yt-dlp same, SoundCloud returns previews/empty streams (all join voice then play
+  ~120 ms and finish). Full resume plan + history:
+  [reenable-music.md](../todos/reenable-music.md).
+- **Code kept intact:** SoundCloud-primary + `skipFFmpeg:false` in
+  [player.ts](../../bots/discord/src/player.ts), YouTube disabled behind
+  `YOUTUBE_ENABLED`, yt-dlp cookies wired (`YT_COOKIES_FILE`),
+  `music:update-ytdlp` script, brief 01 quality work. Re-enabling is mostly
+  uncommenting once a source streams from the VPS.
+- **Likely endgame:** Lavalink, or YouTube via residential proxy. See the todo.
 
 ## Rest of the bot
 

@@ -56,6 +56,18 @@ IPs). Fix: added `YT_COOKIES_FILE` env → passed to yt-dlp as `--cookies` in
 Netscape `cookies.txt` on the VPS and set the env var. See
 [music.md](wiki/music.md).
 
+## [2026-06-26] decision | Music feature shelved — commands disabled
+
+SoundCloud also failed on the VPS: extraction + voice connect succeed, but the
+test track returned a 0:30 preview and even `skipFFmpeg:false` left it at
+`playbackDuration: 120` ms then finished (empty/unreadable preview stream). With
+YouTube IP-blocked and yt-dlp same, no direct-from-VPS source works. Shelved the
+feature: commented the 7 music commands out of
+[commands/index.ts](../bots/discord/src/commands/index.ts) (hidden from Discord);
+all code kept intact. Full resume plan + saga in
+[reenable-music.md](todos/reenable-music.md). Likely endgame: Lavalink or YouTube
++ residential proxy.
+
 ## [2026-06-26] decision | SoundCloud primary, YouTube disabled secondary
 
 With no low-maintenance cookie-free way past YouTube's VPS IP block, switched the

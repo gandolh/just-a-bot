@@ -7,6 +7,10 @@ tags: [music, youtube, yt-dlp, vps]
 
 # Re-enable the YouTube provider when the VPS IP block is solvable
 
+> **Superseded by [reenable-music.md](reenable-music.md)** (2026-06-26) — the whole
+> music feature is now shelved/commented out, not just YouTube. This file remains
+> as the YouTube-specific technical detail.
+
 YouTube is currently the **disabled secondary** music provider. SoundCloud is the
 temporary primary. Re-enable YouTube once we can stream from the VPS again.
 
