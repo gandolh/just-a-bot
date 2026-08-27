@@ -1,14 +1,23 @@
+---
+summary: What just-a-bot is: a personal, feature-rich Discord bot in a two-workspace npm repo; the orientation page and the map of what lives where.
+updated: 2026-08-27
+---
+
 # Overview
 
-**just-a-bot** is a personal multi-bot monorepo. The flagship is a feature-rich
-**Discord bot** (`@bots/discord`) with music, games, gambling, AI chat, image
-generation, reminders, and more. Other workspaces (`@bots/slack`,
-`@bots/whatsapp`, `@bots/dice-activity`) are smaller or in-progress siblings.
+**just-a-bot** is a personal **Discord bot** (`@bots/discord`) with games,
+gambling, AI chat, image generation, reminders, an RPG world, a D&D layer, and
+more. Music exists but is [shelved](music.md).
+
+It *was* a multi-bot monorepo — Slack, WhatsApp and a dice-table voice Activity
+lived here until 2026-08-27, when they were removed to make this a Discord-only
+repo ([decisions.md](decisions.md)). Two workspaces remain because `shared/`
+still holds code with no Discord dependency.
 
 - **Language/runtime:** TypeScript on Node ≥ 22.12, run directly via `tsx` (no
   build step for the bots). ESM (`"type": "module"`), `.ts` import suffixes.
-- **Structure:** npm workspaces — `shared/` (the `@bots/shared` package) +
-  `bots/*`. See [architecture.md](architecture.md).
+- **Structure:** npm workspaces — `shared/` (the `@bots/shared` package) and
+  `bots/discord`. See [architecture.md](architecture.md).
 - **Process management:** pm2 via `ecosystem.config.cjs`.
 
 The Discord bot is organized as one feature directory per capability under
@@ -17,4 +26,10 @@ slash-command handler per feature in `commands/`.
 
 Key subsystems with their own page:
 
-- [music.md](music.md) — the `/play` music stack (discord-player + yt-dlp).
+- [music.md](music.md) — the `/play` music stack (discord-player + yt-dlp),
+  currently shelved.
+
+Most features are **not** catalogued here yet; pages get added as work touches
+them. In the meantime their operating manuals live in
+[`docs/`](../../docs/README.md) — one directory per feature. `docs/` is the
+*how*, this wiki is the *why*, and `docs/` ranks last when they disagree.

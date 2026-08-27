@@ -1,27 +1,47 @@
+---
+summary: How the repo and the Discord bot are put together: the two workspaces, the no-build tsx runtime, one-feature-dir-per-capability layout, and the commands→features→shared dependency direction.
+updated: 2026-08-27
+---
+
 # Architecture
 
-## Monorepo (npm workspaces)
+## Workspaces (npm)
 
-Defined in the root [package.json](../../package.json): workspaces are `shared`
-and `bots/*`.
+Defined in the root [package.json](../../package.json): `shared` and
+`bots/discord`. Two workspaces rather than one because `shared/` deliberately
+holds code with no `discord.js` dependency — including the dice-table wire
+protocol, which must stay shareable with the Activity app now that it lives
+outside this repo.
 
 ```
 just-a-bot/
-  shared/                @bots/shared — shared utils (logger, loadEnv, …)
+  shared/                @bots/shared — logger, loadEnv, reminder parse/store,
+                         dice-table wire protocol
   bots/
-    discord/             @bots/discord — the flagship bot (see below)
-    slack/               @bots/slack
-    whatsapp/            @bots/whatsapp
-    dice-activity/       @bots/dice-activity — Discord voice Activity (web app, has a build)
-    data/                JSON state (birthdays.json, reminders.json)
+    discord/             @bots/discord — the bot (see below)
+      data/              bot-local JSON state (gitignored)
+    data/                shared JSON state, gitignored — birthdays, reminders,
+                         timezones, wallets, quotes, confessions, rpg/, worlds/
   ecosystem.config.cjs   pm2 process definitions
   tsconfig.base.json     shared TS config
 ```
 
-- **No build for the bots** — `tsx src/index.ts` runs TypeScript directly.
-  `dice-activity` is the exception (it's a web app with `dist/`).
+- **Nothing builds** — `tsx src/index.ts` runs TypeScript directly. (The one
+  workspace that did build, `dice-activity`, was removed 2026-08-27.)
 - Run scripts live in the root package.json (`discord:dev`, `discord:start`,
-  `discord:register`, etc.).
+  `discord:register`, etc.), plus `typecheck` and `corpus:lint`.
+- **Persistence is gitignored JSON**, never a database — see
+  [decisions.md](decisions.md). In-memory cache + a serialized write chain
+  (per-key for per-guild files, one chain for shared files like wallets).
+- **Feature logic avoids `discord.js` imports** where cheap — now a readability
+  convention rather than a portability requirement, since Discord is the only
+  target. See the revisit note in [decisions.md](decisions.md).
+
+For the per-feature operating manuals — setup, env vars, triage — see
+[`docs/`](../../docs/README.md), including
+[docs/common/architecture.md](../../docs/common/architecture.md), which covers
+the same layout from the "how do I work in it" angle. This page is the current
+map; that one is revisited only when a pattern changes.
 
 ## The Discord bot (`bots/discord/src/`)
 

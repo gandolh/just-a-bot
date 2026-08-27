@@ -1,24 +1,164 @@
+---
+summary: Locked tech/design calls with their rejected alternatives and reasons — read before proposing pnpm, a build step, an ORM-style rewrite, or a different music source.
+updated: 2026-08-27
+---
+
 # Decisions (locked)
 
-Settled tech/design choices. Don't relitigate without an explicit revisit + a
-`log.md` note.
+Settled calls. Don't relitigate one without an explicit revisit **and** a
+`log.md` note. This page wins over [status.md](status.md) for any choice not
+formally revisited.
 
-- **npm workspaces** (`shared` + `bots/*`), not pnpm/yarn.
-- **Run TypeScript directly via `tsx`** — no build step for the bots. ESM with
-  explicit `.ts` import suffixes.
-- **Node ≥ 22.12** (root `engines`).
-- **pm2** for process management (`ecosystem.config.cjs`).
-- **Env validated with Zod** through `@bots/shared`'s `loadEnv` — fail fast on
-  bad config; optional integrations degrade to "not configured" rather than
-  crash.
-- **Music source: SoundCloud is the (temporary) primary provider; YouTube is the
-  disabled secondary.** SoundCloud streams natively via discord-player's default
-  extractors — no auth, no yt-dlp, not IP-blocked on the VPS. YouTube
-  (discord-player-youtubei + yt-dlp `createStream` override) is kept in code but
-  gated behind `YOUTUBE_ENABLED = false` and marked `@deprecated`, because
-  YouTube blocks the VPS datacenter IP. Re-enable per
-  [todo](../todos/revisit-youtube-provider.md). See [music.md](music.md).
-  _(2026-06-26)_
-- **Music feature variants ship as sibling commands** (e.g. `dice` → `dice2`,
-  `blackjack` → `blackjack2`) sharing extracted code, rather than rewriting the
-  original. Same applies to other major UX variants.
+An entry earns a place here only if it is **hard to reverse**, **surprising
+without context**, and **a genuine trade-off**. Obvious choices belong in
+[architecture.md](architecture.md), not here.
+
+## npm workspaces, not pnpm or yarn
+
+_pre-2026-06-26_ — The monorepo is plain npm workspaces (`shared` + `bots/*`).
+Rejected: pnpm, yarn.
+**Reason not recorded** — predates the corpus. Treat as locked-by-inertia rather
+than defended; if it ever matters, revisit deliberately and record the why.
+
+## No build step — run TypeScript directly with tsx
+
+_pre-2026-06-26_ — The bots run `tsx src/index.ts` in dev **and** in production
+under pm2; imports carry explicit `.ts` suffixes (`from './play.ts'`), and
+`engines.node` is `>=22.12.0`. Rejected: a `tsc` → `dist/` build.
+Reason: there is no compiled artifact to keep in sync with source, so dev and
+prod run the same files and a deploy is a `git pull` + restart — a few seconds of
+startup traded for one less moving part.
+Cost accepted: no type-checking at runtime boundaries (`npm run typecheck` is a
+separate step), and `tsx` lives in root **devDependencies** — so
+`npm install --production` breaks the run script. If that scenario ever comes up,
+move `tsx` to a real dependency rather than reintroducing a build.
+Deliberate exception: `bots/dice-activity` **does** build (it is a web app with
+a `dist/`).
+
+## pm2 for process management
+
+_pre-2026-06-26_ — Long-lived bots run under pm2 via `ecosystem.config.cjs`
+(`autorestart`, `max_restarts: 10`, `restart_delay: 5000`). Rejected: systemd
+units, containers.
+Reason: one small shared VPS, several sibling processes, no container runtime to
+maintain — pm2 gives restart policy and log tailing (`pm2 logs`) with a single
+committed config file. `pm2 logs` is the first debugging tool in every incident
+recorded in [log.md](../log.md), which is the main thing keeping this locked.
+
+## Env validated with Zod at startup, optional integrations degrade
+
+_pre-2026-06-26_ — `bots/discord/src/env.ts` validates the environment through
+`@bots/shared`'s `loadEnv`. Rejected: reading `process.env` ad hoc at each call
+site.
+Reason: bad *required* config fails fast at boot rather than at first use, but a
+*missing optional* integration reports "not configured" instead of crashing the
+whole bot — one broken API key must not take the other twenty features down.
+
+## Music source: SoundCloud primary, YouTube a disabled secondary
+
+_2026-06-26_ — SoundCloud is the (temporary) primary provider; the YouTube path
+is kept in code behind `YOUTUBE_ENABLED = false` and marked `@deprecated`.
+Rejected: YouTube as primary (blocks the VPS datacenter IP — "Sign in to confirm
+you're not a bot"), yt-dlp cookies as the standing fix (expire every ~2 weeks,
+manual refresh forever).
+Reason: SoundCloud streams natively through discord-player's default extractors
+with no auth and is not IP-blocked. Cost accepted: a much smaller catalog and
+0:30 previews on non-freely-streamable tracks. Revisit:
+[todo](../todos/revisit-youtube-provider.md). Detail: [music.md](music.md).
+
+## Music feature shelved by commenting out its commands, not deleting the code
+
+_2026-06-26_ — With no VPS-viable audio source, the seven music commands were
+commented out of `bots/discord/src/commands/index.ts` so they vanish from
+Discord; all player code stays intact. Rejected: deleting the subsystem,
+shipping it visibly broken.
+Reason: the blocker is external (provider IP-blocking), not a code defect — the
+work is worth preserving verbatim so re-enabling is uncommenting once a source
+streams from the VPS. Likely endgame: Lavalink, or YouTube via a residential
+proxy. Resume plan: [reenable-music.md](../todos/reenable-music.md).
+
+## JSON files on disk for all state — no SQLite
+
+_pre-2026-06-26_ — Every bit of persisted state is gitignored JSON under
+`bots/data/` (cross-bot) and `bots/<bot>/data/` (per-bot), read through an
+in-memory cache with a serialized write chain. Rejected: SQLite, which would fit
+the access patterns fine.
+Reason: the RPG world needs to be ingestible by an LLM **in one read**, and every
+volume here is trivial — human- and LLM-readable files are worth more than query
+power at this scale. Cost accepted: no transactions, no queries, and the write
+chain is the only thing preventing lost updates.
+
+## Feature logic stays free of platform imports
+
+_pre-2026-06-26_ — A feature's pure logic (`game.ts`) imports no `discord.js`;
+platform glue (embeds, button prefixes, replies) lives in a separate module, and
+commands stay thin. Rejected: writing features directly against the platform SDK.
+Original reason: the same logic module could be ported to another bot — the point
+of having `shared/` be runtime-agnostic at all.
+
+**Revisited 2026-08-27, downgraded — the original reason is void.** With Slack
+and WhatsApp removed there is no other bot to port to, so portability can no
+longer justify the split. Kept anyway, on a *different* and weaker basis: it
+keeps the data model readable and testable without a Discord client, which is
+worth something on its own. It is now a **convention, not a rule** — a feature
+that is genuinely easier to write against `discord.js` directly may do so, and
+that is not a violation. Do not cite portability to defend it again.
+
+The duplication this used to justify is also gone: Wordle and Tic-Tac-Toe were
+duplicated between Discord and Slack, and only the Discord copies remain.
+
+## Discord-only — Slack, WhatsApp and dice-activity removed
+
+_2026-08-27_ — `bots/slack`, `bots/whatsapp` and `bots/dice-activity` deleted <!-- stale-ok -->
+(~2,700 lines, 60 tracked files), along with `docs/slack/` <!-- stale-ok --> and
+`shared/src/bot-adapter.ts`. <!-- stale-ok --> Workspaces narrowed to `shared` + `bots/discord`.
+Rejected: keeping Slack (1,209 lines and six docs pages of working features —
+Wordle, Tic-Tac-Toe, reminders, polls, clock), and keeping `dice-activity` on the
+grounds that a Discord voice Activity is arguably part of the Discord surface.
+Reason: only the Discord bot is actually used or maintained, and every other
+workspace was taxing every repo-wide change — the cross-bot abstraction, the
+duplicated game modules, and three sets of docs all had to be kept coherent for
+code nobody ran.
+
+Consequences worth knowing, since none of them are visible in the diff:
+
+- **`shared/src/dice-protocol.ts` stays.** `bots/discord/src/dicetable/` is a
+  WebSocket *client* of the Activity app (`link.ts` connects to its `/engine`
+  endpoint), so the wire types are still imported by live code. Deleting the
+  Activity did not make the protocol dead.
+- **`/dicetable` is now a client with no server in this repo.** It degrades
+  cleanly — the command already answers "not configured" when
+  `DICETABLE_ACTIVITY_URL` is unset — so this is a dormant feature, not a broken
+  one. Open thread: [open-questions.md](open-questions.md).
+- **Two workspaces, not one.** `shared/` is kept because it holds code with no
+  `discord.js` dependency, including the protocol above.
+- **`bots/dice-activity/.env` was deliberately left on disk** — it holds
+  `DISCORD_CLIENT_SECRET`, `SESSION_HMAC_KEY` and `ENGINE_AUTH_TOKEN`, is
+  gitignored, and exists nowhere else. Removing it is a manual, irreversible
+  call for the user to make.
+- The "feature logic free of platform imports" decision above lost its stated
+  reason and was formally downgraded rather than quietly kept.
+
+## `docs/` and `corpus/` both stay, split why vs how
+
+_2026-08-27_ — [`docs/`](../../docs/README.md) (29 files, per-feature operating
+manuals and setup) keeps its own tree; `corpus/` owns decisions, status, and
+synthesis. The boundary is written into both front doors and `docs/` ranks last
+in the source-of-truth order. Rejected: folding `docs/` into `corpus/wiki/` and
+deleting it (would blow the 200-line-per-page cap immediately and lose the
+per-feature structure), and leaving the two layers unrelated (they had already
+drifted into contradiction — `docs/discord/music/README.md` described the shelved
+music feature as working).
+Reason: they answer different questions for different readers, and the failure
+mode was never duplication — it was that nothing said which one to trust. Cost
+accepted: two places to update when a feature's usage changes.
+
+## Major UX variants ship as sibling commands, not rewrites
+
+_pre-2026-06-26_ — A significantly different take on a working feature ships as
+`/featureN+1` (`dice` → `dice2`, `blackjack` → `blackjack2`) sharing extracted
+code, rather than replacing the original. Rejected: rewriting the original
+command in place, feature-flagging one command into two behaviors.
+Reason: the original keeps working for the people already using it, both
+variants stay comparable in real use, and a bad variant is deleted instead of
+reverted. Cost accepted: command-list clutter and two surfaces to maintain.

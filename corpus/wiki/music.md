@@ -1,4 +1,15 @@
+---
+summary: How the /play music stack works and why it is currently shelved: provider choice (SoundCloud vs the disabled YouTube path), the skipFFmpeg requirement, the VPS IP-block saga, and audio-quality settings.
+updated: 2026-08-27
+---
+
 # Music subsystem (`/play`)
+
+> **SHELVED (2026-06-26).** The seven music commands are commented out of
+> [commands/index.ts](../../bots/discord/src/commands/index.ts), so `/play` and
+> friends do not appear in Discord. Everything below describes the code as it
+> stands, ready to re-enable; nothing here is live. Resume plan:
+> [reenable-music.md](../todos/reenable-music.md).
 
 The Discord bot's music stack. Code lives in
 [player.ts](../../bots/discord/src/player.ts) and the music commands under
