@@ -47,6 +47,20 @@ in this repo. The command answers "not configured" rather than failing. See
   `explore` only 1.6× (ruled out); 12 duplicate names still conflate, so never
   rename off it. See [code-graph.md](code-graph.md).
 
+## Queued work
+
+- **[Brief 02](../briefs/todo/02-remove-dicetable.md)** — remove `/dicetable`:
+  the feature, its command, 3 env vars, `shared/src/dice-protocol.ts`, the docs
+  page, and the `bots/dice-activity/` leftover incl. its `.env`.
+- **[Brief 03](../briefs/todo/03-remove-ytdlp-path.md)** — remove the yt-dlp
+  streaming path (dep, `streamWithYtDlp`, `createStream`, `YT_COOKIES_FILE`,
+  `music:update-ytdlp`). The youtubei extractor, `YOUTUBE_ENABLED` and
+  `YT_COOKIE` stay. **After this, flipping `YOUTUBE_ENABLED` no longer works** —
+  no stream source behind it.
+
+Both are independent (02 touches no music code, 03 touches no dicetable code) and
+neither is implemented yet.
+
 ## Corpus
 
 Updated to corpus-flow 0.29.0 (2026-08-27): `summary:`/`updated:` frontmatter on

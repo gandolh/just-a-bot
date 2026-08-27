@@ -1,5 +1,5 @@
 ---
-summary: The genuinely unresolved threads only — yt-dlp freshness, Opus passthrough, and what happens to the dormant /dicetable client.
+summary: The genuinely unresolved threads only — currently just the fate of the /dicetable client; music-blocked questions live in the reenable-music todo instead.
 updated: 2026-08-27
 ---
 
@@ -7,10 +7,13 @@ updated: 2026-08-27
 
 Only genuinely unresolved threads. Delete each the moment it's answered.
 
-- **Keeping yt-dlp fresh automatically.** The bundled binary goes stale and
-  `npm install` may reset it. Options: a `postinstall`/`prestart` `yt-dlp -U`,
-  a periodic cron, or pinning a newer `youtube-dl-exec`. Not yet decided — see
-  [brief 01](../briefs/done/01-music-audio-quality.md).
+A question that is **blocked** rather than unanswered does not belong here — it
+is a step in whatever plan unblocks it. Two such questions (automating yt-dlp
+freshness, Opus passthrough viability) moved to
+[reenable-music.md](../todos/reenable-music.md) on 2026-08-27: neither is askable
+while music is shelved and YouTube is disabled, because nothing in the repo runs
+yt-dlp at all.
+
 - **What to do with `/dicetable`.** It is a WebSocket client of the
   `dice-activity` app, which was removed from this repo on 2026-08-27. The
   command degrades cleanly (answers "not configured" without
@@ -19,7 +22,3 @@ Only genuinely unresolved threads. Delete each the moment it's answered.
   point `DICETABLE_ACTIVITY_URL` at it; shelve the command the way music was
   shelved (comment it out of `commands/index.ts`, keep the code); or delete the
   feature and `shared/src/dice-protocol.ts` with it. Nobody has said which.
-- **Opus passthrough viability.** Whether YouTube `bestaudio` is reliably WebM
-  Opus at 48 kHz (letting us skip ffmpeg re-encode for lower CPU + better
-  quality) or whether the occasional m4a/AAC source forces a transcode anyway.
-  Needs measurement against real tracks.

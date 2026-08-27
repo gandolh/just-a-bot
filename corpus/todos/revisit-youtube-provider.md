@@ -1,12 +1,17 @@
 ---
 title: Re-enable the YouTube provider when the VPS IP block is solvable
 created: 2026-06-26
-status: open
+status: superseded
 tags: [music, youtube, yt-dlp, vps]
 ---
 
 # Re-enable the YouTube provider when the VPS IP block is solvable
 
+> **Closed 2026-08-27.** Kept for history only. The yt-dlp streaming path this
+> todo assumed is being removed (brief 03), so "re-enable YouTube" is no longer a
+> flag flip — it needs a new stream source. Live plan:
+> [reenable-music.md](reenable-music.md).
+>
 > **Superseded by [reenable-music.md](reenable-music.md)** (2026-06-26) — the whole
 > music feature is now shelved/commented out, not just YouTube. This file remains
 > as the YouTube-specific technical detail.

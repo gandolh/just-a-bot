@@ -59,6 +59,34 @@ Every direct-from-VPS source we tried joins voice but plays **no audio**
 3. After a source works: uncomment the commands, `npm run discord:register`,
    `pm2 restart discord`, verify a real `/play` on the VPS produces sound.
 
+## Questions to settle *when* a source works (not before)
+
+Both moved here from `wiki/open-questions.md` on 2026-08-27 — neither is askable
+while nothing in the repo runs yt-dlp:
+
+- **Automating yt-dlp freshness.** The bundled binary goes stale and
+  `npm install` may reset it. Options: a `postinstall`/`prestart` `yt-dlp -U`, a
+  periodic cron, or tracking a newer `youtube-dl-exec`. Only matters if the
+  YouTube path is re-enabled — `npm run music:update-ytdlp` is the manual stopgap.
+  Background: [brief 01](../briefs/done/01-music-audio-quality.md).
+- **Opus passthrough viability.** Whether YouTube `bestaudio` is reliably WebM
+  Opus at 48 kHz (letting us skip the ffmpeg re-encode for lower CPU and better
+  quality) or whether the occasional m4a/AAC source forces a transcode anyway.
+  Needs measurement against real tracks. **Note the conflict:** passthrough needs
+  `skipFFmpeg: true`, but SoundCloud *requires* `skipFFmpeg: false` — so this can
+  only ever apply if YouTube returns as the primary provider.
+
+## Research direction (2026-08-27)
+
+Hold is **active, not closed**: the user is looking for either a different
+provider or a way to make YouTube play smoothly **without cookie forgery** —
+cookies are explicitly ruled out as the standing fix (~2-week manual refresh).
+Nothing in the code changes until such a source is proven from the VPS.
+
+Ruled out so far: youtubei.js cascade (SABR/PO tokens), yt-dlp direct (datacenter
+IP block), yt-dlp + cookies (works, but manual refresh forever). Still untried:
+**step 1 below — the cheapest test in this file, and it has never been run.**
+
 See [music.md](../wiki/music.md) and the 2026-06-26 incidents in
 [log.md](../log.md). Supersedes the narrower
 [revisit-youtube-provider.md](revisit-youtube-provider.md).

@@ -63,8 +63,21 @@ you're not a bot"), yt-dlp cookies as the standing fix (expire every ~2 weeks,
 manual refresh forever).
 Reason: SoundCloud streams natively through discord-player's default extractors
 with no auth and is not IP-blocked. Cost accepted: a much smaller catalog and
-0:30 previews on non-freely-streamable tracks. Revisit:
-[todo](../todos/revisit-youtube-provider.md). Detail: [music.md](music.md).
+0:30 previews on non-freely-streamable tracks. Detail: [music.md](music.md).
+
+**Revisited 2026-08-27 — the yt-dlp streaming half is being removed** (brief 03).
+`youtube-dl-exec`, `streamWithYtDlp`, the `createStream` override,
+`YT_COOKIES_FILE` and `npm run music:update-ytdlp` all go; the youtubei extractor,
+`YOUTUBE_ENABLED` and `YT_COOKIE` stay. Decided deliberately over removing the
+whole secondary.
+
+**Consequence a future reader must not miss: flipping `YOUTUBE_ENABLED` back to
+`true` will no longer work.** Without the yt-dlp `createStream` override, the
+youtubei extractor resolves metadata and yields no audio — SABR/PO-token
+enforcement — which is the exact original bug from 2026-06-26. Re-enabling YouTube
+now means supplying a *new* stream source first. It also removes the
+yt-dlp-through-a-residential-proxy route that
+[reenable-music.md](../todos/reenable-music.md) lists as a revival option.
 
 ## Music feature shelved by commenting out its commands, not deleting the code
 
@@ -138,6 +151,28 @@ Consequences worth knowing, since none of them are visible in the diff:
   call for the user to make.
 - The "feature logic free of platform imports" decision above lost its stated
   reason and was formally downgraded rather than quietly kept.
+
+## `/dicetable` removed — the Activities experiment is concluded
+
+_2026-08-27_ — The `/dicetable` feature is deleted outright: `dicetable/`
+(451 lines), `commands/dicetable.ts`, `shared/src/dice-protocol.ts`, the
+`DICE_ACTIVITY_WS_URL` / `DICE_ACTIVITY_TOKEN` / `DICETABLE_ACTIVITY_URL` env
+vars, and the docs page. Rejected: shelving it the way music was shelved (the
+precedent existed and was considered), and hosting the Activity from its own repo
+to make the client work again.
+Reason: the Activity app was added and disabled in the *same* commit
+(`0de2132`, 2026-06-03) and never ran on the VPS — this was an experiment that
+ended at birth, not a working feature that broke. Shelving preserves code for a
+revival that isn't planned; Discord Activities will be revisited as a *new* build
+rather than by reviving this one.
+Cost accepted: the Activity plumbing writeup (OAuth, session, the `/play` +
+`/engine` WebSockets, per-channel instance lifecycle) is deleted with the docs
+page and survives only in git history — chosen knowingly over keeping a 92-line
+reference page.
+Follow-on the user owns: `bots/dice-activity/.env` is deleted locally, but
+`DISCORD_CLIENT_SECRET`, `SESSION_HMAC_KEY` and `ENGINE_AUTH_TOKEN` must be
+**rotated or the Discord app deleted** in the developer portal — deleting a local
+file does not invalidate a live secret.
 
 ## `docs/` and `corpus/` both stay, split why vs how
 

@@ -253,3 +253,55 @@ record is *supposed* to name deleted paths), and a line carrying
 `<!-- stale-ok -->` is skipped, for a page that deliberately cites a deleted path
 to explain why a finding is void. Without those, recording this correctly would
 have meant either a failing lint or quietly dropping the evidence.
+
+## [2026-08-27] decision | Open questions grilled: music held, /dicetable and yt-dlp out
+
+Worked the three entries in `wiki/open-questions.md` to a settled state. Two of
+them turned out not to be questions: **nothing in the repo runs yt-dlp** (it is
+called only inside `if (YOUTUBE_ENABLED)`, which is `false`, inside a feature
+whose commands are all commented out), and **Opus passthrough is structurally
+incompatible** with the SoundCloud-primary decision, since SoundCloud requires
+`skipFFmpeg: false` while passthrough requires the opposite. Both were blocked,
+not unanswered.
+
+Settled:
+
+- **Music: active hold, not a closed door.** The user is researching a different
+  provider or a cookie-free YouTube route; cookies are ruled out as the standing
+  fix. No code moves until a source is proven from the VPS. Recorded in
+  [reenable-music.md](todos/reenable-music.md) — which also now flags that the
+  cheapest test in that file (does a *fully streamable* SoundCloud track play on
+  the VPS?) **has never been run**; every VPS failure so far was measured against
+  a 0:30 preview.
+- **Blocked ≠ open.** The two music-blocked questions moved out of
+  [open-questions.md](wiki/open-questions.md) into the todo that would unblock
+  them, and that page now states the rule.
+- **`/dicetable` deleted, not shelved** — [brief 02](briefs/todo/02-remove-dicetable.md).
+  The Activity was added and disabled in the same commit (`0de2132`, 2026-06-03)
+  and never ran on the VPS; shelving would preserve code for a revival nobody
+  plans. Activities return as a new build, if at all. Takes
+  `shared/src/dice-protocol.ts` with it (its only consumers are the two dicetable
+  files) and the 92-line Activity-plumbing docs page, deleted knowingly.
+- **`shared/` stays a workspace** at 168 lines / 4 files. The package split is
+  what makes "no `discord.js` dependency" mechanically enforced rather than a
+  convention; collapsing it would touch 14 import sites to buy tidiness.
+- **yt-dlp path removed, youtubei kept** — [brief 03](briefs/todo/03-remove-ytdlp-path.md).
+  Removing the *whole* disabled YouTube secondary was recommended and declined.
+  The consequence is recorded loudly in
+  [decisions.md](wiki/decisions.md) and is the load-bearing line of that brief:
+  **flipping `YOUTUBE_ENABLED` back on will no longer produce audio**, because the
+  youtubei extractor without the yt-dlp `createStream` override is exactly the
+  original 2026-06-26 bug. It also deletes the yt-dlp-through-a-proxy revival
+  route.
+- **`bots/dice-activity/.env` to be deleted** (in brief 02) — but its
+  `DISCORD_CLIENT_SECRET`, `SESSION_HMAC_KEY` and `ENGINE_AUTH_TOKEN` must be
+  **rotated, or the Discord app deleted**, in the developer portal. A local file
+  delete does not invalidate a live secret. That part is the user's to do.
+
+[revisit-youtube-provider.md](todos/revisit-youtube-provider.md) marked
+`superseded` — its premise (re-enabling YouTube is a flag flip) stops being true
+once brief 03 lands. No glossary changes were needed: deleting `/dicetable`
+collapses the "dormant" state I had been using, leaving *shelved* as the only
+term.
+
+Nothing implemented yet — both briefs are in `todo/`.
