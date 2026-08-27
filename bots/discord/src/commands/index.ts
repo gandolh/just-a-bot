@@ -7,7 +7,6 @@ import { blackjack } from './blackjack.ts';
 import { blackjack2 } from './blackjack2.ts';
 import { dice } from './dice.ts';
 import { dice2 } from './dice2.ts';
-import { dicetable } from './dicetable.ts';
 import { wordle } from './wordle.ts';
 import { tictactoe } from './tictactoe.ts';
 import { help } from './help.ts';
@@ -29,7 +28,7 @@ import { ask } from './ask.ts';
 
 const all: Command[] = [
   ping,
-  coins, give, slots, blackjack, blackjack2, dice, dice2, dicetable, wordle, tictactoe, connectFour, connectFour2,
+  coins, give, slots, blackjack, blackjack2, dice, dice2, wordle, tictactoe, connectFour, connectFour2,
   rpg, mafia, confess,
   clock,
   top,

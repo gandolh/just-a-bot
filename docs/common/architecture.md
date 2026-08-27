@@ -16,16 +16,15 @@ its own page under [../discord/](../discord/README.md).
 npm workspaces:
 
 - [`shared/`](../../shared) — `@bots/shared`: logger, env loader, reminder
-  parse/store, and the dice-table wire protocol. Deliberately runtime-agnostic —
-  no `discord.js` imports.
+  parse/store. Deliberately runtime-agnostic — no `discord.js` imports.
 - [`bots/discord/`](../../bots/discord) — the bot (discord.js v14).
 
 This was a multi-bot monorepo until 2026-08-27, when the Slack, WhatsApp and
-dice-activity workspaces were removed — see
+dice-activity workspaces were removed, followed by the `/dicetable` feature and
+the music subsystem — see
 [corpus/wiki/decisions.md](../../corpus/wiki/decisions.md). The two-workspace
-split is kept because `shared/` still holds code with no Discord dependency, and
-the dice-table protocol needs to stay shareable with the Activity app now that it
-lives outside this repo.
+split is kept because `shared/` still holds code with no Discord dependency at
+all, which the package boundary enforces mechanically.
 
 ## Runtime
 
@@ -77,6 +76,6 @@ feature uses.
   for one less moving part. `tsx` lives in devDependencies; `npm install
   --production` will break the run script — move `tsx` to a real dep if that
   scenario actually shows up. (Nothing in the repo builds any more: the one
-  workspace that did, `dice-activity`, was removed.)
+  workspace that did was removed on 2026-08-27.)
 - **Commands vs game logic split.** Keeps platform-specific code (embeds,
   blocks, options, replies) from bleeding into the data model.

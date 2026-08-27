@@ -32,7 +32,7 @@ path.
 | Path                   | What                                                          |
 | ---------------------- | ------------------------------------------------------------- |
 | `bots/discord/`        | the bot (`@bots/discord`) — one directory per feature          |
-| `shared/src/`          | `@bots/shared` — `logger`, `loadEnv`, reminder parse/store, the dice-table wire protocol |
+| `shared/src/`          | `@bots/shared` — `logger`, `loadEnv`, reminder parse/store |
 | `bots/data/`           | persisted JSON state, gitignored                               |
 | `corpus/`              | project knowledge: decisions, status, work lifecycle           |
 | `docs/`                | these docs — per-feature operating manuals                     |
