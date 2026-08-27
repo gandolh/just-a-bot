@@ -1,8 +1,7 @@
 # Discord — setup & ops
 
-Cross-bot install / typecheck steps are in
-[../common/setup.md](../common/setup.md); this page covers only the Discord
-bot.
+Install / typecheck steps are in [../common/setup.md](../common/setup.md); this
+page covers the bot's own configuration.
 
 ## Token
 

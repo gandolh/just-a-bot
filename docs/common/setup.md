@@ -1,46 +1,50 @@
-# Setup (cross-bot)
+# Setup
 
-The bits that apply to every bot. Per-bot setup (token wiring, registering
-commands, running specific bots) lives in [../discord/setup.md](../discord/setup.md)
-and [../slack/README.md](../slack/README.md).
+Install and typecheck. Discord-specific setup — token wiring, registering slash
+commands, required intents — is in [../discord/setup.md](../discord/setup.md).
+
+## Requirements
+
+- **Node ≥ 22.12** (`engines` in the root `package.json`).
+- npm (the repo uses npm workspaces: `shared`, `bots/discord`).
 
 ## Install
 
-```
+```bash
 npm install
 ```
 
-Single root install covers every workspace (`shared`, `bots/discord`,
-`bots/slack`, `bots/whatsapp`).
+One install at the repo root covers both workspaces. There is **no build step** —
+`tsx` runs the TypeScript directly.
 
-Requires Node ≥ 22.12 (see [`package.json`](../../package.json#L4-L6)
-`engines`).
+## Verify
 
-## Typecheck
-
-```
-npm run typecheck
+```bash
+npm run typecheck     # tsc --noEmit across the workspaces
+npm run corpus:lint   # corpus/ health check (frontmatter, links, page size)
 ```
 
-Runs `tsc --noEmit` across every workspace via `npm run typecheck
---workspaces --if-present`. No bot is built — typecheck is the only static
-validation.
+There is no test suite; `typecheck` plus running the bot is the verification
+path.
 
-## Where things live
+## Layout
 
-| Path | What |
-| --- | --- |
-| `shared/src/` | Cross-bot helpers (`logger`, `loadEnv`, adapter types) |
-| `bots/<bot>/src/` | A bot's source tree |
-| `bots/<bot>/data/` | A bot's runtime JSON state — gitignored |
-| `bots/<bot>/.env` | A bot's tokens — gitignored |
+| Path                   | What                                                          |
+| ---------------------- | ------------------------------------------------------------- |
+| `bots/discord/`        | the bot (`@bots/discord`) — one directory per feature          |
+| `shared/src/`          | `@bots/shared` — `logger`, `loadEnv`, reminder parse/store, the dice-table wire protocol |
+| `bots/data/`           | persisted JSON state, gitignored                               |
+| `corpus/`              | project knowledge: decisions, status, work lifecycle           |
+| `docs/`                | these docs — per-feature operating manuals                     |
 
-## Conventions
+## Environment
 
-- Each bot ships its own `package.json` with its own `dev` / `start` scripts.
-  Root-level `npm run <bot>:dev` proxies into the workspace.
-- `.env` files live next to the bot they configure (`bots/discord/.env`,
-  `bots/slack/.env`).
-- Adding a new bot: create `bots/<name>/`, add it to `workspaces` in the root
-  `package.json`, mirror the `src/index.ts` + `src/env.ts` shape from an
-  existing bot, and depend on `@bots/shared`.
+Env is validated with Zod at startup via `@bots/shared`'s `loadEnv`. Required
+config fails fast at boot; optional integrations report "not configured" instead
+of crashing the bot. Put values in `bots/discord/.env` — see
+[../discord/setup.md](../discord/setup.md) for the variable list.
+
+**One running instance per bot token.** Discord delivers every interaction to
+every live gateway session, so running `discord:dev` locally while the VPS is up
+makes both instances answer and the loser throws `DiscordAPIError 40060`. Use a
+separate Discord application + token for local development.

@@ -1,82 +1,109 @@
 # Music
 
-> ⚠️ **Experimental — may break.** The music commands are wired up and
-> functional in good conditions, but they depend on YouTube extractors that
-> drift with upstream API changes. Treat as unsupported until further
-> notice.
+> 🛑 **Shelved as of 2026-06-26 — the commands are not live.** All seven music
+> commands are commented out of `bots/discord/src/commands/index.ts`, so they do
+> not appear in Discord. The code is intact and re-enabling is mostly
+> uncommenting. **Why it was shelved, and the current provider setup, live in
+> [corpus/wiki/music.md](../../../corpus/wiki/music.md)** — that page is
+> authoritative for behavior; this one is the operating/setup runbook.
 
-## Status
+## What ships (when re-enabled)
 
-The bot ships `/play`, `/skip`, `/pause`, `/resume`, `/stop`, `/queue`,
-`/nowplaying`. They use [discord-player](https://discord-player.js.org/) v7
-with the [`discord-player-youtubei`](https://github.com/retrouser955/discord-player-youtubei)
-extractor. ffmpeg ships via `ffmpeg-static`.
+`/play`, `/skip`, `/pause`, `/resume`, `/stop`, `/queue`, `/nowplaying`, built on
+[discord-player](https://discord-player.js.org/) v7. ffmpeg ships via
+`ffmpeg-static`. The `Player` is constructed with `skipFFmpeg: false` — this is
+**required**, not a tuning choice; without it the raw stream reaches the Opus
+packetizer undecoded and every track plays ~120 ms of silence then "finishes".
 
-## Extractor config
+Two providers, only one active:
+
+- **SoundCloud — primary.** From `@discord-player/extractor`'s
+  `DefaultExtractors`, with `SoundCloudExtractor.priority = 100`; `/play`
+  searches via `QueryType.SOUNDCLOUD_SEARCH`. Streams natively — no auth, no
+  yt-dlp, not IP-blocked on the VPS. Trade-off: smaller catalog, and
+  non-freely-streamable tracks return a 0:30 preview.
+- **YouTube — disabled.** Gated behind `YOUTUBE_ENABLED = false` in
+  `bots/discord/src/player.ts` and marked `@deprecated`, because YouTube blocks
+  the VPS datacenter IP ("Sign in to confirm you're not a bot"). Everything in
+  the YouTube sections below applies only if you flip that flag.
+
+## Re-enabling
+
+1. Get a source that actually streams from the VPS — see the resume plan in
+   [corpus/todos/reenable-music.md](../../../corpus/todos/reenable-music.md).
+   Likely endgame: Lavalink, or YouTube via a residential proxy.
+2. Uncomment the music commands in `bots/discord/src/commands/index.ts`.
+3. `npm run discord:register` to re-publish the slash commands.
+4. Test in a real voice channel — a silent-but-connected bot is the failure mode
+   these providers produce, and it does not show up in a typecheck.
+
+## YouTube provider (disabled — reference only)
 
 We pin `discord-player-youtubei@3.0.0-beta.4` because the 2.x line ships
-`youtubei.js@16`, which can no longer extract YouTube's signature /
-n-decipher functions (look for `Failed to extract signature decipher
-function` + `No valid URL to decipher` in logs — that's the 2.x failure
-mode). The 3.x beta bumps to `youtubei.js@17` which has the fixes.
+`youtubei.js@16`, which can no longer extract YouTube's signature / n-decipher
+functions (`Failed to extract signature decipher function` + `No valid URL to
+decipher` in logs is the 2.x failure mode). The 3.x beta bumps to
+`youtubei.js@17`, which has the fixes.
 
 The 3.x API surface is much smaller than 2.x: the export was renamed
-`YoutubeiExtractor` → `YoutubeExtractor`, and PoToken handling, `useClient`,
-and `streamOptions` all moved internal. Effectively the only options worth
-passing are `cookie` and `proxy`.
+`YoutubeiExtractor` → `YoutubeExtractor`, and PoToken handling, `useClient`, and
+`streamOptions` all moved internal. Effectively the only options worth passing
+are `cookie` and `proxy`.
 
-`bots/discord/src/player.ts` registers `YoutubeExtractor` with:
+Because YouTube's own stream cascade (SABR + PO tokens) yielded no audio,
+`player.ts` also carries a `createStream` override — `streamWithYtDlp` — that
+streams via `youtube-dl-exec` (yt-dlp) directly, requesting
+`bestaudio[acodec=opus]/bestaudio`.
 
-- `cookie` (optional) — read from the `YT_COOKIE` env var. Strongly
-  recommended on cloud hosts, where unauthenticated YouTube requests get
-  rate-limited or blocked outright.
+### Two different cookie env vars
 
-### Setting `YT_COOKIE`
+They are not interchangeable:
 
-1. Log into a **throwaway** Google account in a browser (never your real
-   one — YouTube can shadow-ban accounts used for bot scraping).
-2. DevTools → Application → Cookies → `https://www.youtube.com` → copy
-   the full `Cookie:` header value.
-3. Add to `bots/discord/.env`:
-   ```
-   YT_COOKIE="VISITOR_INFO1_LIVE=...; YSC=...; PREF=...; SID=...; ..."
-   ```
-4. Cookies expire in weeks/months. If music breaks again with no code
-   change, refresh the cookie first.
+- **`YT_COOKIE`** — a full `Cookie:` header string, passed to the youtubei
+  metadata extractor.
+- **`YT_COOKIES_FILE`** — a path to a Netscape-format `cookies.txt`, passed to
+  yt-dlp as `--cookies`. This is the one that matters for *streaming* from a
+  datacenter IP.
 
-OAuth (`npx discord-player-youtubei`) is documented as broken upstream;
-use cookies.
+To set either: log into a **throwaway** Google account (never your real one —
+YouTube shadow-bans accounts used for bot scraping), then either copy the
+`Cookie:` header from DevTools → Application → Cookies → `https://www.youtube.com`
+(for `YT_COOKIE`), or export `cookies.txt` with a browser extension (for
+`YT_COOKIES_FILE`). Add to `bots/discord/.env`. Cookies expire in ~2 weeks and
+must be refreshed by hand — which is exactly why this is not the standing fix.
 
-Things that have broken in the past and will likely break again:
+OAuth (`npx discord-player-youtubei`) is documented as broken upstream.
 
-- YouTube extractor token/auth changes
-- Region/age-gated tracks
-- Rate-limit responses pretending to be other errors
-- Voice connection drops on long sessions
+### Keeping yt-dlp fresh
 
-When it works it's fine. When it doesn't, check the bot logs (the player
-emits `playerError` and `debug` events that we forward to the scoped
-logger).
+The bundled binary goes stale as YouTube changes, and `npm install` may reset it
+to the pinned version. Update with `npm run music:update-ytdlp`. Automating this
+is still an open question — see
+[corpus/wiki/open-questions.md](../../../corpus/wiki/open-questions.md).
 
-### Triage when `/play` stops working
+## Triage when playback breaks
 
-1. `playerSkip … reason: LOAD_FAILED` or `Sign in to confirm you're not a
-   bot` → set/refresh `YT_COOKIE`.
-2. Bot joins the channel but no audio + no `playerStart` event → PoToken
-   generation failing internally. Confirm the host can reach
-   `https://www.youtube.com` (PoToken bootstrap does an HTTP fetch).
-3. Bot doesn't join the channel at all → voice/opus issue, not extractor.
-   Check `@discordjs/opus` built natively for the host arch.
-4. Worked yesterday, broke today, no code change → YouTube shipped a
-   breaking change. Bump `discord-player-youtubei` to latest; the
-   maintainer usually ships a fix within days.
+1. **Joins the channel, then silence, `playbackDuration: 120` + immediate
+   `Finished`** → an empty or undecodable stream. Check `skipFFmpeg: false` is
+   still set; on SoundCloud, check the track isn't a 0:30 preview.
+2. **`Sign in to confirm you're not a bot` in `pm2 logs`** → YouTube is blocking
+   the host IP. Set/refresh `YT_COOKIES_FILE`, or stay on SoundCloud.
+3. **`playerSkip … reason: LOAD_FAILED`** → extractor could not resolve the
+   query. Region/age-gated track, or upstream drift.
+4. **Doesn't join the channel at all** → voice/opus, not the extractor. Check
+   `@discordjs/opus` built natively for the host arch.
+5. **Every command silent, not just music** → check whether two instances share
+   the token (see the root `CLAUDE.md`), not the player.
+6. **Worked yesterday, broke today, no code change** → upstream shipped a
+   breaking change. `pm2 logs` first, always.
 
-## Why this is gated as experimental
+## Why it stays in the risky tier
 
-A robust music bot is its own project. Until I'm ready to babysit the
-upstream churn, it stays in the "use at your own risk" tier and doesn't
-get full docs.
+A robust music bot is its own project, and every provider so far has been either
+IP-blocked, auth-gated, or preview-limited from a datacenter. Until that changes
+it stays shelved rather than shipping visibly broken. Full history:
+[corpus/log.md](../../../corpus/log.md).
 
-Source: [`bots/discord/src/player.ts`](../../../bots/discord/src/player.ts) +
-the `commands/play.ts`, `skip.ts`, `pause.ts`, `resume.ts`, `stop.ts`,
-`queue.ts`, `nowplaying.ts` files.
+Source: [`bots/discord/src/player.ts`](../../../bots/discord/src/player.ts) plus
+`commands/play.ts`, `skip.ts`, `pause.ts`, `resume.ts`, `stop.ts`, `queue.ts`,
+`nowplaying.ts` and the shared `commands/_music.ts` helper.

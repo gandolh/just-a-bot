@@ -7,22 +7,17 @@
   },
   "workspaces": [
     "shared",
-    "bots/*"
+    "bots/discord"
   ],
   "scripts": {
     "typecheck": "npm run typecheck --workspaces --if-present",
+    "corpus:lint": "bash corpus/lint.sh",
+    "codegraph:init": "codegraph init",
+    "codegraph:sync": "codegraph sync",
     "music:update-ytdlp": "node_modules/youtube-dl-exec/bin/yt-dlp -U",
     "discord:dev": "npm run dev -w @bots/discord",
     "discord:register": "npm run register -w @bots/discord",
-    "discord:start": "npm run start -w @bots/discord",
-    "whatsapp:dev": "npm run dev -w @bots/whatsapp",
-    "whatsapp:start": "npm run start -w @bots/whatsapp",
-    "slack:dev": "npm run dev -w @bots/slack",
-    "slack:start": "npm run start -w @bots/slack",
-    "dice-activity:dev:server": "npm run dev:server -w @bots/dice-activity",
-    "dice-activity:dev:client": "npm run dev:client -w @bots/dice-activity",
-    "dice-activity:build": "npm run build -w @bots/dice-activity",
-    "dice-activity:start": "npm run start -w @bots/dice-activity"
+    "discord:start": "npm run start -w @bots/discord"
   },
   "devDependencies": {
     "@types/node": "22.10.5",

@@ -1,6 +1,6 @@
 # Discord — architecture
 
-Discord-specific bits. The cross-bot architecture (monorepo, runtime, the
+Discord-specific bits. The repo-wide architecture (workspaces, runtime, the
 JSON-over-SQLite stance) is in [../common/architecture.md](../common/architecture.md).
 
 ## Source layout

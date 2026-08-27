@@ -226,18 +226,25 @@ Tradeoff: mobs don't move when no one's playing — which is fine.
 
 ## Source layout
 
+_File map re-verified 2026-08-27._ There is no dedicated mob-tick or
+map-rendering module — earlier versions of this table named `rpg/tick.ts`,
+`rpg/render.ts` and `rpg/controller.ts`, none of which exist. Mob definitions and
+tick state live in `world.ts`, encounters in `encounter.ts`, and all button
+routing in `commands/rpg-buttons.ts`.
+
 | Concern              | Location                                                              |
 | -------------------- | --------------------------------------------------------------------- |
 | World + persistence  | [`bots/discord/src/rpg/world.ts`](../../../bots/discord/src/rpg/world.ts) |
 | Combat resolution    | [`bots/discord/src/rpg/combat.ts`](../../../bots/discord/src/rpg/combat.ts) |
-| Mob spawn + AI tick  | [`bots/discord/src/rpg/tick.ts`](../../../bots/discord/src/rpg/tick.ts)    |
-| Map rendering        | [`bots/discord/src/rpg/render.ts`](../../../bots/discord/src/rpg/render.ts) |
+| Mob kinds + world tick state | [`bots/discord/src/rpg/world.ts`](../../../bots/discord/src/rpg/world.ts) (`MOB_KINDS`) |
+| Encounter rolls      | [`bots/discord/src/rpg/encounter.ts`](../../../bots/discord/src/rpg/encounter.ts) |
+| Location / encounter UI | [`bots/discord/src/rpg/locationui.ts`](../../../bots/discord/src/rpg/locationui.ts) |
+| Town crier tick      | [`bots/discord/src/rpg/crier.ts`](../../../bots/discord/src/rpg/crier.ts)  |
 | Duel logic           | [`bots/discord/src/rpg/duel.ts`](../../../bots/discord/src/rpg/duel.ts)    |
 | Trade logic          | [`bots/discord/src/rpg/trade.ts`](../../../bots/discord/src/rpg/trade.ts)  |
 | Item registry        | [`bots/discord/src/rpg/items.ts`](../../../bots/discord/src/rpg/items.ts)  |
 | Shop (buy/sell)      | [`bots/discord/src/rpg/shop.ts`](../../../bots/discord/src/rpg/shop.ts)    |
 | Bounty roll + claim  | [`bots/discord/src/rpg/bounty.ts`](../../../bots/discord/src/rpg/bounty.ts) |
-| Controller (buttons) | [`bots/discord/src/rpg/controller.ts`](../../../bots/discord/src/rpg/controller.ts) |
 | Slash command        | [`bots/discord/src/commands/rpg.ts`](../../../bots/discord/src/commands/rpg.ts) |
 | RPG button router    | [`bots/discord/src/commands/rpg-buttons.ts`](../../../bots/discord/src/commands/rpg-buttons.ts) |
 | Per-guild state file | `bots/discord/data/rpg/<guild-id>.json` (gitignored)                  |
