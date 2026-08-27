@@ -1,0 +1,21 @@
+{
+  "mcpServers": {
+    "codegraph": {
+      "type": "stdio",
+      "command": "codegraph",
+      "args": [
+        "serve",
+        "--mcp",
+        "--no-watch",
+        "--path",
+        "${CODEGRAPH_INDEX_PATH:-.}"
+      ],
+      "env": {
+        "CODEGRAPH_MCP_TOOLS": "explore,impact,callers,node",
+        "CODEGRAPH_NO_DOWNLOAD": "1",
+        "CODEGRAPH_NO_UPDATE_CHECK": "1",
+        "CODEGRAPH_TELEMETRY": "off"
+      }
+    }
+  }
+}
