@@ -13,7 +13,7 @@ layer instead of grepping twenty files or asking the wiki a structural question.
 | ----------------------------------------------------- | ------------------------------------------------------------ |
 | "why is it like this", "was this decided"              | `wiki/decisions.md` → `log.md`                               |
 | "where do things stand", "what's shipped"              | `wiki/status.md`                                             |
-| "how does the music stack work"                        | `wiki/music.md`                                              |
+| "why is there no music / what was tried"                | `wiki/music.md` — post-mortem; the subsystem is gone         |
 | "what is a *feature dir* / *provider* / *shelved*"     | `wiki/glossary.md`                                           |
 | "how is the repo put together"                         | `wiki/architecture.md`                                       |
 | "how do I set this feature up / what env vars"          | [`docs/`](../docs/README.md) — the how-layer, verify against code |
@@ -41,13 +41,12 @@ layer instead of grepping twenty files or asking the wiki a structural question.
 | "what does the wiki say about X"                     | corpus-flow §5 (query)            |
 | "lint the corpus" / "is the wiki stale"              | `bash corpus/lint.sh`, then corpus-flow §7 |
 | review a diff/PR                                     | code-review skill                 |
-| a music/`/play` issue                                | read [wiki/music.md](wiki/music.md) first |
+| rebuilding music                                     | [reenable-music.md](todos/reenable-music.md) — start with the untried SoundCloud test |
 
 ## READ / SKIP / SKILLS
 
 | Area               | READ                                             | SKIP                  |
 | ------------------ | ------------------------------------------------ | --------------------- |
-| Music / `/play`    | bots/discord/src/player.ts, commands/{play,queue,skip,stop,pause,resume,nowplaying}.ts | node_modules internals (read only when debugging the extractor) |
 | A Discord command  | bots/discord/src/commands/<name>.ts + its feature dir under src/ | unrelated feature dirs |
 | Shared utils       | shared/ (`@bots/shared`: logger, loadEnv)        | —                     |
 | Env / config       | bots/discord/src/env.ts, ecosystem.config.cjs    | —                     |

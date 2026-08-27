@@ -13,6 +13,10 @@ An entry earns a place here only if it is **hard to reverse**, **surprising
 without context**, and **a genuine trade-off**. Obvious choices belong in
 [architecture.md](architecture.md), not here.
 
+Decisions that no longer bind anything live in
+[decisions-superseded.md](decisions-superseded.md) — this page is what still
+constrains new work, so a reader can trust that everything on it is live.
+
 ## npm workspaces, not pnpm or yarn
 
 _pre-2026-06-26_ — The monorepo is plain npm workspaces (`shared` + `bots/*`).
@@ -54,41 +58,27 @@ Reason: bad *required* config fails fast at boot rather than at first use, but a
 *missing optional* integration reports "not configured" instead of crashing the
 whole bot — one broken API key must not take the other twenty features down.
 
-## Music source: SoundCloud primary, YouTube a disabled secondary
+## Music subsystem removed entirely
 
-_2026-06-26_ — SoundCloud is the (temporary) primary provider; the YouTube path
-is kept in code behind `YOUTUBE_ENABLED = false` and marked `@deprecated`.
-Rejected: YouTube as primary (blocks the VPS datacenter IP — "Sign in to confirm
-you're not a bot"), yt-dlp cookies as the standing fix (expire every ~2 weeks,
-manual refresh forever).
-Reason: SoundCloud streams natively through discord-player's default extractors
-with no auth and is not IP-blocked. Cost accepted: a much smaller catalog and
-0:30 previews on non-freely-streamable tracks. Detail: [music.md](music.md).
-
-**Revisited 2026-08-27 — the yt-dlp streaming half is being removed** (brief 03).
-`youtube-dl-exec`, `streamWithYtDlp`, the `createStream` override,
-`YT_COOKIES_FILE` and `npm run music:update-ytdlp` all go; the youtubei extractor,
-`YOUTUBE_ENABLED` and `YT_COOKIE` stay. Decided deliberately over removing the
-whole secondary.
-
-**Consequence a future reader must not miss: flipping `YOUTUBE_ENABLED` back to
-`true` will no longer work.** Without the yt-dlp `createStream` override, the
-youtubei extractor resolves metadata and yields no audio — SABR/PO-token
-enforcement — which is the exact original bug from 2026-06-26. Re-enabling YouTube
-now means supplying a *new* stream source first. It also removes the
-yt-dlp-through-a-residential-proxy route that
-[reenable-music.md](../todos/reenable-music.md) lists as a revival option.
-
-## Music feature shelved by commenting out its commands, not deleting the code
-
-_2026-06-26_ — With no VPS-viable audio source, the seven music commands were
-commented out of `bots/discord/src/commands/index.ts` so they vanish from
-Discord; all player code stays intact. Rejected: deleting the subsystem,
-shipping it visibly broken.
-Reason: the blocker is external (provider IP-blocking), not a code defect — the
-work is worth preserving verbatim so re-enabling is uncommenting once a source
-streams from the VPS. Likely endgame: Lavalink, or YouTube via a residential
-proxy. Resume plan: [reenable-music.md](../todos/reenable-music.md).
+_2026-08-27_ — All eight audio dependencies (`discord-player`,
+`@discord-player/extractor`, `discord-player-youtubei`, `@discordjs/voice`,
+`@discordjs/opus`, `sodium-native`, `ffmpeg-static`, `youtube-dl-exec`) and the
+333 lines that used them (`player.ts`, `commands/_music.ts`, the seven commands)
+are deleted, along with both cookie env vars, the `music:update-ytdlp` script and
+the `docs/discord/music/` <!-- stale-ok --> page. `npm install` drops 275 packages.
+Rejected: keeping the code shelved (the standing decision, below — superseded by
+this one), and the narrower "remove yt-dlp only" scope decided earlier the same
+day, which would have left the youtubei extractor in place.
+Reason: with the feature on an open-ended hold, dead code for a provider stack
+that had already failed was pure carrying cost — eight dependencies to audit and
+upgrade for something nobody could run. The revival is now explicitly a **rebuild**
+against whatever provider wins the research, and the discord-player glue would not
+have transferred to Lavalink anyway.
+Cost accepted, and it is real: reviving music is no longer an uncomment. The
+mitigation is that the *findings* survive where the code does not —
+[music.md](music.md) is kept as a post-mortem and pins
+`git show 4d03ca0:bots/discord/src/player.ts` for anyone who wants the
+implementation back.
 
 ## JSON files on disk for all state — no SQLite
 
@@ -182,7 +172,7 @@ synthesis. The boundary is written into both front doors and `docs/` ranks last
 in the source-of-truth order. Rejected: folding `docs/` into `corpus/wiki/` and
 deleting it (would blow the 200-line-per-page cap immediately and lose the
 per-feature structure), and leaving the two layers unrelated (they had already
-drifted into contradiction — `docs/discord/music/README.md` described the shelved
+drifted into contradiction — `docs/discord/music/README.md` <!-- stale-ok --> described the shelved
 music feature as working).
 Reason: they answer different questions for different readers, and the failure
 mode was never duplication — it was that nothing said which one to trust. Cost

@@ -1,5 +1,5 @@
 ---
-summary: Dated snapshot of where the project stands right now — one line per area: the repo is now Discord-only, music is shelved, /dicetable is dormant.
+summary: Dated snapshot of where the project stands right now — Discord-only, music removed outright, /dicetable queued for removal.
 updated: 2026-08-27
 ---
 
@@ -7,20 +7,16 @@ updated: 2026-08-27
 
 Where things stand right now.
 
-## Music (`/play`) — SHELVED
+## Music — REMOVED
 
-- **Disabled.** The music commands (play/skip/pause/resume/stop/queue/nowplaying)
-  are **commented out** of [commands/index.ts](../../bots/discord/src/commands/index.ts)
-  so they don't appear in Discord. No VPS-viable audio source: YouTube IP-blocked,
-  yt-dlp same, SoundCloud returns previews/empty streams (all join voice then play
-  ~120 ms and finish). Full resume plan + history:
-  [reenable-music.md](../todos/reenable-music.md).
-- **Code kept intact:** SoundCloud-primary + `skipFFmpeg:false` in
-  [player.ts](../../bots/discord/src/player.ts), YouTube disabled behind
-  `YOUTUBE_ENABLED`, yt-dlp cookies wired (`YT_COOKIES_FILE`),
-  `music:update-ytdlp` script, brief 01 quality work. Re-enabling is mostly
-  uncommenting once a source streams from the VPS.
-- **Likely endgame:** Lavalink, or YouTube via residential proxy. See the todo.
+Gone as of 2026-08-27: 333 lines and all eight audio dependencies
+(`npm install` dropped 275 packages). Reviving it is a **rebuild**, not an
+uncomment. Post-mortem with the findings worth keeping:
+[music.md](music.md). Plan, including the one cheap test that was never run:
+[reenable-music.md](../todos/reenable-music.md).
+
+Hold is active — the user is researching a provider that works from a datacenter
+IP without cookie refreshing.
 
 ## Scope — Discord-only since 2026-08-27
 
@@ -40,8 +36,8 @@ in this repo. The command answers "not configured" rather than failing. See
 - **`docs/` ↔ `corpus/` boundary settled** (2026-08-27): `docs/` is the how
   (per-feature operating manuals, setup, triage), `corpus/` is the why, and
   `docs/` ranks last in the source-of-truth order. Both front doors say so. Two
-  drifted `docs/` pages were corrected — the music page had described the shelved
-  feature as working.
+  drifted `docs/` pages were corrected at the time; the music page has since been
+  deleted with the feature.
 - **Code graph installed** — `codegraph` 1.6.0, global, MCP in `.mcp.json`.
   Re-benchmarked after the trim: `impact` exact, transitive and 13.5× cheaper;
   `explore` only 1.6× (ruled out); 12 duplicate names still conflate, so never
@@ -52,14 +48,11 @@ in this repo. The command answers "not configured" rather than failing. See
 - **[Brief 02](../briefs/todo/02-remove-dicetable.md)** — remove `/dicetable`:
   the feature, its command, 3 env vars, `shared/src/dice-protocol.ts`, the docs
   page, and the `bots/dice-activity/` leftover incl. its `.env`.
-- **[Brief 03](../briefs/todo/03-remove-ytdlp-path.md)** — remove the yt-dlp
-  streaming path (dep, `streamWithYtDlp`, `createStream`, `YT_COOKIES_FILE`,
-  `music:update-ytdlp`). The youtubei extractor, `YOUTUBE_ENABLED` and
-  `YT_COOKIE` stay. **After this, flipping `YOUTUBE_ENABLED` no longer works** —
-  no stream source behind it.
+- ~~Brief 03~~ — superseded before execution and
+  [moved](../briefs/superseded/03-remove-ytdlp-path.md): its scope (remove yt-dlp
+  only) was widened the same day to removing the whole subsystem, which is done.
 
-Both are independent (02 touches no music code, 03 touches no dicetable code) and
-neither is implemented yet.
+Brief 02 is not implemented yet.
 
 ## Corpus
 

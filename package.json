@@ -14,7 +14,6 @@
     "corpus:lint": "bash corpus/lint.sh",
     "codegraph:init": "codegraph init",
     "codegraph:sync": "codegraph sync",
-    "music:update-ytdlp": "node_modules/youtube-dl-exec/bin/yt-dlp -U",
     "discord:dev": "npm run dev -w @bots/discord",
     "discord:register": "npm run register -w @bots/discord",
     "discord:start": "npm run start -w @bots/discord"

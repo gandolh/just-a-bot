@@ -1,8 +1,7 @@
 # Discord bot
 
 A Discord bot with gambling games, a shared multiplayer RPG world, a DM-led
-D&D campaign layer, and (experimental) music playback — plus a steady drip of
-smaller features.
+D&D campaign layer — plus a steady drip of smaller features.
 
 - [Architecture](architecture.md) — interaction routing, button prefixes,
   Discord-specific data paths.
@@ -13,7 +12,6 @@ smaller features.
 - [Gambling](gambling/README.md) — `/coins` `/slots` `/blackjack` `/dice`
 - [RPG](rpg/README.md) — `/rpg` shared multiplayer world, mobs, loot, leveling
 - [D&D](dnd/README.md) — `/dnd` DM-led campaigns: narration, initiative, monsters
-- [Music](music/README.md) — experimental, may break
 - [Leaderboards](leaderboards/README.md) — `/top` cross-category top 10
 - [Quote Book](quotes/README.md) — `/quote` save/recall memorable server messages, context-menu shortcut
 - [Reminders & Birthdays](reminders/README.md) — `/remindme` one-shot pings, `/birthday` annual wishes, shared tick loop

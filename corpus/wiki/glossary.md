@@ -1,5 +1,5 @@
 ---
-summary: The project's vocabulary — what command, feature dir, provider, extractor, sibling command and shelved mean here, and which synonyms to stop using.
+summary: The project's vocabulary — what command, feature dir, sibling command and shelved mean here, and which synonyms to stop using.
 updated: 2026-08-27
 ---
 
@@ -36,22 +36,16 @@ _Avoid_: v2, fork, replacement
 **Shelved**:
 A finished feature whose commands are commented out of
 `bots/discord/src/commands/index.ts` — invisible in Discord — with all of its
-code kept intact and re-enablable by uncommenting. Distinct from *removed*
-(code deleted) and from a *disabled provider* (a flag inside working code). The
-music feature is currently shelved.
-_Avoid_: removed, deleted, turned off
+code kept intact and re-enablable by uncommenting. Distinct from **removed**,
+where the code is deleted and reviving it means rebuilding. Music was shelved in
+June and then *removed* in August; nothing is currently shelved.
+_Avoid_: removed, deleted, turned off — for a *shelved* thing. Say "removed" only
+when the code is actually gone.
 
-## Music
+## Retired terms
 
-**Provider**:
-An upstream music service the bot can play from — currently SoundCloud
-(primary) or YouTube (disabled). A choice about *where audio comes from*.
-See [music.md](music.md).
-_Avoid_: source, audio source, backend
-
-**Extractor**:
-The discord-player class that resolves a query against one provider and yields
-a playable stream (`SoundCloudExtractor`, `discord-player-youtubei`). A
-provider is the service; an extractor is the code that talks to it — they are
-not interchangeable words.
-_Avoid_: plugin, resolver, streamer
+**Provider** and **Extractor** were defined here while the music subsystem
+existed (a *provider* was the upstream service, an *extractor* the
+discord-player class that talked to it). Both were removed with the code on
+2026-08-27. The distinction is preserved in [music.md](music.md) and matters
+again only if music is rebuilt — it is not current vocabulary.

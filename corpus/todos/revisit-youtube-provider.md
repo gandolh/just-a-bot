@@ -27,7 +27,7 @@ silently (metadata still resolves). Works fine from residential IPs. See
 [music.md](../wiki/music.md) and the 2026-06-26 incident in [log.md](../log.md).
 
 The YouTube code path is kept intact in
-[player.ts](../../bots/discord/src/player.ts): `streamWithYtDlp` (marked
+`player.ts`: `streamWithYtDlp` (marked
 `@deprecated`) plus the `YoutubeExtractor` registration gated behind
 `const YOUTUBE_ENABLED = false`. Flipping that flag re-enables it.
 

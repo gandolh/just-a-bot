@@ -7,7 +7,7 @@ updated: 2026-08-27
 
 **just-a-bot** is a personal **Discord bot** (`@bots/discord`) with games,
 gambling, AI chat, image generation, reminders, an RPG world, a D&D layer, and
-more. Music exists but is [shelved](music.md).
+more. Music was removed entirely on 2026-08-27 — post-mortem: [music.md](music.md).
 
 It *was* a multi-bot monorepo — Slack, WhatsApp and a dice-table voice Activity
 lived here until 2026-08-27, when they were removed to make this a Discord-only
@@ -26,8 +26,9 @@ slash-command handler per feature in `commands/`.
 
 Key subsystems with their own page:
 
-- [music.md](music.md) — the `/play` music stack (discord-player + yt-dlp),
-  currently shelved.
+- [music.md](music.md) — post-mortem of the removed `/play` subsystem: which
+  providers fail from a datacenter IP, and the settings a rebuild must not
+  rediscover.
 
 Most features are **not** catalogued here yet; pages get added as work touches
 them. In the meantime their operating manuals live in

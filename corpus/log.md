@@ -285,7 +285,7 @@ Settled:
 - **`shared/` stays a workspace** at 168 lines / 4 files. The package split is
   what makes "no `discord.js` dependency" mechanically enforced rather than a
   convention; collapsing it would touch 14 import sites to buy tidiness.
-- **yt-dlp path removed, youtubei kept** — [brief 03](briefs/todo/03-remove-ytdlp-path.md).
+- **yt-dlp path removed, youtubei kept** — [brief 03](briefs/superseded/03-remove-ytdlp-path.md).
   Removing the *whole* disabled YouTube secondary was recommended and declined.
   The consequence is recorded loudly in
   [decisions.md](wiki/decisions.md) and is the load-bearing line of that brief:
@@ -305,3 +305,59 @@ collapses the "dormant" state I had been using, leaving *shelved* as the only
 term.
 
 Nothing implemented yet — both briefs are in `todo/`.
+
+## [2026-08-27] done | Music subsystem removed entirely — all 8 audio deps gone
+
+Widened scope, same day: rather than removing only the yt-dlp half (the Q8
+answer), the user asked to remove **every external library used to play music**.
+Executed directly; [brief 03](briefs/superseded/03-remove-ytdlp-path.md) was
+superseded before it ever ran.
+
+Removed — 333 lines of code:
+
+- `player.ts` (146), `commands/_music.ts` (26), and the seven commands
+  play/skip/pause/resume/stop/queue/nowplaying (161).
+- The `initPlayer(client)` call and import in `index.ts`; the commented-out music
+  block and its now-false "code is kept intact" comment in `commands/index.ts`.
+- `YT_COOKIE` + `YT_COOKIES_FILE` from `env.ts`; `music:update-ytdlp` from the
+  root `package.json`; the `docs/discord/music/` page and its index entries.
+
+Removed — 8 dependencies: `discord-player`, `@discord-player/extractor`,
+`discord-player-youtubei`, `@discordjs/voice`, `@discordjs/opus`,
+`sodium-native`, `ffmpeg-static`, `youtube-dl-exec`. **`npm install` dropped 275
+packages.** `bots/discord` is down to six runtime deps. Note `@discordjs/voice`,
+`@discordjs/opus` and `sodium-native` had **no direct imports** — they were
+declared so discord-player picked up the native builds, which is why grep for
+imports alone would have missed them.
+
+Consequence, stated plainly because it reverses a June decision: **music is now
+deleted, not shelved.** Reviving it is a rebuild, not an uncomment.
+`reenable-music.md` was retitled and rewritten around that, and pins
+`git show 4d03ca0:bots/discord/src/player.ts` for the old implementation. The
+judgement call: the glue code was worth little (none of it transfers if the answer
+is Lavalink) while the *findings* are worth a lot, so [music.md](wiki/music.md)
+was converted into a post-mortem and kept — it holds which providers fail from a
+datacenter IP and the four settings that each cost real debugging time.
+
+Corpus consequences worked through rather than patched over:
+
+- **`decisions.md` hit the 200-line cap** and was split **by status**:
+  live constraints stay, and the music-provider trail (SoundCloud-primary, then
+  shelved) moved to [decisions-superseded.md](wiki/decisions-superseded.md). The
+  live page is now trustworthy as "everything here still binds". One slip caught
+  on review: the first split swept the *live* "removed entirely" decision into the
+  superseded page — moved back.
+- **`glossary.md`**: *Provider* and *Extractor* described no live code once the
+  subsystem went, so they moved to a "Retired terms" note rather than being
+  silently deleted or left implying they were current. *Shelved* kept its
+  definition and gained the explicit contrast with *removed* — the two were being
+  used interchangeably in my own writing, which is exactly the drift the page
+  exists to stop.
+- **`lint.sh` gained a frozen-records rule.** `log.md` and briefs in
+  `done/`/`superseded/` are immutable or historical, so their links to deleted
+  code rot by design and can never be fixed — linting them produced 8 unactionable
+  failures. Code links from those files are now exempt; their corpus-internal
+  links are still checked, which is what caught the `briefs/todo/03` →
+  `briefs/superseded/03` path after the move.
+
+`docs/` swept (115 links verified, 0 broken); typecheck clean; corpus lint clean.

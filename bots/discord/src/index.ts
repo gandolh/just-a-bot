@@ -1,7 +1,6 @@
 import { Client, Events, GatewayIntentBits, Partials } from 'discord.js';
 import { logger } from '@bots/shared';
 import { env } from './env.ts';
-import { initPlayer } from './player.ts';
 import { commands, contextMenuCommands } from './commands/index.ts';
 import { handleBlackjackButton } from './commands/blackjack.ts';
 import { handleBlackjack2Button } from './commands/blackjack2.ts';
@@ -195,8 +194,6 @@ client.on(Events.MessageCreate, async (message) => {
 
   await message.reply(`Echo: ${stripped}`);
 });
-
-await initPlayer(client);
 await client.login(env.DISCORD_TOKEN);
 
 if (env.DICE_ACTIVITY_WS_URL && env.DICE_ACTIVITY_TOKEN) {

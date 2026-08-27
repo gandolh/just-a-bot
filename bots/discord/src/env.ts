@@ -10,10 +10,6 @@ const schema = z.object({
   DISCORD_TOKEN: z.string().min(1),
   CLIENT_ID: z.string().regex(/^\d+$/, 'must be a numeric Discord snowflake'),
   GUILD_ID: z.string().regex(/^\d+$/, 'must be a numeric Discord snowflake'),
-  YT_COOKIE: z.string().optional(),
-  // Path to a Netscape-format cookies.txt for yt-dlp. Required on datacenter/VPS
-  // IPs that YouTube flags with "Sign in to confirm you're not a bot".
-  YT_COOKIES_FILE: z.string().optional(),
   OLLAMA_API_KEY: z.string().optional(),
   OLLAMA_HOST: z.string().url().default('https://ollama.com'),
   OLLAMA_MODEL: z.string().default('gpt-oss:120b'),

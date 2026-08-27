@@ -21,12 +21,13 @@ to read on. Conventions: [CLAUDE.md](CLAUDE.md).
 
 - [wiki/architecture.md](wiki/architecture.md) — How the repo and the Discord bot are put together: the two workspaces, the no-build tsx runtime, one-feature-dir-per-capability layout, and the commands→features→shared dependency direction.
 - [wiki/code-graph.md](wiki/code-graph.md) — The code-graph layer — what the benchmark measured on this Discord-only repo (impact is exact, transitive and 13.5x cheaper; explore saves only 1.6x; 12 duplicate names conflate) and therefore what it may and may not be trusted for.
+- [wiki/decisions-superseded.md](wiki/decisions-superseded.md) — Decisions that no longer bind — the music-provider trail (SoundCloud primary, then shelved, then the yt-dlp-only scope) kept for its reasoning, not as a live constraint.
 - [wiki/decisions.md](wiki/decisions.md) — Locked tech/design calls with their rejected alternatives and reasons — read before proposing pnpm, a build step, an ORM-style rewrite, or a different music source.
-- [wiki/glossary.md](wiki/glossary.md) — The project's vocabulary — what command, feature dir, provider, extractor, sibling command and shelved mean here, and which synonyms to stop using.
-- [wiki/music.md](wiki/music.md) — How the /play music stack works and why it is currently shelved: provider choice (SoundCloud vs the disabled YouTube path), the skipFFmpeg requirement, the VPS IP-block saga, and audio-quality settings.
+- [wiki/glossary.md](wiki/glossary.md) — The project's vocabulary — what command, feature dir, sibling command and shelved mean here, and which synonyms to stop using.
+- [wiki/music.md](wiki/music.md) — Post-mortem of the removed /play music subsystem — every provider tried and how each failed from a datacenter IP, plus the hard-won settings (skipFFmpeg, volume, format) any future attempt must not rediscover.
 - [wiki/open-questions.md](wiki/open-questions.md) — The genuinely unresolved threads only — currently just the fate of the /dicetable client; music-blocked questions live in the reenable-music todo instead.
 - [wiki/overview.md](wiki/overview.md) — What just-a-bot is: a personal, feature-rich Discord bot in a two-workspace npm repo; the orientation page and the map of what lives where.
-- [wiki/status.md](wiki/status.md) — Dated snapshot of where the project stands right now — one line per area: the repo is now Discord-only, music is shelved, /dicetable is dormant.
+- [wiki/status.md](wiki/status.md) — Dated snapshot of where the project stands right now — Discord-only, music removed outright, /dicetable queued for removal.
 
 <!-- END GENERATED CATALOG -->
 

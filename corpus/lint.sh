@@ -76,6 +76,19 @@ corpus_md() {
   find "$CORPUS" -name '*.md' -not -path '*/node_modules/*' | sort
 }
 
+# Pages that are frozen historical records: `log.md` is chronological, and a
+# brief in done/ or superseded/ is immutable by convention. Their links to code
+# rot by design when that code is deleted, and they may not be edited to fix it —
+# so linting them for link rot only produces noise nobody can action. Their
+# CORPUS-internal links are still checked below; only refs outside corpus/ are
+# exempt.
+is_frozen() {
+  case "$1" in
+    */corpus/log.md|*/corpus/briefs/done/*|*/corpus/briefs/superseded/*) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
 check_links() {
   local f rel dir target n=0
   while IFS= read -r f; do
@@ -89,6 +102,12 @@ check_links() {
       target="${target%%#*}"          # drop anchor
       target="${target%%\ *}"          # drop optional link title
       [[ -n "$target" ]] || continue
+      # A frozen record may point at code that has since been deleted; it cannot
+      # be edited to fix that. Still check its links *within* corpus/.
+      if is_frozen "$f" && [[ "$target" == ../../../* || "$target" == ../bots/* \
+            || "$target" == ../../bots/* || "$target" == ../shared/* ]]; then
+        continue
+      fi
       n=$((n + 1))
       [[ -e "$dir/$target" ]] || err "$rel — broken link → $target"
     done < <(grep -oE '\]\([^)]+\)' "$f" | sed -E 's/^\]\(//; s/\)$//')

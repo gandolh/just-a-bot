@@ -1,3 +1,11 @@
+> **SUPERSEDED 2026-08-27, before it was ever executed.** Hours after this brief
+> was written the user widened the scope: remove *every* external music library,
+> not just yt-dlp. That made this brief's central instruction — keep the youtubei
+> extractor and warn that `YOUTUBE_ENABLED` no longer works — moot, because the
+> flag, the extractor and the whole subsystem went too. The wider work was done
+> directly; see the 2026-08-27 `music removed` entry in `log.md` and the
+> "Music subsystem removed entirely" decision. Kept unedited below for the trail.
+
 # Task 03 — Remove the yt-dlp streaming path
 
 ## Context

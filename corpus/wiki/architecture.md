@@ -54,8 +54,9 @@ map; that one is revisited only when a pattern changes.
   `hangman/`, `wordle/`, `connect-four/`, `tictactoe/`, `gambling/`, `ollama/`
   (AI chat), `img/`, `dnd/`, `confessions/`, `quotes/`, `leaderboard/`,
   `reminders/`, `clock/`, `dicetable/`, `instagram/`.
-- **`player.ts`** — the music player singleton (discord-player). See
-  [music.md](music.md).
+- There is **no audio stack**. The music subsystem and all eight of its
+  dependencies were removed 2026-08-27 — see [music.md](music.md) for the
+  post-mortem and [decisions.md](decisions.md) for why.
 
 ### Dependency direction
 

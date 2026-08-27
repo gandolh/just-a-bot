@@ -1,24 +1,33 @@
 ---
-summary: How the /play music stack works and why it is currently shelved: provider choice (SoundCloud vs the disabled YouTube path), the skipFFmpeg requirement, the VPS IP-block saga, and audio-quality settings.
+summary: Post-mortem of the removed /play music subsystem — every provider tried and how each failed from a datacenter IP, plus the hard-won settings (skipFFmpeg, volume, format) any future attempt must not rediscover.
 updated: 2026-08-27
 ---
 
 # Music subsystem (`/play`)
 
-> **SHELVED (2026-06-26).** The seven music commands are commented out of
-> [commands/index.ts](../../bots/discord/src/commands/index.ts), so `/play` and
-> friends do not appear in Discord. Everything below describes the code as it
-> stands, ready to re-enable; nothing here is live. Resume plan:
-> [reenable-music.md](../todos/reenable-music.md).
+> **REMOVED (2026-08-27) — this is a post-mortem, not a description of code.**
+> The music subsystem is gone: 333 lines (`player.ts`, `commands/_music.ts`, the
+> seven commands) deleted along with all eight audio dependencies
+> (`discord-player`, `@discord-player/extractor`, `discord-player-youtubei`,
+> `@discordjs/voice`, `@discordjs/opus`, `sodium-native`, `ffmpeg-static`,
+> `youtube-dl-exec`).
+>
+> **The code is one command away:** `git show :bots/discord/src/player.ts`
+> (and the same for `commands/play.ts` etc.). That commit is the last one
+> containing the subsystem.
+>
+> This page is kept deliberately. The *findings* below — which providers fail from
+> a datacenter IP and how, and the four non-obvious settings that took a day to
+> establish — are what a future attempt must not have to rediscover. The glue code
+> is worth little by comparison; if the revival is Lavalink, none of it transfers.
+> Plan: [reenable-music.md](../todos/reenable-music.md).
 
-The Discord bot's music stack. Code lives in
-[player.ts](../../bots/discord/src/player.ts) and the music commands under
-[commands/](../../bots/discord/src/commands/) (`play`, `queue`, `skip`, `stop`,
-`pause`, `resume`, `nowplaying`).
+What the stack *was*, and why every route out of the VPS failed. Written in the
+past tense throughout — nothing described here exists in the working tree.
 
 ## Providers (2026-06-26)
 
-Configured in [player.ts](../../bots/discord/src/player.ts) `initPlayer`:
+Configured in `player.ts` `initPlayer`:
 
 - **SoundCloud — PRIMARY (temporary, active).** Comes from
   `@discord-player/extractor`'s `DefaultExtractors`; we bump
@@ -45,7 +54,7 @@ Configured in [player.ts](../../bots/discord/src/player.ts) `initPlayer`:
 
 ## How a `/play` flows (SoundCloud)
 
-1. [play.ts](../../bots/discord/src/commands/play.ts) validates the user is in a
+1. `play.ts` validates the user is in a
    voice channel, then calls `player.play(channel, query, { searchEngine:
    SOUNDCLOUD_SEARCH, nodeOptions })`.
 2. The SoundCloud extractor resolves the query → a `Track` and streams it
@@ -111,7 +120,7 @@ metadata extractor) is separate and unrelated to this.
 
 The bundled yt-dlp binary goes stale (YouTube changes frequently) and
 `npm install` may reset it to the pinned version. Keep it current with
-`yt-dlp -U` on `node_modules/youtube-dl-exec/bin/yt-dlp` (or
+`yt-dlp -U` on the bundled binary under `node_modules` (or
 `npm run music:update-ytdlp`). Stale yt-dlp and the VPS cookie block above are
 the two most likely causes if playback breaks again.
 
