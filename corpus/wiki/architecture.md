@@ -53,7 +53,7 @@ map; that one is revisited only when a pattern changes.
 - **One directory per feature** under `src/` — `rpg/`, `mafia/`, `trivia/`,
   `hangman/`, `wordle/`, `connect-four/`, `tictactoe/`, `gambling/`, `ollama/`
   (AI chat), `img/`, `dnd/`, `confessions/`, `quotes/`, `leaderboard/`,
-  `reminders/`, `clock/`, `dicetable/`, `instagram/`.
+  `reminders/`, `clock/`, `instagram/`.
 - There is **no audio stack**. The music subsystem and all eight of its
   dependencies were removed 2026-08-27 — see [music.md](music.md) for the
   post-mortem and [decisions.md](decisions.md) for why.

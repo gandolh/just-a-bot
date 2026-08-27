@@ -1,5 +1,5 @@
 ---
-summary: The code-graph layer — what the benchmark measured on this Discord-only repo (impact is exact, transitive and 13.5x cheaper; explore saves only 1.6x; 12 duplicate names conflate) and therefore what it may and may not be trusted for.
+summary: The code-graph layer — what the benchmark measured on this Discord-only repo (impact is exact, transitive and 13.5x cheaper; explore saves only 1.6x; 9 duplicate names conflate) and therefore what it may and may not be trusted for.
 updated: 2026-08-27
 ---
 
@@ -40,7 +40,7 @@ Graph vs `grep` as ground truth.
 | **Barrel impact** — `loadEnv`, defined in `shared/src/env.ts`, re-exported via `shared/src/index.ts`, consumed in `bots/discord` | 3 files, incl. the barrel edge | 3 | **exact** |
 | **Transitive impact** — `MOB_KINDS` in `rpg/world.ts`     | 6 files | 3 direct references | **correct superset, 0 misses** |
 | **Caller recall** — `logger`                              | 11 caller files | 11 genuine callers | **100% on the current tree** |
-| **Duplicate names** within `bots/discord`                 | merges definitions | 12 names exported twice+ | **conflates** |
+| **Duplicate names** within `bots/discord`                 | merges definitions | 9 names exported twice+ | **conflates** |
 
 Context cost, same question asked both ways:
 
@@ -70,13 +70,15 @@ because that file was **deleted**, not because the resolver improved. The
 evidence disappeared; the heuristic did not change. Treat `callers` as "no
 undercount currently observable", not as complete.
 
-**Never rename off the graph.** 12 names are exported more than once inside
+**Never rename off the graph.** 9 names are exported more than once inside
 `bots/discord` — `applyGuess` alone is defined in both `hangman/game.ts` and
 `wordle/game.ts`, and `callers applyGuess` returns callers of both as one
 undifferentiated list. It unions rather than distinguishing, so the result looks
-complete and is not. This was 32 names when Slack was in the repo; removing Slack
-reduced it but did **not** eliminate it — the conflation was never purely
-cross-workspace. `grep -rnw` and confirm each hit.
+complete and is not. The count keeps shrinking as features go — 32 with Slack in
+the repo, 12 after that, 9 once `/dicetable` took
+`createGame`/`loadGame`/`updateGame` with it — but it has never reached zero, and
+the trend is not the point: one conflated name is enough to break a rename.
+`grep -rnw` and confirm each hit.
 
 The per-query rules, the full duplicate-name list, and the regeneration command
 live in the project skill at `.claude/skills/codegraph/SKILL.md` — that is the

@@ -25,8 +25,8 @@ registry-installed artifact), `CODEGRAPH_NO_UPDATE_CHECK=1`, and
 `CODEGRAPH_TELEMETRY=off`. `.codegraph/` is gitignored and
 disposable. Backend must report `node:sqlite`, not WASM.
 
-Repo at index time: 1,257 nodes, 3,422 edges, 709 ms to build (re-indexed
-2026-08-27, after Slack/WhatsApp/dice-activity were removed).
+Repo at index time: re-synced 2026-08-27 after the music and `/dicetable`
+removals (18 files changed, 14 removed). Rebuild with `npm run codegraph:init`.
 
 ## Use it for
 
@@ -43,17 +43,19 @@ lead with `impact`.
 
 - **Renames, deletions, "every usage of X".**
 
-  **12 names are exported more than once inside `bots/discord`**, and the graph
+  **9 names are exported more than once inside `bots/discord`**, and the graph
   **unions** their callers instead of distinguishing them. `applyGuess` is defined
   in *both* `hangman/game.ts` and `wordle/game.ts`; `callers applyGuess` returns
   `commands/hangman.ts` and `commands/wordle.ts` as one list. Renaming one off
   that list would touch the other. The result looks complete and is not.
 
-  The 12: `Cell`, `Character`, `Game`, `WORDS`, `applyGuess`, `buildEmbed`,
-  `createGame`, `evaluate`, `loadGame`, `newGame`, `pickWord`, `updateGame`.
-  (This was 32 when Slack was in the repo — removing it shrank the list but did
-  **not** eliminate the problem: the conflation was never purely cross-workspace.)
-  Regenerate after adding a feature:
+  The 9 (2026-08-27): `Cell`, `Character`, `Game`, `WORDS`, `applyGuess`, `buildEmbed`,
+  `evaluate`, `newGame`, `pickWord`.
+  (32 when Slack was in the repo → 12 after that removal → 9 after `/dicetable`
+  went, which took `createGame`/`loadGame`/`updateGame` with it. Shrinking, but
+  never eliminated: the conflation was never purely cross-workspace, and
+  `applyGuess` is still defined in both `hangman/game.ts` and `wordle/game.ts`.)
+  Regenerate after adding *or removing* a feature:
 
   ```bash
   grep -rhoE "^export (async function|function|class|const|interface|type) [A-Za-z0-9_]+" \
@@ -82,4 +84,4 @@ lead with `impact`.
 
 `impact` is worth it — exact, transitive, 13.5× cheaper. `callers` is for
 scoping only, never for completeness. `explore` is not worth it here — read the
-files. Never rename off the graph: 12 duplicate names get unioned.
+files. Never rename off the graph: 9 duplicate names get unioned.

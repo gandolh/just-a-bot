@@ -276,7 +276,7 @@ Settled:
 - **Blocked ≠ open.** The two music-blocked questions moved out of
   [open-questions.md](wiki/open-questions.md) into the todo that would unblock
   them, and that page now states the rule.
-- **`/dicetable` deleted, not shelved** — [brief 02](briefs/todo/02-remove-dicetable.md).
+- **`/dicetable` deleted, not shelved** — [brief 02](briefs/done/02-remove-dicetable.md).
   The Activity was added and disabled in the same commit (`0de2132`, 2026-06-03)
   and never ran on the VPS; shelving would preserve code for a revival nobody
   plans. Activities return as a new build, if at all. Takes
@@ -361,3 +361,74 @@ Corpus consequences worked through rather than patched over:
   `briefs/superseded/03` path after the move.
 
 `docs/` swept (115 links verified, 0 broken); typecheck clean; corpus lint clean.
+
+## [2026-08-27] done | Brief 02 — /dicetable removed (via plan-split-dispatch)
+
+Ran brief 02 through the orchestrator at the user's request. Worth recording that
+the tool was a poor fit and I said so up front: the backlog held **one** brief and
+it decomposed into two mechanical deletion chunks, below the skill's own "≥3
+independent chunks" threshold. Approved anyway; it worked, but the coordination
+cost exceeded the work, as predicted.
+
+**Dispatch:** two junior (sonnet) chunks — code deletion, and docs + leftover
+directory — with the corpus closeout kept by the controller. Both returned DONE
+first try; no escalations, no re-dispatches.
+
+**Shipped:** the feature, its command, the three `DICE_ACTIVITY*`/`DICETABLE_*`
+env vars, the shared dice wire protocol, `docs/discord/dicetable/`, the leftover
+`bots/dice-activity/` (including its gitignored `.env`), and `ws` + `@types/ws` as
+direct dependencies. 24 files, 100 insertions, 721 deletions. Full outcome note on
+the [brief](briefs/done/02-remove-dicetable.md).
+
+**Review gate — two scoped finders (sonnet), and the second earned its keep:**
+
+- Finder 1 (over/under-deletion, wiring): **no findings**. Confirmed all 20
+  surviving commands still registered, and that the `customId` button router never
+  referenced dicetable, so there was no dead branch to leave behind.
+- Finder 2 (residual references, doc truth): **one Critical**, and it was a real
+  miss — `bots/discord/.env.example` still documented all three deleted env vars
+  as enabling `/dicetable`. Nothing in the brief mentioned that file and the
+  controller did not know it existed, so no chunk owned it. An operator following
+  `docs/discord/setup.md` would have configured a feature that no longer exists.
+  Fixed inline.
+
+**Two gaps in the controller's own plan**, both caught by subagents rather than by
+me — the honest lesson from this run:
+
+1. `docs/common/{setup,architecture}.md` described the dice wire protocol as
+   living in `shared/`. Outside both chunks' file lists; surfaced by chunk 2's
+   out-of-scope sweep.
+2. `.env.example` above. A brief that enumerates "Files you OWN" is only as good
+   as the controller's inventory, and grepping for the *feature name* would have
+   found both. Next brief that deletes a feature: sweep for the feature name
+   across the whole repo *before* drawing chunk boundaries, not after.
+
+**Also fixed:** `decisions.md`'s no-build-step entry still named
+`bots/dice-activity` as the deliberate exception that builds. Nothing builds now.
+
+**Accepted, not fixed:**
+
+- `package-lock.json` carries phantom workspace entries for `bots/dice-activity`,
+  `bots/slack` and `bots/whatsapp`. Pre-existing (from the workspace removal, not
+  this change) and npm marks them extraneous. Neither `npm install` nor
+  `npm install --package-lock-only` prunes them; only deleting and regenerating
+  the lockfile would, which risks version drift across 65 packages for a cosmetic
+  gain. Left deliberately.
+- `.env.example` does **not** document `IG_USER_ID` / `IG_ACCESS_TOKEN`, which
+  `env.ts` declares for `/post`. Pre-existing and unrelated to this brief — the
+  same class of bug as the Critical above, so worth a follow-up, but fixing it
+  here would be scope creep.
+
+**Rulings**
+
+- [tool choice] orchestrator used on a 2-chunk backlog against the skill's own
+  guardrail — user's explicit call, flagged before dispatch.
+- [chunk 2] the irreversible `.env` deletion was dispatched rather than kept by the
+  controller; the prompt forbade printing or copying its contents.
+- [finding: lockfile phantoms] rejected as accepted-not-fixed — pre-existing,
+  cosmetic, and the fix is riskier than the defect.
+- [closeout] code graph re-synced; the duplicate-name list in
+  [code-graph.md](wiki/code-graph.md) and the project skill went 12 → 9, since
+  `createGame`/`loadGame`/`updateGame` lived in `dicetable/store.ts`.
+
+The brief backlog is now **empty**: 01 and 02 done, 03 superseded.

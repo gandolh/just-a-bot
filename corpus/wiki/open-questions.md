@@ -1,5 +1,5 @@
 ---
-summary: The genuinely unresolved threads only — currently just the fate of the /dicetable client; music-blocked questions live in the reenable-music todo instead.
+summary: The genuinely unresolved threads only — nothing is currently open; music-blocked questions live in the reenable-music todo instead.
 updated: 2026-08-27
 ---
 
@@ -14,11 +14,17 @@ freshness, Opus passthrough viability) moved to
 while music is shelved and YouTube is disabled, because nothing in the repo runs
 yt-dlp at all.
 
-- **What to do with `/dicetable`.** It is a WebSocket client of the
-  `dice-activity` app, which was removed from this repo on 2026-08-27. The
-  command degrades cleanly (answers "not configured" without
-  `DICETABLE_ACTIVITY_URL`), so nothing is broken — but it can never succeed as
-  things stand. Three options, undecided: host the Activity from its own repo and
-  point `DICETABLE_ACTIVITY_URL` at it; shelve the command the way music was
-  shelved (comment it out of `commands/index.ts`, keep the code); or delete the
-  feature and `shared/src/dice-protocol.ts` with it. Nobody has said which.
+## Nothing currently open
+
+The `/dicetable` question was answered on 2026-08-27 (delete it — see
+[decisions.md](decisions.md) and brief 02) and removed from this page, per the
+rule above. The page is deliberately empty rather than padded: an
+`open-questions.md` that lists resolved or blocked items stops being trustworthy
+as "what is actually open".
+
+Live threads that are *not* open questions:
+
+- Rebuilding music — a plan, not a question:
+  [reenable-music.md](../todos/reenable-music.md).
+- Whether Discord Activities return, and in what form — deferred by the user, not
+  under investigation.

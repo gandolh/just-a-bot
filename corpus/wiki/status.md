@@ -1,5 +1,5 @@
 ---
-summary: Dated snapshot of where the project stands right now — Discord-only, music removed outright, /dicetable queued for removal.
+summary: Dated snapshot of where the project stands right now — a single Discord bot with music and /dicetable both removed, and no work queued.
 updated: 2026-08-27
 ---
 
@@ -24,10 +24,12 @@ IP without cookie refreshing.
 are now `shared` + `bots/discord`. Rationale and the non-obvious consequences:
 [decisions.md](decisions.md). Typecheck clean after the trim.
 
-**`/dicetable` is dormant** — it is a WebSocket client of the removed Activity
-app, so `shared/src/dice-protocol.ts` is still live code but there is no server
-in this repo. The command answers "not configured" rather than failing. See
-[open-questions.md](open-questions.md).
+**`/dicetable` removed** (2026-08-27, brief 02) — it was a WebSocket client of the
+deleted Activity app. Gone with it: the command, `dicetable/`, the three
+`DICE_ACTIVITY*` env vars, the shared dice wire protocol, the docs page, and the
+`ws` direct dependency. `shared/` is down to logger, loadEnv and the reminder
+parse/store — still its own workspace, so the "no `discord.js` here" boundary
+stays mechanically enforced.
 
 ## Tooling / knowledge layers
 
@@ -45,14 +47,15 @@ in this repo. The command answers "not configured" rather than failing. See
 
 ## Queued work
 
-- **[Brief 02](../briefs/todo/02-remove-dicetable.md)** — remove `/dicetable`:
-  the feature, its command, 3 env vars, `shared/src/dice-protocol.ts`, the docs
-  page, and the `bots/dice-activity/` leftover incl. its `.env`.
-- ~~Brief 03~~ — superseded before execution and
-  [moved](../briefs/superseded/03-remove-ytdlp-path.md): its scope (remove yt-dlp
-  only) was widened the same day to removing the whole subsystem, which is done.
+**Nothing queued.** The brief backlog is empty:
+[01](../briefs/done/01-music-audio-quality.md) and
+[02](../briefs/done/02-remove-dicetable.md) are done,
+[03](../briefs/superseded/03-remove-ytdlp-path.md) was superseded before it ran.
 
-Brief 02 is not implemented yet.
+One thing outside the repo is still outstanding: the Discord app secrets from the
+Activity experiment (`DISCORD_CLIENT_SECRET`, `SESSION_HMAC_KEY`,
+`ENGINE_AUTH_TOKEN`) need rotating or the app deleting in the developer portal.
+The local `.env` is gone, which does not invalidate them.
 
 ## Corpus
 

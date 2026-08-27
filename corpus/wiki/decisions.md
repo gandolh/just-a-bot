@@ -36,8 +36,8 @@ Cost accepted: no type-checking at runtime boundaries (`npm run typecheck` is a
 separate step), and `tsx` lives in root **devDependencies** — so
 `npm install --production` breaks the run script. If that scenario ever comes up,
 move `tsx` to a real dependency rather than reintroducing a build.
-Deliberate exception: `bots/dice-activity` **does** build (it is a web app with
-a `dist/`).
+There is no longer any exception: `bots/dice-activity` was the one workspace that <!-- stale-ok -->
+built, and it is gone as of 2026-08-27. **Nothing in the repo builds.**
 
 ## pm2 for process management
 
@@ -125,7 +125,7 @@ code nobody ran.
 
 Consequences worth knowing, since none of them are visible in the diff:
 
-- **`shared/src/dice-protocol.ts` stays.** `bots/discord/src/dicetable/` is a
+- **`shared/src/dice-protocol.ts` stays.** `bots/discord/src/dicetable/` is a <!-- stale-ok -->
   WebSocket *client* of the Activity app (`link.ts` connects to its `/engine`
   endpoint), so the wire types are still imported by live code. Deleting the
   Activity did not make the protocol dead.
@@ -135,7 +135,7 @@ Consequences worth knowing, since none of them are visible in the diff:
   one. Open thread: [open-questions.md](open-questions.md).
 - **Two workspaces, not one.** `shared/` is kept because it holds code with no
   `discord.js` dependency, including the protocol above.
-- **`bots/dice-activity/.env` was deliberately left on disk** — it holds
+- **`bots/dice-activity/.env` was deliberately left on disk** — it holds <!-- stale-ok -->
   `DISCORD_CLIENT_SECRET`, `SESSION_HMAC_KEY` and `ENGINE_AUTH_TOKEN`, is
   gitignored, and exists nowhere else. Removing it is a manual, irreversible
   call for the user to make.
@@ -145,7 +145,7 @@ Consequences worth knowing, since none of them are visible in the diff:
 ## `/dicetable` removed — the Activities experiment is concluded
 
 _2026-08-27_ — The `/dicetable` feature is deleted outright: `dicetable/`
-(451 lines), `commands/dicetable.ts`, `shared/src/dice-protocol.ts`, the
+(451 lines), `commands/dicetable.ts`, `shared/src/dice-protocol.ts`, the <!-- stale-ok -->
 `DICE_ACTIVITY_WS_URL` / `DICE_ACTIVITY_TOKEN` / `DICETABLE_ACTIVITY_URL` env
 vars, and the docs page. Rejected: shelving it the way music was shelved (the
 precedent existed and was considered), and hosting the Activity from its own repo
@@ -159,7 +159,7 @@ Cost accepted: the Activity plumbing writeup (OAuth, session, the `/play` +
 `/engine` WebSockets, per-channel instance lifecycle) is deleted with the docs
 page and survives only in git history — chosen knowingly over keeping a 92-line
 reference page.
-Follow-on the user owns: `bots/dice-activity/.env` is deleted locally, but
+Follow-on the user owns: `bots/dice-activity/.env` is deleted locally, but <!-- stale-ok -->
 `DISCORD_CLIENT_SECRET`, `SESSION_HMAC_KEY` and `ENGINE_AUTH_TOKEN` must be
 **rotated or the Discord app deleted** in the developer portal — deleting a local
 file does not invalidate a live secret.

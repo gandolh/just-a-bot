@@ -68,3 +68,34 @@ revisited as a new build.
 - `shared/` still exists as a workspace with `env.ts`, `logger.ts` and
   `reminders/`.
 - `open-questions.md` no longer lists `/dicetable`.
+
+---
+
+## Outcome (2026-08-27)
+
+Shipped as specified, via `plan-split-dispatch`: two parallel junior (sonnet)
+chunks — code deletion, and docs + leftover-directory deletion — with the corpus
+closeout kept by the controller.
+
+Delivered beyond the spec, both discovered after the brief was written:
+
+- **`ws` and `@types/ws` removed** as direct dependencies of `bots/discord`.
+  `dicetable/link.ts` was their only consumer. `ws` remains installed
+  transitively via `discord.js`, which is correct.
+- **`docs/common/` corrected.** `setup.md` and `architecture.md` described the
+  dice-table wire protocol as living in `shared/`, and the two-workspace
+  justification leaned on it. Neither chunk owned those files — **a gap in the
+  controller's chunk boundaries**, caught by the chunk-2 subagent's out-of-scope
+  sweep and fixed by the controller.
+- **`decisions.md` had a stale live claim**: the no-build-step entry still named
+  `bots/dice-activity` as the deliberate exception that *does* build. Nothing in
+  the repo builds now.
+
+Verification: `npm run typecheck` exit 0; `corpus/lint.sh` clean; every residual
+reference sweep empty except deliberate historical notes; two scoped review
+finders (sonnet) returned no Critical or Important findings.
+
+Not done here, and not code: the Discord app secrets from the Activity experiment
+(`DISCORD_CLIENT_SECRET`, `SESSION_HMAC_KEY`, `ENGINE_AUTH_TOKEN`) still need
+rotating in the developer portal. The local `.env` was deleted, which does not
+invalidate them.
