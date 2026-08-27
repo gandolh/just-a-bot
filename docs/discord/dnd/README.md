@@ -1,5 +1,10 @@
 # D&D
 
+> ⚠️ **Currently hidden.** `/dnd` is commented out of
+> `bots/discord/src/commands/index.ts`, so it does not appear in Discord. The
+> code is intact and re-enabling is uncommenting. Everything below describes
+> the feature as built; none of it is live.
+
 A lightweight D&D 5e-style campaign layer for Discord. One player is the
 **DM**: they narrate by typing slash commands and the bot posts the
 message as the storyteller, NPC, or scene-setter. The other players each

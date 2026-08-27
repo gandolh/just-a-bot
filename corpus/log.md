@@ -432,3 +432,44 @@ me — the honest lesson from this run:
   `createGame`/`loadGame`/`updateGame` lived in `dicetable/store.ts`.
 
 The brief backlog is now **empty**: 01 and 02 done, 03 superseded.
+
+## [2026-08-27] lint | Two hidden commands found undocumented; env parity fixed
+
+Swept for genuinely incomplete work rather than trusting the running list. Three
+findings, all pre-existing.
+
+**1. `/dnd` and `/post` are hidden, and nothing said so.** Both are commented out
+of `commands/index.ts` — `/dnd` in `0e41efc` ("save"), `/post` in `732889c`
+("comment post for now") — while four places claimed they worked:
+`wiki/overview.md`, `wiki/status.md`, and `docs/discord/README.md` in three spots
+(intro + two feature-index entries), plus two full feature manuals with no
+notice. Anyone reading either layer would have gone looking for a command that
+isn't registered.
+
+Corrected the false claims, which is safe without knowing the reason: banners on
+`docs/discord/{dnd,post}/README.md`, **hidden** markers in the feature index, and
+honest wording in `overview.md` / `status.md` / `architecture.md` (the `dnd/` and
+`instagram/` dirs are live code backing unregistered commands).
+
+**What I did not do is invent the reason.** Neither commit message explains the
+hide, so the *intent* is genuinely unknown — temporary, shelved, or abandoned —
+and those three lead to different actions (leave / record a decision / delete, as
+`/dicetable` was). Filed as the one entry in
+[open-questions.md](wiki/open-questions.md). This is the `decisions.md`
+"undefended decision" problem in a different place: a choice was made in code with
+no recorded why, so nobody can revisit it intelligently — only obey or break it.
+
+**2. `.env.example` ↔ `env.ts` parity.** `IG_USER_ID` and `IG_ACCESS_TOKEN` were
+declared in the schema but undocumented — the same class of bug as the `/dicetable`
+Critical the review finder caught, just for a different feature. Added, with a note
+that `/post` is currently hidden so setting them alone will not surface it.
+Schema and example now match exactly, verified by diffing both key sets.
+
+**3. `briefs/todo/` disappeared.** `git mv`-ing brief 02 into `done/` emptied the
+directory, and git does not track empty directories — so the corpus skeleton lost
+a required dir and `index.md`'s link to it broke. Caught by `lint.sh`, not by me.
+Restored with a `.gitkeep` that explains why it exists, so the next closeout does
+not silently repeat it.
+
+Sweeps that came back clean: no `TODO`/`FIXME`/`HACK`/`XXX` anywhere in `bots/` or
+`shared/`, no leftover `@deprecated`, no corpus `TODO` stubs.

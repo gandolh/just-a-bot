@@ -1,0 +1,5 @@
+Keeps briefs/todo/ in git while the backlog is empty.
+
+Without this, `git mv`-ing the last brief into done/ deletes the directory (git
+does not track empty dirs), which breaks the corpus skeleton and index.md's link
+to it. Discovered 2026-08-27 when brief 02 closed out.

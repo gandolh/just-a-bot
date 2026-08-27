@@ -25,7 +25,7 @@ to read on. Conventions: [CLAUDE.md](CLAUDE.md).
 - [wiki/decisions.md](wiki/decisions.md) — Locked tech/design calls with their rejected alternatives and reasons — read before proposing pnpm, a build step, an ORM-style rewrite, or a different music source.
 - [wiki/glossary.md](wiki/glossary.md) — The project's vocabulary — what command, feature dir, sibling command and shelved mean here, and which synonyms to stop using.
 - [wiki/music.md](wiki/music.md) — Post-mortem of the removed /play music subsystem — every provider tried and how each failed from a datacenter IP, plus the hard-won settings (skipFFmpeg, volume, format) any future attempt must not rediscover.
-- [wiki/open-questions.md](wiki/open-questions.md) — The genuinely unresolved threads only — nothing is currently open; music-blocked questions live in the reenable-music todo instead.
+- [wiki/open-questions.md](wiki/open-questions.md) — The genuinely unresolved threads only — currently why /dnd and /post are hidden and what should happen to them.
 - [wiki/overview.md](wiki/overview.md) — What just-a-bot is: a personal, feature-rich Discord bot in a two-workspace npm repo; the orientation page and the map of what lives where.
 - [wiki/status.md](wiki/status.md) — Dated snapshot of where the project stands right now — a single Discord bot with music and /dicetable both removed, and no work queued.
 

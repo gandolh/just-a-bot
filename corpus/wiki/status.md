@@ -68,9 +68,18 @@ half of the spec is deliberately not installed — see
 
 ## Rest of the bot
 
-Many features in place (games, gambling, AI chat, image gen, reminders, RPG,
-D&D). Not yet catalogued in the corpus — pages will be added as work touches
-them; their operating manuals are under [`docs/discord/`](../../docs/discord/README.md).
+Many features in place (games, gambling, AI chat, image gen, reminders, RPG).
+Not yet catalogued in the corpus — pages will be added as work touches them;
+their operating manuals are under
+[`docs/discord/`](../../docs/discord/README.md).
+
+**Two commands are hidden, and nobody wrote down why** (found 2026-08-27):
+`/dnd` and `/post` are commented out of `commands/index.ts` — `/dnd` in commit
+`0e41efc` ("save"), `/post` in `732889c` ("comment post for now"). Their code and
+docs are intact. Until the reason is recorded these are *undefended* hides: the
+wiki and docs claimed both worked, which has now been corrected, but the intent
+(temporary? abandoned?) is still unknown. See
+[open-questions.md](open-questions.md).
 
 ## Maintenance note
 

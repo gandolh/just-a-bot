@@ -1,5 +1,5 @@
 ---
-summary: The genuinely unresolved threads only — nothing is currently open; music-blocked questions live in the reenable-music todo instead.
+summary: The genuinely unresolved threads only — currently why /dnd and /post are hidden and what should happen to them.
 updated: 2026-08-27
 ---
 
@@ -14,13 +14,19 @@ freshness, Opus passthrough viability) moved to
 while music is shelved and YouTube is disabled, because nothing in the repo runs
 yt-dlp at all.
 
-## Nothing currently open
+- **Why are `/dnd` and `/post` hidden, and what should happen to them?** Both are
+  commented out of `commands/index.ts` with no recorded reason — `/dnd` in commit
+  `0e41efc` ("save"), `/post` in `732889c` ("comment post for now"). `/dnd` is the
+  larger of the two (a ~35 KB command plus `dnd/state.ts`); `/post` carries an
+  Instagram Graph API integration and two env vars. Until someone says why, the
+  fate is undecidable: **temporarily hidden** (leave them, the docs now say
+  "hidden"), **shelved indefinitely** (record a decision, as music got), or
+  **abandoned** (delete, as `/dicetable` was). The false claims that both worked
+  were corrected on 2026-08-27; only the intent is still open.
 
 The `/dicetable` question was answered on 2026-08-27 (delete it — see
 [decisions.md](decisions.md) and brief 02) and removed from this page, per the
-rule above. The page is deliberately empty rather than padded: an
-`open-questions.md` that lists resolved or blocked items stops being trustworthy
-as "what is actually open".
+rule above.
 
 Live threads that are *not* open questions:
 

@@ -1,5 +1,10 @@
 # /post — Instagram publishing
 
+> ⚠️ **Currently hidden.** `/post` is commented out of
+> `bots/discord/src/commands/index.ts`, so it does not appear in Discord. The
+> code is intact and re-enabling is uncommenting. Everything below describes
+> the feature as built; none of it is live.
+
 `/post` renders a 1080×1080 image from a template, previews it in Discord with **Approve & Post** / **Cancel** buttons, and on approval publishes it to Instagram via the Graph API.
 
 The image is hosted on Discord's CDN — Instagram fetches it once during container creation, so the short-lived signed Discord URL is fine.
