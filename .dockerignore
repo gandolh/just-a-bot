@@ -1,0 +1,13 @@
+node_modules
+**/node_modules
+**/dist
+.git
+corpus
+docs
+*.md
+.env
+bots/*/.env
+bots/*/data
+logs
+*.log
+**/*.map

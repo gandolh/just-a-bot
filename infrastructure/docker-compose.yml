@@ -1,0 +1,16 @@
+# just-a-bot. Build context is the repo root (..).
+#
+# No `ports`: the bot dials out to Discord and listens for nothing. It is the
+# one service on this box with no Caddy route at all.
+services:
+  just-a-bot:
+    build:
+      context: ..
+      dockerfile: infrastructure/Dockerfile
+      target: prod
+    image: just-a-bot:1.0
+    volumes:
+      # The bot's own .env, pushed to the box by the deploy and mounted
+      # read-only. Kept OUT of the image so the token does not travel in a layer.
+      - ${JUST_A_BOT_ENV:-../bots/discord/.env}:/app/bots/discord/.env:ro
+    restart: unless-stopped
