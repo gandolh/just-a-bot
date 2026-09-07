@@ -1,0 +1,264 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "just-a-bot — one gateway, many features, one shared package",
+    "viewBox": [
+      1120,
+      760
+    ],
+    "quality_profile": "showcase",
+    "views": [
+      {
+        "id": "command",
+        "label": "A command arrives",
+        "focus": [
+          "discord",
+          "gateway",
+          "registry",
+          "features"
+        ],
+        "note": "One gateway connection, one registry, and the feature that owns the command."
+      },
+      {
+        "id": "state",
+        "label": "Where state lives",
+        "focus": [
+          "features",
+          "data",
+          "shared"
+        ],
+        "note": "A feature owns its own data; shared/ holds only what has no Discord dependency."
+      },
+      {
+        "id": "outside",
+        "label": "What it reaches out to",
+        "focus": [
+          "features",
+          "ollama",
+          "instagram"
+        ],
+        "note": "AI chat and image generation are local; /post is built but hidden."
+      }
+    ]
+  },
+  "components": [
+    {
+      "id": "discord",
+      "type": "external",
+      "label": "Discord",
+      "sublabel": "slash commands",
+      "pos": [
+        20,
+        350
+      ],
+      "size": [
+        150,
+        60
+      ]
+    },
+    {
+      "id": "gateway",
+      "type": "backend",
+      "label": "The bot process",
+      "sublabel": "tsx, no build step",
+      "tag": "pm2",
+      "pos": [
+        290,
+        350
+      ],
+      "size": [
+        170,
+        60
+      ]
+    },
+    {
+      "id": "registry",
+      "type": "backend",
+      "label": "Command registry",
+      "sublabel": "register.ts",
+      "tag": "hidden ones live here",
+      "pos": [
+        290,
+        130
+      ],
+      "size": [
+        170,
+        60
+      ]
+    },
+    {
+      "id": "features",
+      "type": "backend",
+      "label": "Feature directories",
+      "sublabel": "trivia · rpg · gambling · …",
+      "tag": "one per capability",
+      "pos": [
+        590,
+        350
+      ],
+      "size": [
+        200,
+        60
+      ]
+    },
+    {
+      "id": "shared",
+      "type": "cloud",
+      "label": "@bots/shared",
+      "sublabel": "no Discord dependency",
+      "pos": [
+        590,
+        590
+      ],
+      "size": [
+        200,
+        60
+      ]
+    },
+    {
+      "id": "data",
+      "type": "database",
+      "label": "bots/data",
+      "sublabel": "per-feature state",
+      "pos": [
+        910,
+        350
+      ],
+      "size": [
+        170,
+        60
+      ]
+    },
+    {
+      "id": "ollama",
+      "type": "external",
+      "label": "Ollama",
+      "sublabel": "chat + images, local",
+      "pos": [
+        910,
+        130
+      ],
+      "size": [
+        170,
+        60
+      ]
+    },
+    {
+      "id": "instagram",
+      "type": "external",
+      "label": "Instagram",
+      "sublabel": "/post — built, hidden",
+      "pos": [
+        910,
+        590
+      ],
+      "size": [
+        170,
+        60
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "the VPS — one pm2 process",
+      "wraps": [
+        "gateway",
+        "registry",
+        "features",
+        "shared",
+        "data"
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "d-g",
+      "from": "discord",
+      "to": "gateway",
+      "label": "gateway websocket",
+      "variant": "emphasis"
+    },
+    {
+      "id": "g-r",
+      "from": "gateway",
+      "to": "registry",
+      "label": "registers on boot",
+      "fromSide": "top",
+      "toSide": "bottom"
+    },
+    {
+      "id": "g-f",
+      "from": "gateway",
+      "to": "features",
+      "label": "dispatch",
+      "variant": "emphasis"
+    },
+    {
+      "id": "f-d",
+      "from": "features",
+      "to": "data",
+      "label": "own their state"
+    },
+    {
+      "id": "f-s",
+      "from": "features",
+      "to": "shared",
+      "label": "env · logger · reminders",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "labelAt": [
+        683,
+        470
+      ]
+    },
+    {
+      "id": "f-o",
+      "from": "features",
+      "to": "ollama",
+      "label": "ask · img",
+      "variant": "dashed",
+      "fromSide": "top",
+      "toSide": "left"
+    },
+    {
+      "id": "f-i",
+      "from": "features",
+      "to": "instagram",
+      "label": "post",
+      "variant": "dashed",
+      "fromSide": "bottom",
+      "toSide": "left"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "One feature, one directory",
+      "items": [
+        "A capability owns its commands, its handlers and its own state",
+        "Adding one means adding a directory, not editing a central switch",
+        "The registry is the only place that has to know they all exist"
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "shared/ is defined by what it may NOT do",
+      "items": [
+        "It holds only code with no Discord dependency — env, logging, reminders",
+        "That constraint is why two workspaces survived the multi-bot removal",
+        "It is not a junk drawer; it is a boundary"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "Built but not enabled",
+      "items": [
+        "A D&D layer and the Instagram /post command are commented out of the registry",
+        "They are undecided rather than broken — see status.md",
+        "Music is gone entirely, with a post-mortem rather than a changelog line"
+      ]
+    }
+  ]
+}

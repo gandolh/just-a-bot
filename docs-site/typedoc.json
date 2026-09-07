@@ -1,0 +1,11 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "entryPoints": ["../shared/src/index.ts"],
+  "tsconfig": "../shared/tsconfig.json",
+  "out": "public/reference",
+  "name": "@bots/shared",
+  "hideGenerator": true,
+  "excludePrivate": true,
+  "excludeInternal": true,
+  "sort": ["source-order"]
+}

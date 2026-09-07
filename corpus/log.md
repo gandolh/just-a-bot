@@ -473,3 +473,43 @@ not silently repeat it.
 
 Sweeps that came back clean: no `TODO`/`FIXME`/`HACK`/`XXX` anywhere in `bots/` or
 `shared/`, no leftover `@deprecated`, no corpus `TODO` stubs.
+
+## [2026-09-06] done | A documentation site at `/just-a-bot/docs`, rendering both doc trees
+
+`docs-site/` — Astro + Starlight, built by `npm run docs -w @bots/docs-site`,
+deployed at the estate's `/<project>/docs` convention.
+
+**Two rendered source trees, which is the whole design of this one.** The repo
+already had 21 hand-written pages under `docs/` — the user-facing manual, what
+each command does — alongside 9 corpus wiki pages, the maintainer's synthesis of
+why the repo is shaped this way. Neither restates the other, so the sync script
+does two passes and the site keeps them in separate sections: `/manual/…` and
+`/wiki/…`. A folder's `README.md` becomes the page for that folder rather than an
+`/index/` nobody links to.
+
+The site lives in **`docs-site/`, not `docs/`**, precisely because `docs/` was
+already taken by real content. The deployed URL is unaffected — that comes from
+the estate's `DocsSite` construct, not from the directory name.
+
+**No design system to inherit, so one was derived rather than defaulted to.**
+This is a Discord bot: no web UI, no palette, nothing to match. The direction is
+a **command transcript** — dark ground, a terminal-green accent used as a prompt
+rule at each section head, and JetBrains Mono carrying structure rather than only
+code, because in this system a command name (`/trivia`, `/rpg`) is an identifier
+and setting it in prose type would make it look like a word. Deliberately **not**
+Discord's blurple and greys: a docs site dressed as the host application implies
+an affiliation that does not exist, and this is emphatically a personal bot.
+
+**One archify diagram** — one gateway, many features, one shared package. Its
+cards carry the three things a new reader gets wrong: a feature owns its own
+commands and state, `shared/` is defined by what it may *not* depend on, and the
+D&D layer and `/post` are built-but-hidden rather than broken.
+
+**A first for the estate's deploy:** this stack had no Caddy route at all — the
+bot binds nothing and opens an outbound gateway connection — so adding docs made
+it a routed stack, and it needed a `CaddyInstall` to actually ship its block.
+`/just-a-bot/docs` is now the only thing under that prefix, with no app route
+above it to be shadowed by.
+
+Typecheck clean, corpus lint clean. `docs-site` added to the root `workspaces`
+array.

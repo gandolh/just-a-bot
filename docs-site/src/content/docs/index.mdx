@@ -1,0 +1,73 @@
+---
+title: just-a-bot
+description: A personal Discord bot — games, gambling, AI chat, image generation, reminders and an RPG world, in a two-workspace TypeScript repo.
+tableOfContents: false
+---
+
+import Diagram from '../../components/Diagram.astro'
+
+**just-a-bot** is a personal Discord bot with games, gambling, AI chat, image
+generation, reminders and an RPG world. One feature directory per capability, one
+process under pm2.
+
+<dl class="doc-facts">
+  <dt>Runtime</dt>
+  <dd>TypeScript on Node ≥ 22.12, run directly via <code>tsx</code> — no build step</dd>
+  <dt>Modules</dt>
+  <dd>ESM, with <code>.ts</code> import suffixes</dd>
+  <dt>Workspaces</dt>
+  <dd><code>shared/</code> (<code>@bots/shared</code>) and <code>bots/discord</code></dd>
+  <dt>Process</dt>
+  <dd>pm2, via <code>ecosystem.config.cjs</code></dd>
+  <dt>Was</dt>
+  <dd>A multi-bot monorepo — Slack, WhatsApp and a voice Activity, all removed 2026-08-27</dd>
+</dl>
+
+<Diagram
+  name="architecture"
+  title="just-a-bot — one gateway, many features, one shared package"
+  caption="The shape to notice is how flat it is: a feature owns its own commands and its own data, and shared/ holds only what has no Discord dependency"
+  height={800}
+/>
+
+## Two kinds of documentation, kept apart
+
+This site renders **two source trees**, and the split is worth knowing before you
+go looking for something:
+
+| Section | Source | Answers |
+|---|---|---|
+| **Manual** | `docs/` | What a command does, and how to set it up. |
+| **Maintainer** | `corpus/wiki/` | Why the repo is shaped this way, and what was tried. |
+
+Neither restates the other, and both are generated on every build. Edit the
+source, not the rendered page.
+
+## Things a new reader gets wrong
+
+**It is Discord-only now.** Slack, WhatsApp and a dice-table voice Activity all
+lived here until 2026-08-27. Two workspaces remain, but only because `shared/`
+still holds code with no Discord dependency — not because a second bot is
+coming back.
+
+**Music was removed entirely,** and there is a post-mortem rather than a
+changelog line: [music.md](/wiki/music/). Read it before proposing to add
+playback again.
+
+**Some features are built but hidden.** A D&D layer and an Instagram `/post`
+command exist and are commented out of the command registry. They are not
+unfinished in the sense of broken — they are unfinished in the sense of
+undecided. See [status](/wiki/status/).
+
+**There is no build step.** `tsx` runs the TypeScript directly. If you are
+looking for `dist/`, it does not exist, and the deploy does not make one.
+
+## Where to go next
+
+| If you want to | Read |
+|---|---|
+| Run it yourself | [Setup](/manual/discord/setup/) |
+| Know what a command does | The **Manual** section |
+| Add a feature | [Architecture](/wiki/architecture/), then a sibling feature's directory |
+| Navigate unfamiliar code | [The code graph](/wiki/code-graph/) |
+| Know what was decided | [Decisions](/wiki/decisions/) · [Superseded](/wiki/decisions-superseded/) |
