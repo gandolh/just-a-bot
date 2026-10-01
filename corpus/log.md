@@ -513,3 +513,134 @@ above it to be shadowed by.
 
 Typecheck clean, corpus lint clean. `docs-site` added to the root `workspaces`
 array.
+
+## [2026-09-26] todo | Improvements audit: 16 briefs filed (04-19)
+
+A read-only survey of the whole repo using the `improve` skill: recon from the
+corpus, five parallel finders (correctness on opus; security, performance,
+debt/coverage and docs drift on sonnet), and a dependencies pass done inline.
+Every finding kept below was checked again against the cited lines before it
+was believed.
+
+**Scope.** Read `bots/discord/src`, `shared/src`, `infrastructure/`,
+`.dockerignore`, `ecosystem.config.cjs`, `corpus/` and `docs/`. Skipped
+`node_modules`, `docs-site/src/content` (generated), fonts and the lockfile.
+
+**Numbers.** 51 raw findings became 17 kept items after merging duplicates (16
+briefs, since the unused voice intent folds into 04). Another 10 are parked on
+Watch below, and 2 were dropped: the Docker `npm ci` concern was disproved by
+simulating the deps stage (59 packages, docs-site deps pruned), and the RPG
+crier moving to the latest `/rpg start` channel is by design (comment at
+`commands/rpg.ts:101`). Before reporting, the finders also dropped wallet
+double-click races (a window of about 1 ms) and RPG duel logs over 2000
+characters (about 0.5% in simulation).
+
+**Reproduced during vetting, not just read.** The crash path depends on
+discord.js's `captureRejections: true` (`BaseClient.js:16`). The `/clock` offset
+bug was reproduced under `TZ=UTC` and `TZ=Europe/Bucharest`. The trade dupe is
+reachable because `doSell` never consults open trades.
+
+**Filed, in rank order.** See [status.md](wiki/status.md) "Queued work" for the
+one-line catalog and the file-overlap sequencing.
+
+- Now: 04 crash guard, 05 allowedMentions default, 06 Connect Four per-turn
+  timer, 07 container state volumes (needs the user to say whether pm2 or Docker
+  is live), 08 RPG trade dupe, 09 clock offset, 10 discord.js 14.27.0 + audit,
+  11 docs/ drift, 12 corpus drift, 13 RPG combat gating, 14 trivia timeout,
+  15 reminder length, 16 hangman word.
+- Next: 17 mafia phase timers, 18 crash-safe JSON persistence, 19 `node:test`
+  suite.
+
+**Watch.** Named, not specced. Revisit when the trigger in each line happens.
+
+- In-memory game maps (blackjack, blackjack2, dice2, tic-tac-toe, wordle,
+  hangman) never evict abandoned games. Negligible at one guild, and every
+  restart clears them.
+- dice2 and blackjack2 hold a debited ante with no timeout or challenger cancel,
+  and a restart loses it. These are free-mint wallet coins (`/coins add`), so
+  the stakes are low.
+- `World.duels` and `World.trades` are never pruned. The local world file is
+  4 KB. Act if it grows enough to threaten the "one LLM read" reason in
+  decisions.md.
+- `updateWorld` mutates the cached world in place, so a throw mid-switch in
+  `rpg-buttons.ts` leaves partial state that the next flush persists.
+- `commands/rpg-buttons.ts` is 858 lines. Split it by domain (create, duel,
+  trade, controller) the next time it's touched.
+- The customId `if/else` router in `index.ts` silently ignores unknown prefixes.
+  Add a `log.warn` fallback the next time it's touched.
+- `/ask` and `/img` have no per-user cooldown, and `/ask`'s `model` option lets
+  any member pick any model on the paid Ollama key.
+- Absolute reminder times are UTC, the same documented v1 choice as birthdays.
+  Honoring the user's `/clock` zone would be a v2 feature.
+- `reminders/tick.ts:23-26` deletes a reminder on any send failure, including a
+  transient Discord outage.
+- Nothing about `/dnd` or `/post` code. Their fate is still the open question
+  in open-questions.md.
+
+## [2026-09-26] todo | Second improvements pass: 5 briefs filed (20-24), 07 and 17 amended
+
+A second run of the `improve` skill, started in parallel with the first. The
+first pass filed 04-19 while this one was auditing, so every finding here was
+vetted against those briefs and the first pass's Watch list, not only against
+the code. Five finders (correctness on opus; security, performance, debt and
+deps/DX on sonnet) returned 49 findings, plus 4 leads from recon. Six items
+survived as new work: five briefs and an addendum to 17. A second addendum, to
+07, carries the estate evidence behind brief 20.
+
+**What the first pass couldn't see.** It never read `../vps-deploy`. That repo
+deploys this bot as a container only since `8bec566` (2026-09-06). Its cutover
+script calls the bot "stateless" and took no backup. Its rsync excludes
+`bots/*/data` but not `bots/data`. A simulation with the exact flags deleted a
+server-only file under `bots/data/` and replaced `reminders.json` with the local
+copy. So brief 07's default mount path would be rewritten on every deploy, and
+07's step 4 would overwrite the pm2-era state still on the host. Brief 20 fixes
+the estate side, and 07 now has an addendum telling the executor to read 20
+first.
+
+**Reproduced, not just read.**
+- A Docker build against the real `.dockerignore` ships `/app/bots/data/birthdays.json`
+  (222 bytes of dev data) and no `/app/bots/discord/data`.
+- A finder claimed `docker stop` never reaches the bot through
+  `npm -> sh -> npm -> sh -> tsx -> node`. That holds with dash, but in the real
+  `node:24-alpine` image busybox `sh` execs the command, the chain is
+  `npm -> npm -> tsx -> node`, and the bot's SIGTERM handler ran (exit 0).
+  Dropped, so brief 18's shutdown flush will work in the container.
+- Node 24 turns `2026-02-30` into March 2 (brief 24).
+- A diff of registered builders against `/help` found 7 dead and 11 missing
+  commands (brief 21).
+
+**Filed:** 20 estate state protection, 23 `/quote add` channel permission,
+21 `/help` from the registry, 22 docs for `/c4`, `/c42`, Wordle and
+tic-tac-toe, 24 impossible dates. Also 17 part (d): `launchGame` has the same
+unclaimed-transition race, giving double role assignment and role-less joins.
+
+**Dropped.**
+- About 30 findings duplicated briefs 04-19.
+- Five were already on the first pass's Watch list: map leaks, dice2 and
+  blackjack2 antes, duel and trade pruning, the router, and `rpg-buttons.ts` size.
+- Two were disproved by test: the Docker SIGTERM chain and `npm ci` without
+  `docs-site`.
+- Four are by design or documented: the `/coins add` faucet, the trivia
+  fallback, tsx as a devDependency in the image, and `@types/node` tracking the
+  engines floor.
+- The rest were too small or had no live bug: `statsFor`, the `reminders/parse.ts`
+  re-export, mafia's dynamic imports, RPG action strings, `register.ts` error
+  text, and the wallet double-click races (a window of milliseconds on free
+  coins).
+
+**Watch** (named, not specced):
+- SIGTERM reaches the bot only because busybox `sh` execs. Moving the image to a
+  Debian base, where `sh` is dash, would break graceful shutdown silently.
+  Switch the CMD to `node --import tsx` if the base ever changes.
+- `npm run typecheck` skips `shared` and `docs-site`, which have no typecheck
+  script. `shared` is covered today only because `bots/discord` imports all of it.
+- `ephemeral: true` appears 137 times and is deprecated. Migrate it with any
+  discord.js v15 upgrade.
+- A mafia game with more than 25 alive players overflows 5 button rows, and the
+  DM try/catch swallows the error.
+- `tickReminders` has no overlap guard. A tick longer than 60 s during a Discord
+  outage re-sends due reminders.
+- Every store's cold load can race: two first callers after a restart each parse
+  their own copy, and the last one wins.
+- A stale Town screen lets a player buy and sell away from the Plaza. Brief 13's
+  guard covers fights only.
