@@ -57,7 +57,7 @@ order, and all are in `briefs/todo/`.
 
 Now (real and cheap):
 
-- [04](../briefs/todo/04-crash-guard-event-listeners.md): any member can crash
+- [04](../briefs/done/04-crash-guard-event-listeners.md): any member can crash
   the bot. A failed echo reply becomes an unhandled client `error`. Also drops the
   unused voice intent.
 - [05](../briefs/todo/05-default-allowed-mentions.md): user text in reminders,

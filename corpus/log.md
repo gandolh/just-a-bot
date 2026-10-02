@@ -644,3 +644,13 @@ unclaimed-transition race, giving double role assignment and role-less joins.
   their own copy, and the last one wins.
 - A stale Town screen lets a player buy and sell away from the Plaza. Brief 13's
   guard covers fights only.
+
+## [2026-10-02] done | Brief 04: a failed reply inside a listener no longer kills the bot
+
+The mention echo is deleted, `Events.Error` is logged on the client, a
+module-level `unhandledRejection` handler logs instead of crashing, and the
+`GuildVoiceStates` intent is gone. There is deliberately no `uncaughtException`
+handler. The MessageCreate listener now only routes Wordle and Hangman thread
+messages.
+
+Full outcome on [the brief](briefs/done/04-crash-guard-event-listeners.md).

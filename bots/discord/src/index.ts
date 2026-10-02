@@ -20,10 +20,16 @@ import { handleInstagramButton } from './commands/post.ts';
 
 const log = logger.scoped('discord');
 
+// Node's default for an unhandled rejection is to throw, which kills the
+// process and every in-memory game with it. A fire-and-forget promise anywhere
+// (`void flush(...)`, a mafia phase timer) must not be able to do that. There is
+// deliberately no `uncaughtException` handler: a genuine synchronous crash
+// should still exit and be restarted by pm2.
+process.on('unhandledRejection', (reason) => log.error('Unhandled promise rejection', reason));
+
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
-    GatewayIntentBits.GuildVoiceStates,
     GatewayIntentBits.GuildMessages,
     GatewayIntentBits.MessageContent,
     GatewayIntentBits.DirectMessages,
@@ -34,6 +40,11 @@ const client = new Client({
 client.once(Events.ClientReady, (c) => {
   log.info(`Logged in as ${c.user.tag}`);
 });
+
+// discord.js builds the client with `captureRejections: true`, so a rejected
+// async listener is re-emitted here. With no listener, Node throws it as an
+// uncaught exception and the process exits.
+client.on(Events.Error, (err) => log.error('Client error', err));
 
 client.on(Events.InteractionCreate, async (interaction) => {
   if (
@@ -184,14 +195,6 @@ client.on(Events.MessageCreate, async (message) => {
       return;
     }
   }
-
-  if (!client.user || !message.mentions.has(client.user)) return;
-
-  const mentionPattern = new RegExp(`<@!?${client.user.id}>`, 'g');
-  const stripped = message.content.replace(mentionPattern, '').trim();
-  if (!stripped) return;
-
-  await message.reply(`Echo: ${stripped}`);
 });
 await client.login(env.DISCORD_TOKEN);
 

@@ -72,3 +72,17 @@ discord.js caches them.
 - On the dev application, never the production token (see CLAUDE.md "One running
   instance per bot token"), run `npm run discord:dev` and @mention the bot. It
   sends no reply and doesn't crash. `/ping` from the same process still answers.
+
+## Outcome (2026-10-02)
+
+The mention echo is deleted, `Events.Error` is logged on the client, a
+module-level `unhandledRejection` handler logs instead of crashing, and the
+`GuildVoiceStates` intent is gone. There is deliberately no `uncaughtException`
+handler. The MessageCreate listener now only routes Wordle and Hangman thread
+messages.
+
+Verified: `npm run typecheck` is clean, and `grep -rn "Echo:\|GuildVoiceStates"
+bots/discord/src` returns nothing. The `docs/` echo check found only Mafia's
+"echoes the tally", which is unrelated. **Not verified live:** there is no dev
+application token on this machine (the local `.env` is gone), so the
+"@mention it, no reply, no crash; `/ping` still answers" run is still owed.
