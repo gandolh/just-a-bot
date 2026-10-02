@@ -863,3 +863,14 @@ allowing 29. The ISO branch of `parseAbsolute` builds the `Date` and returns
 gets the existing "Could not parse that time" reply.
 
 Full outcome on [the brief](briefs/done/24-reject-impossible-dates.md).
+
+## [2026-10-02] status | 19 of the 21 audit briefs done; 07 and 20 wait on the owner
+
+Briefs 04-06, 08-19 and 21-24 shipped in one run, one commit each. 04-06 landed
+on `main` before the repo's "branch first" rule was noticed; the rest are on
+`audit-briefs-2026-09-26`. Moving `main` back was blocked as a destructive git
+operation, so that is the owner's call. No dev application token was available,
+so every check that needs the live bot is named as owed in its brief's outcome.
+Production needs `npm run discord:register` after the next deploy (brief 15
+changed `/remindme`'s schema). Captured along the way:
+[hangman-give-up-docs](todos/hangman-give-up-docs.md).

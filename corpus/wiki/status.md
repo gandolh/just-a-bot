@@ -54,10 +54,17 @@ stays mechanically enforced.
 
 ## Queued work
 
-As of 2026-09-26, 21 briefs are queued from two improvements passes the same
-day: 04-19 from the first (log entry "Improvements audit") and 20-24 from the
-second (log entry "Second improvements pass"). Each pass is listed in rank
-order, and all are in `briefs/todo/`.
+**2026-10-02: 19 of the 21 are done** (all but 07 and 20), on the branch
+`audit-briefs-2026-09-26`; the first three landed on `main` before the branch
+existed. **07 and 20 are waiting on the owner.** They decide where production
+state lives and need commands run on the VPS. Several done briefs still owe a
+live check on the dev application (no dev token was available), each named in
+its outcome. Brief 15 also changed a slash-command schema, so production needs
+`npm run discord:register` after the next deploy.
+
+The list below is the original catalog, in rank order, from the two passes on
+2026-09-26 (04-19 from the "Improvements audit", 20-24 from the "Second
+improvements pass").
 [01](../briefs/done/01-music-audio-quality.md) and
 [02](../briefs/done/02-remove-dicetable.md) are done, and
 [03](../briefs/superseded/03-remove-ytdlp-path.md) was superseded.
