@@ -691,3 +691,15 @@ Full outcome on [the brief](briefs/done/08-rpg-trade-item-dupe.md).
 the formatting unchanged.
 
 Full outcome on [the brief](briefs/done/09-clock-utc-offset.md).
+
+## [2026-10-02] done | Brief 10: discord.js 14.27.0, a pinned renderer, a clean audit
+
+discord.js is pinned at 14.27.0, and the `/img` renderer is pinned exactly:
+satori 0.26.0 and @resvg/resvg-js 2.6.2, the versions already installed. After
+`npm install` and `npm audit fix` (no `--force`), both `npm audit` and
+`npm audit --omit=dev` report **0 vulnerabilities**. The 14.27.0 release notes
+list no breaking changes or deprecations touching reply options
+(`ephemeral`/`flags`), `withResponse`, `deferReply`, `followUp`, `editReply` or
+`allowedMentions`. The one relevant fix makes `update()`'s options optional.
+
+Full outcome on [the brief](briefs/done/10-bump-discordjs-and-audit.md).

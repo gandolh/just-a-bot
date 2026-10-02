@@ -71,7 +71,7 @@ Now (real and cheap):
   items.
 - [09](../briefs/done/09-clock-utc-offset.md): `/clock` shows the host's UTC
   offset for every zone.
-- [10](../briefs/todo/10-bump-discordjs-and-audit.md): discord.js 14.27.0 plus
+- [10](../briefs/done/10-bump-discordjs-and-audit.md): discord.js 14.27.0 plus
   `npm audit fix` clears 5 production advisories.
 - [11](../briefs/todo/11-docs-drift.md): five `docs/` pages contradict the
   code. The setup page names the wrong env vars.

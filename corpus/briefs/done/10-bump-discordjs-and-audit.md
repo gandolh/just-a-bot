@@ -57,3 +57,18 @@ code change. The installed versions today are satori 0.26.0 and
   `/img meme` all work. The last one exercises satori and resvg.
 - If Docker is available, `docker compose -f infrastructure/docker-compose.yml build`
   still succeeds with the new lockfile.
+
+## Outcome (2026-10-02)
+
+discord.js is pinned at 14.27.0, and the `/img` renderer is pinned exactly:
+satori 0.26.0 and @resvg/resvg-js 2.6.2, the versions already installed. After
+`npm install` and `npm audit fix` (no `--force`), both `npm audit` and
+`npm audit --omit=dev` report **0 vulnerabilities**. The 14.27.0 release notes
+list no breaking changes or deprecations touching reply options
+(`ephemeral`/`flags`), `withResponse`, `deferReply`, `followUp`, `editReply` or
+`allowedMentions`. The one relevant fix makes `update()`'s options optional.
+
+Verified: `npm ls discord.js` shows 14.27.0, `npm run typecheck` is clean, and
+`docker compose -f infrastructure/docker-compose.yml build` succeeds with the
+new lockfile. **Not verified live:** `/ping`, `/blackjack` and `/img meme` on
+the dev bot (no dev token here).
