@@ -17,9 +17,14 @@ function parseDate(raw: string): { month: number; day: number } | null {
   const month = parseInt(m[1], 10);
   const day = parseInt(m[2], 10);
   if (month < 1 || month > 12) return null;
-  if (day < 1 || day > 31) return null;
+  // A day past the month's end saved fine and then never fired, since the daily
+  // check matches real dates. February allows 29, so a leap-day birthday saves
+  // (and fires in leap years).
+  if (day < 1 || day > DAYS_IN_MONTH[month - 1]!) return null;
   return { month, day };
 }
+
+const DAYS_IN_MONTH = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 
 const data = new SlashCommandBuilder()
   .setName('birthday')

@@ -854,3 +854,12 @@ a hidden channel exists. The store and display commands are untouched, and
 quotes saved earlier stay.
 
 Full outcome on [the brief](briefs/done/23-quote-add-channel-permission.md).
+
+## [2026-10-02] done | Brief 24: /birthday and /remindme refuse impossible dates
+
+`parseDate` (birthday) rejects a day past the month's length, with February
+allowing 29. The ISO branch of `parseAbsolute` builds the `Date` and returns
+`null` unless its UTC year, month and day equal the parsed ones, so the user
+gets the existing "Could not parse that time" reply.
+
+Full outcome on [the brief](briefs/done/24-reject-impossible-dates.md).

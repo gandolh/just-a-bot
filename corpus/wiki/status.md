@@ -117,7 +117,7 @@ Second pass (it read `../vps-deploy`, which the first didn't):
 - [22](../briefs/done/22-docs-games-pages.md): `/c4` is documented with an
   option it doesn't take, `/c42` isn't documented, and Wordle and tic-tac-toe
   have no pages.
-- [24](../briefs/todo/24-reject-impossible-dates.md): `/birthday` accepts 04-31
+- [24](../briefs/done/24-reject-impossible-dates.md): `/birthday` accepts 04-31
   and never fires. `/remindme` rolls 2026-02-30 over to March 2.
 
 The second pass also added an addendum to 07 (pointing at 20) and a part (d) to

@@ -34,7 +34,13 @@ export function parseAbsolute(raw: string): Date | null {
   if (isoMatch) {
     const [, year, month, day, h = '00', min = '00'] = isoMatch;
     const d = new Date(`${year}-${month}-${day}T${h.padStart(2, '0')}:${min.padStart(2, '0')}:00.000Z`);
-    if (!isNaN(d.getTime())) return d;
+    // V8 rolls an impossible day forward (2026-02-30 → March 2) instead of
+    // rejecting it, so check the date came back as the one that was asked for.
+    const exact =
+      d.getUTCFullYear() === Number(year) &&
+      d.getUTCMonth() + 1 === Number(month) &&
+      d.getUTCDate() === Number(day);
+    if (!isNaN(d.getTime()) && exact) return d;
   }
 
   return null;

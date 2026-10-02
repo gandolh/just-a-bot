@@ -38,6 +38,15 @@ test('the ISO form is read as UTC, with and without a time', () => {
   assert.equal(parseAbsolute('June 1st'), null);
 });
 
+test('dates that are not on the calendar are rejected, not rolled forward (brief 24)', () => {
+  assert.equal(parseWhen('2026-02-30'), null);
+  assert.equal(parseWhen('2026-04-31 10:00'), null);
+  assert.equal(parseWhen('2026-13-01'), null);
+  assert.equal(parseWhen('2028-02-29')!.toISOString(), '2028-02-29T00:00:00.000Z');
+  assert.equal(parseWhen('2026-12-31 23:59')!.toISOString(), '2026-12-31T23:59:00.000Z');
+  assert.equal(parseWhen('2026-02-29'), null); // not a leap year
+});
+
 test('parseWhen tries a duration first, then an absolute date', () => {
   near(deltaMs(parseWhen('2h')), 2 * 3_600_000);
   assert.equal(parseWhen('2026-06-01')!.toISOString(), '2026-06-01T00:00:00.000Z');

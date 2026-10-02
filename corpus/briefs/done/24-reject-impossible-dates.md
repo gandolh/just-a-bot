@@ -50,3 +50,18 @@ Both date inputs accept days that aren't on the calendar, and neither says so.
   `12-31` save.
 - If brief 19 has landed, add these cases to its `parse.ts` tests instead of a
   scratch script.
+
+## Outcome (2026-10-02)
+
+`parseDate` (birthday) rejects a day past the month's length, with February
+allowing 29. The ISO branch of `parseAbsolute` builds the `Date` and returns
+`null` unless its UTC year, month and day equal the parsed ones, so the user
+gets the existing "Could not parse that time" reply.
+
+Verified: the brief 19 `parse.test.ts` gains the cases. `2026-02-30`,
+`2026-04-31 10:00`, `2026-13-01` and `2026-02-29` give `null`, while
+`2028-02-29` and `2026-12-31 23:59` round-trip. The test fails on the old
+parser. A scratch run of `parseDate` refuses 04-31, 02-30 and 06-31 and accepts
+02-29, 12-31 and 11-30. `npm test` and `npm run typecheck` are clean. The one
+birthday in the local dev data is a real date; the production data was not
+checked from here. **Not verified live:** `/birthday set` on the dev app.
