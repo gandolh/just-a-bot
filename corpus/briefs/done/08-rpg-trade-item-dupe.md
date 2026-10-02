@@ -61,3 +61,27 @@ repeat it. RPG coins and items are earned, unlike the gambling wallet where
     and B is the same before and after.
 - If brief 19 has landed, put these in `rpg/trade.test.ts` instead of a scratch
   script.
+
+## Outcome (2026-10-02)
+
+`executeTrade` now counts. `missingItem` builds a `Map<item, offeredCount>` per
+side and fails with the existing `${name} no longer has ${item}.` when an
+inventory holds fewer copies than offered. `moveItems` gives the receiver a copy
+only when the giver's splice removed one. Coins are untouched.
+
+**Finding: the failure scenario is not reachable through the shipped UI.**
+Offers are built by the trade select menu (`rpg-buttons.ts:815-842`), whose
+options are `[...new Set(items)]`, so an offer holds at most one copy of each
+item. The handler also checks ownership. `toggleItem` (the path the brief
+describes) has no callers. Selling the one offered copy and then executing was
+already refused by `includes`. So this is hardening of `executeTrade`'s own
+contract, not a live exploit fix. It matters the day an offer can hold
+duplicates, for example a quantity picker.
+
+Verified with a tsx scratch script on `startTrade`/`confirmSide`/`executeTrade`,
+with offers set directly because no UI path makes a two-copy offer. With two
+swords offered and one gone before execute, the trade returns `ok: false` and
+both inventories are unchanged. Before the fix the same script *passed* the
+trade and duplicated a sword. Two-for-two plus a potion returns `ok`, A has 0
+swords and B has 2, and item totals are conserved. `npm run typecheck` is
+clean. Brief 19 hasn't landed, so the cases are not yet in `trade.test.ts`.

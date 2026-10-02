@@ -675,3 +675,12 @@ reply move in solo mode) unless the game finished. `finalize` is unchanged.
 board.
 
 Full outcome on [the brief](briefs/done/06-connect-four-per-turn-timer.md).
+
+## [2026-10-02] done | Brief 08: executeTrade counts copies (hardening; the UI could not reach the dupe)
+
+`executeTrade` now counts. `missingItem` builds a `Map<item, offeredCount>` per
+side and fails with the existing `${name} no longer has ${item}.` when an
+inventory holds fewer copies than offered. `moveItems` gives the receiver a copy
+only when the giver's splice removed one. Coins are untouched.
+
+Full outcome on [the brief](briefs/done/08-rpg-trade-item-dupe.md).

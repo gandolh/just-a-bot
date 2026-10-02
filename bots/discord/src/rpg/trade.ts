@@ -101,12 +101,13 @@ export function executeTrade(world: World, trade: Trade): ExecuteTradeResult {
   if (a.coins < trade.aOffer.coins) return { ok: false, reason: `${a.name} no longer has enough coins.` };
   if (b.coins < trade.bOffer.coins) return { ok: false, reason: `${b.name} no longer has enough coins.` };
 
-  for (const item of trade.aOffer.items) {
-    if (!a.inventory.includes(item)) return { ok: false, reason: `${a.name} no longer has ${item}.` };
-  }
-  for (const item of trade.bOffer.items) {
-    if (!b.inventory.includes(item)) return { ok: false, reason: `${b.name} no longer has ${item}.` };
-  }
+  // Count, don't just check presence: an offer of two Swords against an
+  // inventory that has since dropped to one must fail. `includes` passed it, and
+  // the transfer below then handed over a Sword that no longer existed.
+  const shortA = missingItem(a.inventory, trade.aOffer.items);
+  if (shortA !== undefined) return { ok: false, reason: `${a.name} no longer has ${shortA}.` };
+  const shortB = missingItem(b.inventory, trade.bOffer.items);
+  if (shortB !== undefined) return { ok: false, reason: `${b.name} no longer has ${shortB}.` };
 
   // Atomic swap.
   a.coins -= trade.aOffer.coins;
@@ -114,17 +115,33 @@ export function executeTrade(world: World, trade: Trade): ExecuteTradeResult {
   a.coins += trade.bOffer.coins;
   b.coins += trade.aOffer.coins;
 
-  for (const item of trade.aOffer.items) {
-    const idx = a.inventory.indexOf(item);
-    if (idx >= 0) a.inventory.splice(idx, 1);
-    b.inventory.push(item);
-  }
-  for (const item of trade.bOffer.items) {
-    const idx = b.inventory.indexOf(item);
-    if (idx >= 0) b.inventory.splice(idx, 1);
-    a.inventory.push(item);
-  }
+  moveItems(a.inventory, b.inventory, trade.aOffer.items);
+  moveItems(b.inventory, a.inventory, trade.bOffer.items);
 
   trade.state = 'completed';
   return { ok: true };
+}
+
+/** The first offered item the inventory holds fewer copies of than offered. */
+function missingItem(inventory: readonly string[], offered: readonly string[]): string | undefined {
+  const wanted = new Map<string, number>();
+  for (const item of offered) wanted.set(item, (wanted.get(item) ?? 0) + 1);
+  for (const [item, count] of wanted) {
+    if (inventory.filter((owned) => owned === item).length < count) return item;
+  }
+  return undefined;
+}
+
+/**
+ * Move each offered item from one inventory to the other, one copy at a time.
+ * The receiver only gets a copy the giver actually lost, so if validation ever
+ * slips, an item goes missing rather than being duplicated.
+ */
+function moveItems(from: string[], to: string[], items: readonly string[]): void {
+  for (const item of items) {
+    const idx = from.indexOf(item);
+    if (idx < 0) continue;
+    from.splice(idx, 1);
+    to.push(item);
+  }
 }

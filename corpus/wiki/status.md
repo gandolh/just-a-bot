@@ -67,7 +67,7 @@ Now (real and cheap):
 - [07](../briefs/todo/07-container-state-volumes.md): the container has no data
   volume and `bots/data` is baked into the image. Needs the user to say whether
   pm2 or Docker is live.
-- [08](../briefs/todo/08-rpg-trade-item-dupe.md): RPG trades can duplicate
+- [08](../briefs/done/08-rpg-trade-item-dupe.md): RPG trades can duplicate
   items.
 - [09](../briefs/todo/09-clock-utc-offset.md): `/clock` shows the host's UTC
   offset for every zone.
