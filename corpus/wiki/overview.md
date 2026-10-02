@@ -1,6 +1,6 @@
 ---
-summary: What just-a-bot is: a personal, feature-rich Discord bot in a two-workspace npm repo; the orientation page and the map of what lives where.
-updated: 2026-08-27
+summary: What just-a-bot is: a personal, feature-rich Discord bot in an npm-workspaces repo (bot, shared library, docs site); the orientation page and the map of what lives where.
+updated: 2026-10-02
 ---
 
 # Overview
@@ -13,13 +13,14 @@ command registry) — see [status.md](status.md).
 
 It *was* a multi-bot monorepo — Slack, WhatsApp and a dice-table voice Activity
 lived here until 2026-08-27, when they were removed to make this a Discord-only
-repo ([decisions.md](decisions.md)). Two workspaces remain because `shared/`
-still holds code with no Discord dependency.
+repo ([decisions.md](decisions.md)). `shared/` stays a separate workspace because
+it holds code with no Discord dependency, and the boundary enforces that.
 
 - **Language/runtime:** TypeScript on Node ≥ 22.12, run directly via `tsx` (no
   build step for the bots). ESM (`"type": "module"`), `.ts` import suffixes.
-- **Structure:** npm workspaces — `shared/` (the `@bots/shared` package) and
-  `bots/discord`. See [architecture.md](architecture.md).
+- **Structure:** npm workspaces — `shared/` (the `@bots/shared` package),
+  `bots/discord`, and `docs-site/` (the build-time documentation site, not a
+  runtime). See [architecture.md](architecture.md).
 - **Process management:** pm2 via `ecosystem.config.cjs`.
 
 The Discord bot is organized as one feature directory per capability under

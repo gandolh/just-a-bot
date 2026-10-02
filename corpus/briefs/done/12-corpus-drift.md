@@ -75,3 +75,29 @@ agent orienting from the corpus's own front doors gets the wrong repo shape.
 - No page in `corpus/wiki/`, and not the root `CLAUDE.md`, says "two workspaces"
   or "two-workspace".
 - `bash corpus/lint.sh` clean.
+
+## Outcome (2026-10-02)
+
+All five items fixed:
+- `architecture.md` drops the player (bootstrap line, dependency direction) and
+  the dice-table wire protocol. It justifies `shared/` by the
+  no-`discord.js` boundary and lists `docs-site/` and `infrastructure/` in the
+  layout.
+- "Two workspaces" is gone from the root `CLAUDE.md`, `architecture.md` and
+  `overview.md`.
+- The yt-dlp maintenance note is deleted from `status.md`.
+- "Nothing builds" is scoped to the bot in `CLAUDE.md`, `architecture.md` and
+  the `decisions.md` "No build step" entry, each naming `docs-site`'s
+  `astro build` as the one build. The decision is not reopened.
+- `status.md` is dated 2026-10-02, and its Tooling section gains the docs site
+  and the container image, pointing at briefs 07 and 20 for the deploy path.
+
+One edit outside the "No build step" entry: the 2026-08-27 Discord-only entry's
+"**Two workspaces, not one.**" bullet is dated history, so it is marked
+`<!-- stale-ok -->` with a one-line note about `docs-site` and the deleted
+protocol, rather than rewritten.
+
+Verified: the acceptance grep returns only that `stale-ok` line and the brief
+catalog line in "Queued work" that describes this brief itself. `bash
+corpus/lint.sh --index` and `bash corpus/lint.sh` are clean. Moving brief 11
+had broken a relative link in brief 22, which is fixed.

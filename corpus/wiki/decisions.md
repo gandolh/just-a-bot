@@ -36,8 +36,10 @@ Cost accepted: no type-checking at runtime boundaries (`npm run typecheck` is a
 separate step), and `tsx` lives in root **devDependencies** — so
 `npm install --production` breaks the run script. If that scenario ever comes up,
 move `tsx` to a real dependency rather than reintroducing a build.
-There is no longer any exception: `bots/dice-activity` was the one workspace that <!-- stale-ok -->
-built, and it is gone as of 2026-08-27. **Nothing in the repo builds.**
+Scope, restated 2026-10-02: this decision is about **the bot**, and the bot
+still never builds. `bots/dice-activity`, which built, is gone as of 2026-08-27. <!-- stale-ok -->
+The one build in the repo since 2026-09-07 is `docs-site`'s `astro build`, a
+static documentation site that the bot neither imports nor needs at runtime.
 
 ## pm2 for process management
 
@@ -133,8 +135,9 @@ Consequences worth knowing, since none of them are visible in the diff:
   cleanly — the command already answers "not configured" when
   `DICETABLE_ACTIVITY_URL` is unset — so this is a dormant feature, not a broken
   one. Open thread: [open-questions.md](open-questions.md).
-- **Two workspaces, not one.** `shared/` is kept because it holds code with no
-  `discord.js` dependency, including the protocol above.
+- **Two workspaces, not one.** `shared/` is kept because it holds code with no <!-- stale-ok -->
+  `discord.js` dependency, including the protocol above. (As of 2026-09-07 there
+  is a third, `docs-site`, and the protocol is gone with `/dicetable`.)
 - **`bots/dice-activity/.env` was deliberately left on disk** — it holds <!-- stale-ok -->
   `DISCORD_CLIENT_SECRET`, `SESSION_HMAC_KEY` and `ENGINE_AUTH_TOKEN`, is
   gitignored, and exists nowhere else. Removing it is a manual, irreversible

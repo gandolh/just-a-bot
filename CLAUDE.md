@@ -1,6 +1,6 @@
 # just-a-bot
 
-Hobby **Discord bot** — two npm workspaces (`shared`, `bots/discord`),
+Hobby **Discord bot** — npm workspaces `shared` and `bots/discord`, plus a `docs-site` workspace,
 TypeScript run directly via `tsx`, pm2 on a small shared VPS.
 
 ## Read this first
@@ -34,8 +34,9 @@ that will be relitigated.
 
 ## Working in this repo
 
-- **No build step, anywhere.** `tsx src/index.ts` runs TypeScript directly in dev
-  *and* in production under pm2. Relative imports carry explicit `.ts` suffixes
+- **The bot has no build step.** `tsx src/index.ts` runs TypeScript directly in
+  dev *and* in production. The only build in the repo is `docs-site`'s
+  `astro build` (`npm run docs -w @bots/docs-site`), a static docs site. Relative imports carry explicit `.ts` suffixes
   (`from './play.ts'`) — `tsconfig.base.json` sets `allowImportingTsExtensions`
   + `noEmit`.
 - **Verify with `npm run typecheck`** (`tsc --noEmit` across every workspace).

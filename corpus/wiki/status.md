@@ -1,9 +1,9 @@
 ---
 summary: Dated snapshot of where the project stands right now — a single Discord bot with music and /dicetable both removed, and 21 audit briefs (04-24) queued from two passes, in rank order.
-updated: 2026-09-26
+updated: 2026-10-02
 ---
 
-# Status — 2026-08-27
+# Status — 2026-10-02
 
 Where things stand right now.
 
@@ -44,6 +44,13 @@ stays mechanically enforced.
   Re-benchmarked after the trim: `impact` exact, transitive and 13.5× cheaper;
   `explore` only 1.6× (ruled out); 12 duplicate names still conflate, so never
   rename off it. See [code-graph.md](code-graph.md).
+- **Documentation site** (2026-09-07): `docs-site/` renders `docs/` and `corpus/`
+  as a Starlight site at `/just-a-bot/docs` (`npm run docs -w @bots/docs-site`).
+  Its `manual/` copies are committed and must be re-synced after a `docs/` edit.
+- **Container image** (2026-09-06): `infrastructure/` holds the Dockerfile and
+  compose file the estate deploys. Which path runs production, and where its
+  state lives, is brief [07](../briefs/todo/07-container-state-volumes.md) (with
+  [20](../briefs/todo/20-estate-state-protection.md)). Both wait on the owner.
 
 ## Queued work
 
@@ -75,7 +82,7 @@ Now (real and cheap):
   `npm audit fix` clears 5 production advisories.
 - [11](../briefs/done/11-docs-drift.md): five `docs/` pages contradict the
   code. The setup page names the wrong env vars.
-- [12](../briefs/todo/12-corpus-drift.md): the wiki and root CLAUDE.md still
+- [12](../briefs/done/12-corpus-drift.md): the wiki and root CLAUDE.md still
   describe `player.ts`, two workspaces, and yt-dlp upkeep.
 - [13](../briefs/todo/13-rpg-block-actions-in-combat.md): a stale RPG
   controller can rest, explore or travel mid-fight.
@@ -155,8 +162,3 @@ wiki and docs claimed both worked, which has now been corrected, but the intent
 (temporary? abandoned?) is still unknown. See
 [open-questions.md](open-questions.md).
 
-## Maintenance note
-
-The bundled yt-dlp binary must be kept current (`yt-dlp -U`); `npm install` may
-reset it to the pinned version. Stale yt-dlp is a recurring YouTube-breakage
-risk.

@@ -5,7 +5,7 @@
 Source: the second 2026-09-26 improvements pass, recorded in [log.md](../../log.md).
 Rank 4 of the second pass.
 
-Brief [11](11-docs-drift.md) fixes five places where `docs/` contradicts the
+Brief [11](../done/11-docs-drift.md) fixes five places where `docs/` contradicts the
 code. This brief covers two gaps it doesn't list, both checked against the code
 on 2026-09-26. `docs/` is also published as the manual on the docs site, so
 players read these pages.

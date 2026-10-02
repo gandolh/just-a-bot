@@ -718,3 +718,21 @@ shipped text-only and drops the two dead `docs/todo/` links.
 `docs-site/` layout row.
 
 Full outcome on [the brief](briefs/done/11-docs-drift.md).
+
+## [2026-10-02] done | Brief 12: corpus and CLAUDE.md drift removed
+
+All five items fixed:
+- `architecture.md` drops the player (bootstrap line, dependency direction) and
+  the dice-table wire protocol. It justifies `shared/` by the
+  no-`discord.js` boundary and lists `docs-site/` and `infrastructure/` in the
+  layout.
+- "Two workspaces" is gone from the root `CLAUDE.md`, `architecture.md` and
+  `overview.md`.
+- The yt-dlp maintenance note is deleted from `status.md`.
+- "Nothing builds" is scoped to the bot in `CLAUDE.md`, `architecture.md` and
+  the `decisions.md` "No build step" entry, each naming `docs-site`'s
+  `astro build` as the one build. The decision is not reopened.
+- `status.md` is dated 2026-10-02, and its Tooling section gains the docs site
+  and the container image, pointing at briefs 07 and 20 for the deploy path.
+
+Full outcome on [the brief](briefs/done/12-corpus-drift.md).
