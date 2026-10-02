@@ -34,3 +34,16 @@ image uploads (`img/upload.ts:35`).
   `(_url, init) => new Promise((_, reject) => init.signal.addEventListener('abort', () => reject(init.signal.reason)))`
   and call `fetchQuestion()`. It resolves with a fallback question in about 5 s.
 - `/trivia` still serves OpenTDB questions when the API is up.
+
+## Outcome (2026-10-02)
+
+The OpenTDB fetch now passes `signal: AbortSignal.timeout(5_000)`. The abort
+rejects into the existing catch, which returns `fromFallback(...)`. Nothing else
+changed.
+
+Verified with a tsx scratch script that stubs `fetch` to hang until aborted:
+`fetchQuestion()` resolved with a fallback question in 5.0 s. Note for anyone
+repeating it: `AbortSignal.timeout`'s timer is unref'd, so a bare script exits
+before it fires. The script needs a keep-alive interval standing in for the
+bot's gateway socket. `npm run typecheck` is clean. The live `/trivia` check is
+still owed.

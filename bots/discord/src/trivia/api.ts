@@ -81,7 +81,12 @@ export async function fetchQuestion(category?: string, difficulty?: string): Pro
     if (category && CATEGORIES[category]) params.set('category', String(CATEGORIES[category].id));
     if (difficulty) params.set('difficulty', difficulty);
 
-    const res = await fetch(`https://opentdb.com/api.php?${params.toString()}`);
+    // A hung request never reaches the catch below, and the deferred reply would
+    // sit on "thinking…" until Discord's 15-minute window closed. Aborting after
+    // 5 s rejects into the catch, which serves a fallback question.
+    const res = await fetch(`https://opentdb.com/api.php?${params.toString()}`, {
+      signal: AbortSignal.timeout(5_000),
+    });
     if (!res.ok) return fromFallback(category, difficulty);
 
     const data = (await res.json()) as OpenTDBResponse;

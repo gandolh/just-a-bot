@@ -746,3 +746,11 @@ Attack, flee, or drink a potion." and returns from the mutate callback. `rpg/*.t
 and the duel and trade handlers are untouched.
 
 Full outcome on [the brief](briefs/done/13-rpg-block-actions-in-combat.md).
+
+## [2026-10-02] done | Brief 14: the trivia fetch times out into the fallback bank
+
+The OpenTDB fetch now passes `signal: AbortSignal.timeout(5_000)`. The abort
+rejects into the existing catch, which returns `fromFallback(...)`. Nothing else
+changed.
+
+Full outcome on [the brief](briefs/done/14-trivia-fetch-timeout.md).

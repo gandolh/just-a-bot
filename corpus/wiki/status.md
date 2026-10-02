@@ -86,7 +86,7 @@ Now (real and cheap):
   describe `player.ts`, two workspaces, and yt-dlp upkeep.
 - [13](../briefs/done/13-rpg-block-actions-in-combat.md): a stale RPG
   controller can rest, explore or travel mid-fight.
-- [14](../briefs/todo/14-trivia-fetch-timeout.md): the OpenTDB fetch has no
+- [14](../briefs/done/14-trivia-fetch-timeout.md): the OpenTDB fetch has no
   timeout.
 - [15](../briefs/todo/15-reminder-text-length.md): a long reminder is deleted
   undelivered and breaks `/remindme list`.
