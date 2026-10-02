@@ -50,3 +50,16 @@ the human loses once their total thinking time passes 90 s.
   90 s in total.
 - Wait more than 90 s on your turn. The game ends with the "ran out of time"
   forfeit the docs describe. No docs change is needed.
+
+## Outcome (2026-10-02)
+
+The forfeit body moved into `armTurnTimer(messageId, match, message)`, which
+clears the previous handle before arming a fresh 90 s timer. `startMatch` calls
+it once the board is posted, and the placeholder `setTimeout(() => {}, 0)` is
+gone. `handleConnectFourButton` re-arms it after every move (after the bot's
+reply move in solo mode) unless the game finished. `finalize` is unchanged.
+`Match.timeoutHandle` became optional, since there is no timer before the first
+board.
+
+Verified: `npm run typecheck` is clean. **Not verified live** (no dev token
+here). The 60 s + 60 s no-forfeit run and the >90 s forfeit run are still owed.

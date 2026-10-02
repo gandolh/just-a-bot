@@ -1,6 +1,7 @@
 import {
   ButtonInteraction,
   ChatInputCommandInteraction,
+  type Message,
   SlashCommandBuilder,
 } from 'discord.js';
 import { dropDisc, newC4Game } from '../connect-four/game.ts';
@@ -25,6 +26,33 @@ const BOT_ID = 'bot';
 function finalize(messageId: string, match: Match): void {
   clearTimeout(match.timeoutHandle);
   matches.delete(messageId);
+}
+
+/**
+ * (Re)start the forfeit clock for whoever's turn it now is. Called when the
+ * board is first posted and after every move, so the 90 s is per turn, as the
+ * docs say. One timer for the whole match made any game longer than 90 s in
+ * total end in a forfeit, even for a player who had just moved.
+ */
+function armTurnTimer(messageId: string, match: Match, message: Message): void {
+  clearTimeout(match.timeoutHandle);
+  match.timeoutHandle = setTimeout(async () => {
+    const active = matches.get(messageId);
+    if (!active || active.game.finished) return;
+    matches.delete(messageId);
+    active.game.finished = true;
+
+    const timedOutDisc = active.game.turn;
+    const timedOut = sideLabel(active, timedOutDisc);
+    const winner = sideLabel(active, timedOutDisc === 'R' ? 'Y' : 'R');
+    const statusMsg = `⏱️ ${timedOut} ran out of time — ${winner} wins!`;
+
+    try {
+      await message.edit({ embeds: [buildEmbed(active, statusMsg)], components: [] });
+    } catch {
+      // message may have been deleted
+    }
+  }, TIMEOUT_MS);
 }
 
 export async function handleConnectFourButton(interaction: ButtonInteraction): Promise<void> {
@@ -56,6 +84,7 @@ export async function handleConnectFourButton(interaction: ButtonInteraction): P
   }
 
   if (match.game.finished) finalize(interaction.message.id, match);
+  else armTurnTimer(interaction.message.id, match, interaction.message);
 
   const embed = buildEmbed(match);
   const components = match.game.finished ? [] : buildColumnButtons(match.game);
@@ -78,7 +107,6 @@ async function startMatch(
     redUserId,
     yellowUserId,
     vsBot,
-    timeoutHandle: setTimeout(() => {}, 0),
   };
 
   const embed = buildEmbed(match);
@@ -88,32 +116,11 @@ async function startMatch(
     withResponse: true,
   });
 
-  const messageId = reply.resource?.message?.id;
-  if (!messageId) return;
+  const message = reply.resource?.message;
+  if (!message) return;
 
-  const handle = setTimeout(async () => {
-    const active = matches.get(messageId);
-    if (!active || active.game.finished) return;
-    matches.delete(messageId);
-    active.game.finished = true;
-
-    const timedOutDisc = active.game.turn;
-    const timedOut = sideLabel(active, timedOutDisc);
-    const winner = sideLabel(active, timedOutDisc === 'R' ? 'Y' : 'R');
-    const statusMsg = `⏱️ ${timedOut} ran out of time — ${winner} wins!`;
-
-    try {
-      const msg = reply.resource?.message;
-      if (msg) {
-        await msg.edit({ embeds: [buildEmbed(active, statusMsg)], components: [] });
-      }
-    } catch {
-      // message may have been deleted
-    }
-  }, TIMEOUT_MS);
-
-  match.timeoutHandle = handle;
-  matches.set(messageId, match);
+  matches.set(message.id, match);
+  armTurnTimer(message.id, match, message);
 }
 
 export const connectFour: Command = {

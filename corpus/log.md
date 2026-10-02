@@ -663,3 +663,15 @@ the RPG duel proposal and the town crier. `give.ts`'s per-message override is
 untouched.
 
 Full outcome on [the brief](briefs/done/05-default-allowed-mentions.md).
+
+## [2026-10-02] done | Brief 06: the Connect Four timer is per turn
+
+The forfeit body moved into `armTurnTimer(messageId, match, message)`, which
+clears the previous handle before arming a fresh 90 s timer. `startMatch` calls
+it once the board is posted, and the placeholder `setTimeout(() => {}, 0)` is
+gone. `handleConnectFourButton` re-arms it after every move (after the bot's
+reply move in solo mode) unless the game finished. `finalize` is unchanged.
+`Match.timeoutHandle` became optional, since there is no timer before the first
+board.
+
+Full outcome on [the brief](briefs/done/06-connect-four-per-turn-timer.md).

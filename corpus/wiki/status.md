@@ -62,7 +62,7 @@ Now (real and cheap):
   unused voice intent.
 - [05](../briefs/done/05-default-allowed-mentions.md): user text in reminders,
   `/ask` and RPG names can ping @everyone. Fix with one client option.
-- [06](../briefs/todo/06-connect-four-per-turn-timer.md): the Connect Four
+- [06](../briefs/done/06-connect-four-per-turn-timer.md): the Connect Four
   timer runs per game, not per turn. Any game longer than 90 s ends in a forfeit.
 - [07](../briefs/todo/07-container-state-volumes.md): the container has no data
   volume and `bots/data` is baked into the image. Needs the user to say whether

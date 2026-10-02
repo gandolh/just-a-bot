@@ -11,7 +11,8 @@ export interface Match {
   yellowUserId: string;
   /** True when yellow is the bot AI (solo mode). */
   vsBot: boolean;
-  timeoutHandle: ReturnType<typeof setTimeout>;
+  /** The current turn's forfeit timer. Unset until the first board is posted. */
+  timeoutHandle?: ReturnType<typeof setTimeout> | undefined;
 }
 
 export function userTag(id: string): string {
