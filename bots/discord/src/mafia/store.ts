@@ -1,4 +1,5 @@
-import { readFile, readdir, writeFile, mkdir } from 'node:fs/promises';
+import { readFile, readdir } from 'node:fs/promises';
+import { writeJsonFile } from '@bots/shared';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -43,7 +44,6 @@ export interface MafiaGame {
 }
 
 const cache = new Map<string, MafiaGame | null>();
-const writeChains = new Map<string, Promise<void>>();
 
 function pathFor(guildId: string): string {
   return resolve(dataDir, `${guildId}.json`);
@@ -68,27 +68,16 @@ export async function loadGame(guildId: string): Promise<MafiaGame | null> {
 async function persist(guildId: string, game: MafiaGame): Promise<void> {
   cache.set(guildId, game);
   const snapshot = JSON.stringify(game);
-  const prev = writeChains.get(guildId) ?? Promise.resolve();
-  const next = prev.then(async () => {
-    await mkdir(dataDir, { recursive: true });
-    await writeFile(pathFor(guildId), snapshot, 'utf8');
-  });
-  writeChains.set(guildId, next);
-  await next;
+  await writeJsonFile(pathFor(guildId), snapshot);
 }
 
 async function clearGame(guildId: string): Promise<void> {
   cache.set(guildId, null);
-  const prev = writeChains.get(guildId) ?? Promise.resolve();
-  const next = prev.then(async () => {
-    try {
-      await writeFile(pathFor(guildId), JSON.stringify(null), 'utf8');
-    } catch {
-      // ignore
-    }
-  });
-  writeChains.set(guildId, next);
-  await next;
+  try {
+    await writeJsonFile(pathFor(guildId), JSON.stringify(null));
+  } catch {
+    // ignore
+  }
 }
 
 export async function createGame(

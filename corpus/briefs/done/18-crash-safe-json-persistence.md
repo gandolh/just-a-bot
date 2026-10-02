@@ -111,3 +111,40 @@ logging safety net, but this brief should handle the error where it happens.
   lands.
 - **Shutdown test** (dev bot). Make an RPG move and send SIGINT within 2 s (Ctrl-C
   on `npm run discord:start`). After a restart, the move is in the world file.
+
+## Outcome (2026-10-02)
+
+`shared/src/json-file.ts` (exported from `@bots/shared`, no `discord.js`)
+provides `writeJsonFile(file, json)` and `flushPendingWrites()`.
+- Writes are atomic: `<file>.<pid>.tmp`, fsync, `rename`.
+- Each path has one chain that runs every write after the previous one
+  settles, so a failed write rejects only for its own caller.
+- A registry of in-flight chains backs the flush.
+
+All nine modules now persist through it. Each module's API, load semantics,
+formats, locations and caches are unchanged, and mafia's and D&D's `null`
+clear-writes still swallow errors as before. `timezones.ts` keeps its own
+read-modify-write chain and only swaps the write.
+
+In `rpg/world.ts`, `hookShutdown` and its signal handlers are gone, and the
+debounce timer catches and logs flush errors. `index.ts`'s shutdown clears the
+timers, awaits `flushAllWorlds()` then `flushPendingWrites()` bounded at 3 s,
+then destroys the client and exits. `ecosystem.config.cjs` gets
+`kill_timeout: 5000`.
+
+**One deviation:** the temp file is `<file>.<pid>.tmp`, not `<file>.tmp`. The
+first kill-test run had a writer survive into the next round, and two writers
+on one fixed temp name renamed each other's file away (ENOENT). The bot runs
+one process per token, but a restart or deploy can briefly overlap two, and
+the pid removes the risk.
+
+Verified:
+- `npm run typecheck` is clean, and `writeFile(` only appears inside the helper.
+- **Kill test:** a ~1.4 MB object written in a loop, `kill -9`ed at random
+  points 1.5-3.5 s in, 20 times. The file parsed every time, with the write
+  counter at a different value each round, and stderr stayed empty.
+- **Recovery test:** a write into a read-only directory rejected with EACCES,
+  and after the permissions came back the next write landed. The old chain
+  shape, run for comparison, skipped the later write.
+- **Not verified live:** the SIGINT-within-2-s RPG move on the dev bot (no dev
+  token here).

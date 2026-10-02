@@ -1,4 +1,5 @@
-import { readFile, writeFile, mkdir } from 'node:fs/promises';
+import { readFile } from 'node:fs/promises';
+import { writeJsonFile } from '@bots/shared';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { randomUUID } from 'node:crypto';
@@ -25,7 +26,6 @@ export interface QuoteBook {
 }
 
 const cache = new Map<string, QuoteBook>();
-const writeChains = new Map<string, Promise<void>>();
 
 function pathFor(guildId: string): string {
   return resolve(dataDir, `${guildId}.json`);
@@ -51,13 +51,7 @@ export async function loadBook(guildId: string): Promise<QuoteBook> {
 async function persist(guildId: string, book: QuoteBook): Promise<void> {
   cache.set(guildId, book);
   const snapshot = JSON.stringify(book);
-  const prev = writeChains.get(guildId) ?? Promise.resolve();
-  const next = prev.then(async () => {
-    await mkdir(dataDir, { recursive: true });
-    await writeFile(pathFor(guildId), snapshot, 'utf8');
-  });
-  writeChains.set(guildId, next);
-  await next;
+  await writeJsonFile(pathFor(guildId), snapshot);
 }
 
 export function newQuoteId(): string {

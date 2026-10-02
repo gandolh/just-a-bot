@@ -98,7 +98,7 @@ Next (a bigger slice):
 - [17](../briefs/done/17-mafia-phase-timers.md): mafia phases can resolve
   twice, a stale lobby timer can kill the next lobby, and nothing re-arms timers
   after a restart.
-- [18](../briefs/todo/18-crash-safe-json-persistence.md): JSON writes aren't
+- [18](../briefs/done/18-crash-safe-json-persistence.md): JSON writes aren't
   atomic, one failed write stops all later ones, and shutdown doesn't wait for
   writes.
 - [19](../briefs/todo/19-node-test-suite.md): a zero-dependency `node:test`

@@ -1,5 +1,5 @@
 import { Client, Events, GatewayIntentBits, Partials } from 'discord.js';
-import { logger } from '@bots/shared';
+import { flushPendingWrites, logger } from '@bots/shared';
 import { env } from './env.ts';
 import { commands, contextMenuCommands } from './commands/index.ts';
 import { handleBlackjackButton } from './commands/blackjack.ts';
@@ -12,6 +12,7 @@ import { handleTicTacToeButton } from './commands/tictactoe.ts';
 import { handleQuoteListButton } from './commands/quote.ts';
 import { tickReminders, tickBirthdays } from './reminders/tick.ts';
 import { tickCrier } from './rpg/crier.ts';
+import { flushAllWorlds } from './rpg/world.ts';
 import { handleTriviaButton } from './commands/trivia.ts';
 import { handleRpgButton } from './commands/rpg-buttons.ts';
 import { handleMafiaButton } from './commands/mafia.ts';
@@ -225,13 +226,28 @@ const crierTimer = setInterval(() => {
 // hits "Interaction has already been acknowledged" (40060). Destroying the
 // client closes the socket immediately, removing that overlap window.
 let shuttingDown = false;
-const shutdown = (signal: string) => {
+//
+// Before that, let pending writes land: the RPG's debounced moves (up to 2.5 s
+// old) and anything in flight in any store. Exiting first cut them off, mid-write
+// in the worst case. Bounded, so a stuck disk can't hold the exit forever; pm2's
+// `kill_timeout` (ecosystem.config.cjs) allows for it.
+const SHUTDOWN_FLUSH_MS = 3_000;
+const shutdown = async (signal: string) => {
   if (shuttingDown) return;
   shuttingDown = true;
   log.info(`Received ${signal}, shutting down…`);
   clearInterval(reminderTimer);
   clearInterval(crierTimer);
-  void client.destroy().finally(() => process.exit(0));
+  const flushed = (async () => {
+    await flushAllWorlds();
+    await flushPendingWrites();
+  })().catch((err) => log.error('Flushing state on shutdown failed', err));
+  const timedOut = new Promise<'timeout'>((resolve) => setTimeout(() => resolve('timeout'), SHUTDOWN_FLUSH_MS));
+  if ((await Promise.race([flushed, timedOut])) === 'timeout') {
+    log.error(`State flush still running after ${SHUTDOWN_FLUSH_MS} ms; exiting anyway`);
+  }
+  await client.destroy().catch(() => {});
+  process.exit(0);
 };
-process.once('SIGINT', () => shutdown('SIGINT'));
-process.once('SIGTERM', () => shutdown('SIGTERM'));
+process.once('SIGINT', () => void shutdown('SIGINT'));
+process.once('SIGTERM', () => void shutdown('SIGTERM'));

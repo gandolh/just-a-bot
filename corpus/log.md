@@ -779,3 +779,14 @@ All four parts done, with a scratch harness around a stubbed client (exactly
 `harness-*` guild files, deleted afterwards.
 
 Full outcome on [the brief](briefs/done/17-mafia-phase-timers.md).
+
+## [2026-10-02] done | Brief 18: atomic JSON writes, a recovering write chain, a flushed shutdown
+
+`shared/src/json-file.ts` (exported from `@bots/shared`, no `discord.js`)
+provides `writeJsonFile(file, json)` and `flushPendingWrites()`.
+- Writes are atomic: `<file>.<pid>.tmp`, fsync, `rename`.
+- Each path has one chain that runs every write after the previous one
+  settles, so a failed write rejects only for its own caller.
+- A registry of in-flight chains backs the flush.
+
+Full outcome on [the brief](briefs/done/18-crash-safe-json-persistence.md).

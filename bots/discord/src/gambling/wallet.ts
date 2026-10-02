@@ -1,5 +1,6 @@
-import { readFile, writeFile, mkdir } from 'node:fs/promises';
-import { dirname, resolve } from 'node:path';
+import { readFile } from 'node:fs/promises';
+import { writeJsonFile } from '@bots/shared';
+import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const here = fileURLToPath(new URL('.', import.meta.url));
@@ -10,7 +11,6 @@ export const MAX_ADD = 100_000;
 type WalletState = Record<string, number>;
 
 let state: WalletState | null = null;
-let writeChain: Promise<void> = Promise.resolve();
 
 async function load(): Promise<WalletState> {
   if (state) return state;
@@ -27,11 +27,7 @@ async function load(): Promise<WalletState> {
 
 async function persist(): Promise<void> {
   const snapshot = JSON.stringify(state ?? {}, null, 2);
-  writeChain = writeChain.then(async () => {
-    await mkdir(dirname(dataFile), { recursive: true });
-    await writeFile(dataFile, snapshot, 'utf8');
-  });
-  await writeChain;
+  await writeJsonFile(dataFile, snapshot);
 }
 
 export async function getBalance(userId: string): Promise<number> {

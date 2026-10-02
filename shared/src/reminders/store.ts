@@ -1,4 +1,5 @@
-import { readFile, writeFile, mkdir } from 'node:fs/promises';
+import { readFile } from 'node:fs/promises';
+import { writeJsonFile } from '../json-file.ts';
 import { dirname } from 'node:path';
 
 export type BaseReminder = {
@@ -18,7 +19,6 @@ export type ReminderStore<R extends BaseReminder> = {
 
 export function createReminderStore<R extends BaseReminder>(dataFile: string): ReminderStore<R> {
   let state: R[] | null = null;
-  let writeChain: Promise<void> = Promise.resolve();
 
   async function load(): Promise<R[]> {
     if (state) return state;
@@ -35,11 +35,7 @@ export function createReminderStore<R extends BaseReminder>(dataFile: string): R
 
   async function persist(): Promise<void> {
     const snapshot = JSON.stringify(state ?? [], null, 2);
-    writeChain = writeChain.then(async () => {
-      await mkdir(dirname(dataFile), { recursive: true });
-      await writeFile(dataFile, snapshot, 'utf8');
-    });
-    await writeChain;
+    await writeJsonFile(dataFile, snapshot);
   }
 
   return {

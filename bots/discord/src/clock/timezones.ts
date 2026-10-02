@@ -1,5 +1,6 @@
-import { readFile, writeFile, mkdir } from 'node:fs/promises';
-import { dirname, resolve } from 'node:path';
+import { readFile } from 'node:fs/promises';
+import { writeJsonFile } from '@bots/shared';
+import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const here = fileURLToPath(new URL('.', import.meta.url));
@@ -29,8 +30,7 @@ async function update(mutate: (state: TimezoneState) => void): Promise<void> {
   const run = writeChain.then(async () => {
     const state = await read();
     mutate(state);
-    await mkdir(dirname(dataFile), { recursive: true });
-    await writeFile(dataFile, JSON.stringify(state, null, 2), 'utf8');
+    await writeJsonFile(dataFile, JSON.stringify(state, null, 2));
   });
   // Keep the chain alive even if this write throws, but surface the error here.
   writeChain = run.catch(() => {});

@@ -1,4 +1,5 @@
-import { readFile, writeFile, mkdir } from 'node:fs/promises';
+import { readFile } from 'node:fs/promises';
+import { writeJsonFile } from '@bots/shared';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -18,7 +19,6 @@ export interface ConfessionStore {
 }
 
 const cache = new Map<string, ConfessionStore>();
-const writeChains = new Map<string, Promise<void>>();
 
 function pathFor(guildId: string): string {
   return resolve(dataDir, `${guildId}.json`);
@@ -44,13 +44,7 @@ export async function loadStore(guildId: string): Promise<ConfessionStore> {
 async function persist(guildId: string, store: ConfessionStore): Promise<void> {
   cache.set(guildId, store);
   const snapshot = JSON.stringify(store, null, 2);
-  const prev = writeChains.get(guildId) ?? Promise.resolve();
-  const next = prev.then(async () => {
-    await mkdir(dataDir, { recursive: true });
-    await writeFile(pathFor(guildId), snapshot, 'utf8');
-  });
-  writeChains.set(guildId, next);
-  await next;
+  await writeJsonFile(pathFor(guildId), snapshot);
 }
 
 export async function setChannel(guildId: string, channelId: string): Promise<void> {

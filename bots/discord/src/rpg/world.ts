@@ -1,8 +1,10 @@
-import { readFile, writeFile, mkdir } from 'node:fs/promises';
+import { readFile } from 'node:fs/promises';
+import { logger, writeJsonFile } from '@bots/shared';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { ITEMS } from './items.ts';
 
+const log = logger.scoped('rpg');
 const here = fileURLToPath(new URL('.', import.meta.url));
 const dataDir = resolve(here, '../../data/rpg');
 
@@ -230,7 +232,6 @@ export const MOB_KINDS: Record<string, MobKind> = {
 };
 
 const cache = new Map<string, World>();
-const writeChains = new Map<string, Promise<void>>();
 
 // Debounced persistence. The in-memory cache is always authoritative, so reads
 // never see stale data even before a write lands. Disk writes for a guild are
@@ -240,19 +241,12 @@ const DEBOUNCE_MS = 2500;
 const dirty = new Set<string>();
 const flushTimers = new Map<string, NodeJS.Timeout>();
 
-// The data directory is created once, not on every write.
-let dataDirReady: Promise<void> | null = null;
-function ensureDataDir(): Promise<void> {
-  if (!dataDirReady) dataDirReady = mkdir(dataDir, { recursive: true }).then(() => undefined);
-  return dataDirReady;
-}
-
 function pathFor(guildId: string): string {
   return resolve(dataDir, `${guildId}.json`);
 }
 
-// Serialize the current cached world for a guild to disk, chained so concurrent
-// flushes for the same guild never interleave.
+// Serialize the current cached world for a guild to disk. `writeJsonFile`
+// chains writes per file, so concurrent flushes for one guild never interleave.
 function flush(guildId: string): Promise<void> {
   const world = cache.get(guildId);
   if (!world) return Promise.resolve();
@@ -260,14 +254,7 @@ function flush(guildId: string): Promise<void> {
   const timer = flushTimers.get(guildId);
   if (timer) { clearTimeout(timer); flushTimers.delete(guildId); }
 
-  const snapshot = JSON.stringify(world);
-  const prev = writeChains.get(guildId) ?? Promise.resolve();
-  const next = prev.then(async () => {
-    await ensureDataDir();
-    await writeFile(pathFor(guildId), snapshot, 'utf8');
-  });
-  writeChains.set(guildId, next);
-  return next;
+  return writeJsonFile(pathFor(guildId), JSON.stringify(world));
 }
 
 // Mark a guild's world dirty and schedule a debounced flush. Exported so the
@@ -283,15 +270,16 @@ function scheduleFlush(guildId: string): void {
   if (flushTimers.has(guildId)) return;
   const timer = setTimeout(() => {
     flushTimers.delete(guildId);
-    if (dirty.has(guildId)) void flush(guildId);
+    // Handled here: a failed write must not become an unhandled rejection.
+    if (dirty.has(guildId)) flush(guildId).catch((err) => log.error(`RPG world flush failed for ${guildId}`, err));
   }, DEBOUNCE_MS);
   // Don't keep the process alive solely for a pending save.
   if (typeof timer.unref === 'function') timer.unref();
   flushTimers.set(guildId, timer);
 }
 
-// Flush every dirty world now — called on shutdown so the last debounce window
-// isn't lost.
+// Flush every dirty world now. `index.ts`'s shutdown awaits this, so the last
+// debounce window isn't lost.
 export async function flushAllWorlds(): Promise<void> {
   await Promise.all([...dirty].map((g) => flush(g)));
 }
@@ -301,16 +289,6 @@ export async function flushAllWorlds(): Promise<void> {
 // tick of a move press).
 export async function flushWorld(guildId: string): Promise<void> {
   await flush(guildId);
-}
-
-let shutdownHooked = false;
-function hookShutdown(): void {
-  if (shutdownHooked) return;
-  shutdownHooked = true;
-  const onExit = () => { void flushAllWorlds(); };
-  process.once('SIGINT', onExit);
-  process.once('SIGTERM', onExit);
-  process.once('beforeExit', onExit);
 }
 
 export async function loadWorld(guildId: string): Promise<World | null> {
@@ -351,7 +329,6 @@ export async function updateWorld(
   mutate: (world: World) => void | Promise<void>,
   opts?: { urgent?: boolean },
 ): Promise<World> {
-  hookShutdown();
   let world = await loadWorld(guildId);
   if (!world) world = await getOrCreateWorld(guildId);
   await mutate(world);

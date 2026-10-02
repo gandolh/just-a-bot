@@ -1,4 +1,5 @@
-import { readFile, writeFile, mkdir } from 'node:fs/promises';
+import { readFile } from 'node:fs/promises';
+import { writeJsonFile } from '@bots/shared';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -65,7 +66,6 @@ export interface Campaign {
 }
 
 const cache = new Map<string, Campaign | null>();
-const writeChains = new Map<string, Promise<void>>();
 
 function pathFor(guildId: string): string {
   return resolve(dataDir, `${guildId}.json`);
@@ -91,27 +91,16 @@ async function persist(guildId: string, campaign: Campaign): Promise<void> {
   campaign.updatedAt = new Date().toISOString();
   cache.set(guildId, campaign);
   const snapshot = JSON.stringify(campaign);
-  const prev = writeChains.get(guildId) ?? Promise.resolve();
-  const next = prev.then(async () => {
-    await mkdir(dataDir, { recursive: true });
-    await writeFile(pathFor(guildId), snapshot, 'utf8');
-  });
-  writeChains.set(guildId, next);
-  await next;
+  await writeJsonFile(pathFor(guildId), snapshot);
 }
 
 async function clear(guildId: string): Promise<void> {
   cache.set(guildId, null);
-  const prev = writeChains.get(guildId) ?? Promise.resolve();
-  const next = prev.then(async () => {
-    try {
-      await writeFile(pathFor(guildId), JSON.stringify(null), 'utf8');
-    } catch {
-      // ignore
-    }
-  });
-  writeChains.set(guildId, next);
-  await next;
+  try {
+    await writeJsonFile(pathFor(guildId), JSON.stringify(null));
+  } catch {
+    // ignore
+  }
 }
 
 export async function startCampaign(
