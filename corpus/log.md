@@ -684,3 +684,10 @@ inventory holds fewer copies than offered. `moveItems` gives the receiver a copy
 only when the giver's splice removed one. Coins are untouched.
 
 Full outcome on [the brief](briefs/done/08-rpg-trade-item-dupe.md).
+
+## [2026-10-02] done | Brief 09: /clock prints each zone's own UTC offset
+
+`formatLocalTime`'s offset block is replaced by `getUtcOffsetMinutes(tz)`, with
+the formatting unchanged.
+
+Full outcome on [the brief](briefs/done/09-clock-utc-offset.md).

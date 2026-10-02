@@ -44,3 +44,17 @@ for sorting at `:131` and `:148`.
 - The same offsets appear under `TZ=Europe/Bucharest`.
 - If brief 19 has landed, export `formatLocalTime` and assert these offsets in a
   test instead.
+
+## Outcome (2026-10-02)
+
+`formatLocalTime`'s offset block is replaced by `getUtcOffsetMinutes(tz)`, with
+the formatting unchanged.
+
+Verified by running the two functions from `clock.ts`'s own source in a tsx
+scratch script on 2026-10-02 (US daylight time on). Under both `TZ=UTC` and
+`TZ=Europe/Bucharest` the offsets are Tokyo `UTC+09:00`, Kolkata `UTC+05:30`,
+New York `UTC-04:00` and Bucharest `UTC+03:00`. The pre-fix code under
+`TZ=UTC` printed `UTC+00:00` for all of them. A midnight check confirmed
+`en-CA` with `hour12: false` prints `00`, not `24`, so the shared helper's parse
+is safe. `npm run typecheck` is clean. The `/clock show` run on the dev app is
+still owed.

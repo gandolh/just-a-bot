@@ -69,7 +69,7 @@ Now (real and cheap):
   pm2 or Docker is live.
 - [08](../briefs/done/08-rpg-trade-item-dupe.md): RPG trades can duplicate
   items.
-- [09](../briefs/todo/09-clock-utc-offset.md): `/clock` shows the host's UTC
+- [09](../briefs/done/09-clock-utc-offset.md): `/clock` shows the host's UTC
   offset for every zone.
 - [10](../briefs/todo/10-bump-discordjs-and-audit.md): discord.js 14.27.0 plus
   `npm audit fix` clears 5 production advisories.

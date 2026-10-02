@@ -16,16 +16,10 @@ function formatLocalTime(tz: string): string {
     timeZone: tz,
   }).format(now);
 
-  // Compute UTC offset string (e.g. UTC+02:00 or UTC-04:00)
-  const offsetMin = -new Date(
-    new Intl.DateTimeFormat('en-CA', {
-      timeZone: tz,
-      year: 'numeric', month: '2-digit', day: '2-digit',
-      hour: '2-digit', minute: '2-digit', second: '2-digit',
-      hour12: false,
-    }).format(now)
-      .replace(/(\d+)-(\d+)-(\d+),? (\d+):(\d+):(\d+)/, '$1-$2-$3T$4:$5:$6')
-  ).getTimezoneOffset();
+  // The zone's own UTC offset (e.g. UTC+02:00 or UTC-04:00). This used to parse
+  // the zone's wall clock and call `getTimezoneOffset()` on it, which reports the
+  // *host's* offset, so a UTC server printed UTC+00:00 for every zone.
+  const offsetMin = getUtcOffsetMinutes(tz);
 
   const sign = offsetMin >= 0 ? '+' : '-';
   const absMin = Math.abs(offsetMin);
