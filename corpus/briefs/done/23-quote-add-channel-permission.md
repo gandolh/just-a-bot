@@ -52,3 +52,17 @@ it on a message the member is already looking at.
   message's link is refused. `/quote search` finds nothing from it.
 - From an account that can see the channel, `/quote add` still works, and so
   does the Save Quote menu.
+
+## Outcome (2026-10-02)
+
+`handleAdd` now checks the invoker's access after fetching the channel and
+before fetching the message: `channel.permissionsFor(interaction.user.id)` must
+include both `ViewChannel` and `ReadMessageHistory`. A missing channel, a DM
+channel, a non-text channel, a null permission result (member not cached, so
+it fails closed) and missing permissions all get the same ephemeral reply,
+"You can't quote from a channel you can't read.", so the check doesn't confirm
+a hidden channel exists. The store and display commands are untouched, and
+quotes saved earlier stay.
+
+Verified: `npm run typecheck` is clean. **Not verified live:** the
+two-account test on the dev guild (no dev token here).

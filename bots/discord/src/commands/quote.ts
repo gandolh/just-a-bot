@@ -122,9 +122,21 @@ async function handleAdd(interaction: ChatInputCommandInteraction): Promise<void
 
   await interaction.deferReply({ ephemeral: true });
 
+  // The bot can read channels the invoker can't, and saved quotes are posted
+  // publicly by /quote random, search and by. So check the *invoker's* access
+  // before fetching anything: otherwise /quote add copies a mod-only message
+  // into a public channel. One reply for "no such channel" and "can't read it",
+  // so the refusal doesn't confirm that a hidden channel exists. For a thread,
+  // permissionsFor covers the parent's permissions. A member not in cache gets
+  // null and is refused: fail closed.
   const channel = await interaction.client.channels.fetch(channelId).catch(() => null);
-  if (!channel || !channel.isTextBased()) {
-    await interaction.editReply('Could not find that channel.');
+  const perms = channel && !channel.isDMBased() ? channel.permissionsFor(interaction.user.id) : null;
+  if (
+    !channel ||
+    !channel.isTextBased() ||
+    !perms?.has([PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.ReadMessageHistory])
+  ) {
+    await interaction.editReply("You can't quote from a channel you can't read.");
     return;
   }
 

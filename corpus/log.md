@@ -841,3 +841,16 @@ highlighted winning line, no timeout so an abandoned game lives until a
 restart). Both are in the feature index.
 
 Full outcome on [the brief](briefs/done/22-docs-games-pages.md).
+
+## [2026-10-02] done | Brief 23: /quote add only saves messages the invoker can read
+
+`handleAdd` now checks the invoker's access after fetching the channel and
+before fetching the message: `channel.permissionsFor(interaction.user.id)` must
+include both `ViewChannel` and `ReadMessageHistory`. A missing channel, a DM
+channel, a non-text channel, a null permission result (member not cached, so
+it fails closed) and missing permissions all get the same ephemeral reply,
+"You can't quote from a channel you can't read.", so the check doesn't confirm
+a hidden channel exists. The store and display commands are untouched, and
+quotes saved earlier stay.
+
+Full outcome on [the brief](briefs/done/23-quote-add-channel-permission.md).

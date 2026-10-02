@@ -109,7 +109,7 @@ Second pass (it read `../vps-deploy`, which the first didn't):
 - [20](../briefs/todo/20-estate-state-protection.md): the estate deploy treats
   the bot as stateless. Its rsync overwrites `bots/data` on every deploy, and
   07's step 4 would overwrite the pm2-era state. **Deploy 07 and 20 together.**
-- [23](../briefs/todo/23-quote-add-channel-permission.md): `/quote add` saves
+- [23](../briefs/done/23-quote-add-channel-permission.md): `/quote add` saves
   messages from channels the invoker can't read, and `/quote search` then posts
   them publicly.
 - [21](../briefs/done/21-help-from-registry.md): `/help` lists 7 removed music
