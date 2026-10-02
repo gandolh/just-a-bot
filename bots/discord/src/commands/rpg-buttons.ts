@@ -194,8 +194,18 @@ async function handleControllerButton(
     if (!char) { missing = true; return; }
     char.away = false;
 
-    // If mid-combat, stay on the combat screen by default.
-    if (char.encounter) screen = 'combat';
+    // Mid-fight, only the combat actions run. Players often have an older
+    // controller still open, and without this its Rest healed for free, Explore
+    // swapped a losing fight for a fresh mob, and Travel walked out of it. The
+    // `screen` action is blocked too: it would otherwise override the combat
+    // screen.
+    if (char.encounter) {
+      screen = 'combat';
+      if (action !== 'fight' && action !== 'flee' && action !== 'combatpotion') {
+        banner = "You're in a fight! Attack, flee, or drink a potion.";
+        return;
+      }
+    }
 
     switch (action) {
       case 'screen':

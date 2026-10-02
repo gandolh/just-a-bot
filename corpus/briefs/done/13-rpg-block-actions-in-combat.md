@@ -55,3 +55,14 @@ starts. They then use the older controller A:
   the banner. HP doesn't change and the mob stays the same.
 - Attack, Flee and Potion still work.
 - Once the fight ends, location actions work again.
+
+## Outcome (2026-10-02)
+
+`handleControllerButton` now guards before the action switch. With
+`char.encounter` set, any action other than `fight`, `flee` or `combatpotion`
+(`screen` included) sets the combat screen and the banner "You're in a fight!
+Attack, flee, or drink a potion." and returns from the mutate callback. `rpg/*.ts`
+and the duel and trade handlers are untouched.
+
+Verified: `npm run typecheck` is clean. **Not verified live:** the
+two-controller run on the dev app (no dev token here).

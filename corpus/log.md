@@ -736,3 +736,13 @@ All five items fixed:
   and the container image, pointing at briefs 07 and 20 for the deploy path.
 
 Full outcome on [the brief](briefs/done/12-corpus-drift.md).
+
+## [2026-10-02] done | Brief 13: an older RPG controller can't act mid-fight
+
+`handleControllerButton` now guards before the action switch. With
+`char.encounter` set, any action other than `fight`, `flee` or `combatpotion`
+(`screen` included) sets the combat screen and the banner "You're in a fight!
+Attack, flee, or drink a potion." and returns from the mutate callback. `rpg/*.ts`
+and the duel and trade handlers are untouched.
+
+Full outcome on [the brief](briefs/done/13-rpg-block-actions-in-combat.md).

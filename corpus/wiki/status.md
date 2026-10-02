@@ -84,7 +84,7 @@ Now (real and cheap):
   code. The setup page names the wrong env vars.
 - [12](../briefs/done/12-corpus-drift.md): the wiki and root CLAUDE.md still
   describe `player.ts`, two workspaces, and yt-dlp upkeep.
-- [13](../briefs/todo/13-rpg-block-actions-in-combat.md): a stale RPG
+- [13](../briefs/done/13-rpg-block-actions-in-combat.md): a stale RPG
   controller can rest, explore or travel mid-fight.
 - [14](../briefs/todo/14-trivia-fetch-timeout.md): the OpenTDB fetch has no
   timeout.
