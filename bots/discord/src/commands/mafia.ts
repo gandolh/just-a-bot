@@ -23,7 +23,7 @@ import {
   joinButton,
   lobbyEmbed,
 } from '../mafia/render.ts';
-import { cancelTimers, startDay } from '../mafia/phases.ts';
+import { armLobbyTimer, cancelTimers, clearLobbyTimer, startDay } from '../mafia/phases.ts';
 import { sendRoleDms } from '../mafia/dm.ts';
 
 const MIN_PLAYERS = 5;
@@ -116,15 +116,27 @@ async function handleStart(interaction: ChatInputCommandInteraction): Promise<vo
 
   await interaction.editReply({ content: `Mafia game lobby opened in ${thread}!` });
 
-  setTimeout(() => {
-    void lobbyExpire(interaction.client, guildId);
-  }, 60_000);
+  armLobbyExpiry(interaction.client, game, 60_000);
+}
+
+/**
+ * Arm a lobby's expiry, tied to *this* game. The handle is kept (so cancel and
+ * launch can clear it) and the callback carries the game's `createdAt`: a
+ * cancelled lobby's timer used to fire on the next lobby in the same guild and
+ * expire or force-launch it early.
+ */
+export function armLobbyExpiry(
+  client: import('discord.js').Client,
+  game: MafiaGame,
+  ms: number,
+): void {
+  armLobbyTimer(game.guildId, ms, () => void lobbyExpire(client, game.guildId, game.createdAt));
 }
 
 async function handleJoin(interaction: ChatInputCommandInteraction): Promise<void> {
   const guildId = interaction.guildId!;
   const game = await loadGame(guildId);
-  if (!game || game.phase !== 'lobby') {
+  if (!game || game.phase !== 'lobby' || launching.has(guildId)) {
     await replyEphemeral(interaction, 'No open Mafia lobby right now. Start one with `/mafia start`.');
     return;
   }
@@ -278,7 +290,7 @@ export async function handleMafiaButton(interaction: ButtonInteraction): Promise
 
 async function handleJoinButton(interaction: ButtonInteraction, guildId: string): Promise<void> {
   const game = await loadGame(guildId);
-  if (!game || game.phase !== 'lobby') {
+  if (!game || game.phase !== 'lobby' || launching.has(guildId)) {
     await interaction.reply({ content: 'The lobby is no longer open.', ephemeral: true });
     return;
   }
@@ -346,9 +358,14 @@ async function handleNightActionButton(
 
 // ── Internal helpers ───────────────────────────────────────────────────────
 
-async function lobbyExpire(client: import('discord.js').Client, guildId: string): Promise<void> {
+async function lobbyExpire(
+  client: import('discord.js').Client,
+  guildId: string,
+  createdAt: string,
+): Promise<void> {
   const game = await loadGame(guildId);
-  if (!game || game.phase !== 'lobby') return;
+  // A different game than the one this timer was armed for: leave it alone.
+  if (!game || game.phase !== 'lobby' || game.createdAt !== createdAt) return;
 
   const count = Object.keys(game.players).length;
   if (count < MIN_PLAYERS) {
@@ -369,9 +386,33 @@ async function lobbyExpire(client: import('discord.js').Client, guildId: string)
   await launchGame(client, guildId);
 }
 
+/**
+ * Guilds whose lobby is being launched. The phase only leaves `lobby` when
+ * `startDay` runs, after role assignment and the role DMs, so two launches
+ * (start-now clicked twice, or start-now racing the lobby timer) both got
+ * through: conflicting role DMs and two `startDay`s. A join in that window got a
+ * player with no role. The claim is taken synchronously after the phase check,
+ * and both join paths refuse while it is held.
+ */
+const launching = new Set<string>();
+
 async function launchGame(client: import('discord.js').Client, guildId: string): Promise<void> {
   const game = await loadGame(guildId);
-  if (!game || game.phase !== 'lobby') return;
+  if (!game || game.phase !== 'lobby' || launching.has(guildId)) return;
+  launching.add(guildId);
+  try {
+    clearLobbyTimer(guildId);
+    await launchClaimedGame(client, guildId, game);
+  } finally {
+    launching.delete(guildId);
+  }
+}
+
+async function launchClaimedGame(
+  client: import('discord.js').Client,
+  guildId: string,
+  game: MafiaGame,
+): Promise<void> {
 
   const players = Object.values(game.players);
   assignRoles(players);

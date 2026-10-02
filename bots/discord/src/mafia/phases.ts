@@ -1,5 +1,5 @@
 import type { Client } from 'discord.js';
-import { loadGame, updateGame } from './store.ts';
+import { listPersistedGames, loadGame, updateGame } from './store.ts';
 import type { MafiaGame, Player } from './store.ts';
 import { alivePlayers, aliveByRole, checkWin } from './roles.ts';
 import {
@@ -11,33 +11,89 @@ import {
 } from './render.ts';
 import { postToThread, sendNightActionDms } from './dm.ts';
 
-// Track active deadline timers so they can be cancelled
+const DAY_MS = 5 * 60_000;
+const NIGHT_MS = 2 * 60_000;
+
+// Track active deadline timers so they can be cancelled. All three are keyed by
+// guild, and arming one always clears the previous handle first: an overwritten
+// handle is a timer nobody can cancel, which later fires into the wrong phase.
 const dayTimers = new Map<string, ReturnType<typeof setTimeout>>();
 const nightTimers = new Map<string, ReturnType<typeof setTimeout>>();
+const lobbyTimers = new Map<string, ReturnType<typeof setTimeout>>();
+
+/**
+ * Phase resolutions in flight, as `${guildId}:day` / `${guildId}:night`.
+ *
+ * The phase only changes inside `startNight`/`startDay`, several awaits after a
+ * resolution begins, and `loadGame` hands every caller the same cached object.
+ * So two votes that both reach the majority, or a double-clicked night action,
+ * used to resolve the same phase twice: a second "no majority" post, a second
+ * round of night DMs, a skipped day number, an orphaned timer. The claim is
+ * taken synchronously after the phase check, before any await, which makes the
+ * check-and-claim atomic. It lives in memory because the cached game does too:
+ * a restart clears both. Day and night are claimed separately so a night that
+ * completes while `resolveDay` is still sending night DMs is not dropped.
+ */
+const resolving = new Set<string>();
+
+function armDayTimer(client: Client, guildId: string, ms: number): void {
+  clearTimer(dayTimers, guildId);
+  dayTimers.set(guildId, setTimeout(() => {
+    dayTimers.delete(guildId);
+    void resolveDay(client, guildId);
+  }, ms));
+}
+
+function armNightTimer(client: Client, guildId: string, ms: number): void {
+  clearTimer(nightTimers, guildId);
+  nightTimers.set(guildId, setTimeout(() => {
+    nightTimers.delete(guildId);
+    void resolveNight(client, guildId);
+  }, ms));
+}
+
+/** Arm (or re-arm) a lobby's expiry. `fire` must check it still has the same
+ * game — see `lobbyExpire` in `commands/mafia.ts`. */
+export function armLobbyTimer(guildId: string, ms: number, fire: () => void): void {
+  clearTimer(lobbyTimers, guildId);
+  lobbyTimers.set(guildId, setTimeout(() => {
+    lobbyTimers.delete(guildId);
+    fire();
+  }, ms));
+}
+
+export function clearLobbyTimer(guildId: string): void {
+  clearTimer(lobbyTimers, guildId);
+}
 
 export async function startDay(client: Client, guildId: string): Promise<void> {
   const game = await updateGame(guildId, (g) => {
     g.phase = 'day';
     g.day += 1;
     g.votes = [];
-    g.phaseDeadline = new Date(Date.now() + 5 * 60_000).toISOString();
+    g.phaseDeadline = new Date(Date.now() + DAY_MS).toISOString();
   });
   if (!game) return;
 
   await postToThread(client, game, { embeds: [dayEmbed(game)] });
-
-  const timer = setTimeout(() => {
-    dayTimers.delete(guildId);
-    void resolveDay(client, guildId);
-  }, 5 * 60_000);
-  dayTimers.set(guildId, timer);
+  armDayTimer(client, guildId, DAY_MS);
 }
 
 export async function resolveDay(client: Client, guildId: string): Promise<void> {
-  clearTimer(dayTimers, guildId);
-
   const game = await loadGame(guildId);
   if (!game || game.phase !== 'day') return;
+  const claim = `${guildId}:day`;
+  if (resolving.has(claim)) return;
+  resolving.add(claim);
+  try {
+    clearTimer(dayTimers, guildId);
+    await resolveClaimedDay(client, guildId, game);
+  } finally {
+    resolving.delete(claim);
+  }
+}
+
+async function resolveClaimedDay(client: Client, guildId: string, game: MafiaGame): Promise<void> {
 
   const alive = alivePlayers(game);
   const threshold = Math.floor(alive.length / 2) + 1;
@@ -94,25 +150,30 @@ export async function startNight(client: Client, guildId: string): Promise<void>
   const game = await updateGame(guildId, (g) => {
     g.phase = 'night';
     g.nightActions = [];
-    g.phaseDeadline = new Date(Date.now() + 2 * 60_000).toISOString();
+    g.phaseDeadline = new Date(Date.now() + NIGHT_MS).toISOString();
   });
   if (!game) return;
 
   await postToThread(client, game, { embeds: [nightEmbed(game)] });
   await sendNightActionDms(client, game);
-
-  const timer = setTimeout(() => {
-    nightTimers.delete(guildId);
-    void resolveNight(client, guildId);
-  }, 2 * 60_000);
-  nightTimers.set(guildId, timer);
+  armNightTimer(client, guildId, NIGHT_MS);
 }
 
 export async function resolveNight(client: Client, guildId: string): Promise<void> {
-  clearTimer(nightTimers, guildId);
-
   const game = await loadGame(guildId);
   if (!game || game.phase !== 'night') return;
+  const claim = `${guildId}:night`;
+  if (resolving.has(claim)) return;
+  resolving.add(claim);
+  try {
+    clearTimer(nightTimers, guildId);
+    await resolveClaimedNight(client, guildId, game);
+  } finally {
+    resolving.delete(claim);
+  }
+}
+
+async function resolveClaimedNight(client: Client, guildId: string, game: MafiaGame): Promise<void> {
 
   const killAction = game.nightActions.find((a) => a.kind === 'kill');
   const saveAction = game.nightActions.find((a) => a.kind === 'save');
@@ -172,6 +233,34 @@ export async function endGame(
 export function cancelTimers(guildId: string): void {
   clearTimer(dayTimers, guildId);
   clearTimer(nightTimers, guildId);
+  clearTimer(lobbyTimers, guildId);
+}
+
+/**
+ * Re-arm every persisted game's timer at boot. Timers live in process memory,
+ * so after a deploy or crash a game mid-day never ended and `/mafia start` kept
+ * answering "already running". The deadlines are persisted; a deadline that
+ * passed while the bot was down resolves now.
+ */
+export async function rearmMafiaTimers(client: Client): Promise<void> {
+  const remaining = (iso: string | null, fallback: number) =>
+    iso === null ? fallback : Math.max(0, new Date(iso).getTime() - Date.now());
+
+  for (const game of await listPersistedGames()) {
+    const { guildId } = game;
+    if (game.phase === 'lobby') {
+      const { armLobbyExpiry } = await import('../commands/mafia.ts');
+      armLobbyExpiry(client, game, remaining(game.lobbyExpiresAt, 0));
+    } else if (game.phase === 'day') {
+      const ms = remaining(game.phaseDeadline, DAY_MS);
+      if (ms === 0) void resolveDay(client, guildId);
+      else armDayTimer(client, guildId, ms);
+    } else if (game.phase === 'night') {
+      const ms = remaining(game.phaseDeadline, NIGHT_MS);
+      if (ms === 0) void resolveNight(client, guildId);
+      else armNightTimer(client, guildId, ms);
+    }
+  }
 }
 
 function clearTimer(map: Map<string, ReturnType<typeof setTimeout>>, key: string): void {

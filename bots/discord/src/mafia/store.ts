@@ -1,4 +1,4 @@
-import { readFile, writeFile, mkdir } from 'node:fs/promises';
+import { readFile, readdir, writeFile, mkdir } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -126,6 +126,25 @@ export async function updateGame(
   await mutate(game);
   await persist(guildId, game);
   return game;
+}
+
+/** Every game on disk that still exists (a cancelled game is stored as `null`).
+ * For re-arming timers at boot. */
+export async function listPersistedGames(): Promise<MafiaGame[]> {
+  let files: string[];
+  try {
+    files = await readdir(dataDir);
+  } catch (err) {
+    if ((err as NodeJS.ErrnoException).code === 'ENOENT') return [];
+    throw err;
+  }
+  const games: MafiaGame[] = [];
+  for (const file of files) {
+    if (!file.endsWith('.json')) continue;
+    const game = await loadGame(file.slice(0, -'.json'.length));
+    if (game) games.push(game);
+  }
+  return games;
 }
 
 export async function deleteGame(guildId: string): Promise<void> {

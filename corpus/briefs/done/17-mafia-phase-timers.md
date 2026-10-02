@@ -134,3 +134,36 @@ double-launch case to the acceptance harness.
   timer fire (mock timers or a short constant). B is untouched.
 - **Re-arm:** persist a day-phase game with `phaseDeadline` 1 s in the future and
   call `rearmMafiaTimers`. `resolveDay` runs about 1 s later.
+
+## Outcome (2026-10-02)
+
+All four parts done, with a scratch harness around a stubbed client (exactly
+`users.fetch().send` and `channels.fetch()` → `isSendable`/`send`) on throwaway
+`harness-*` guild files, deleted afterwards.
+
+- **(a) Claims.** `resolveDay`/`resolveNight` take a synchronous in-memory
+  claim right after the phase check (`${guild}:day` / `${guild}:night`) and
+  release it in `finally`. The claim is keyed per phase, not per guild: a night
+  that completes while `resolveDay` is still sending night DMs must not be
+  dropped by the day's claim.
+- **No orphans.** `armDayTimer`/`armNightTimer`/`armLobbyTimer` clear before
+  arming.
+- **(b) Lobby timer.** `lobbyTimers` lives in `phases.ts`. `cancelTimers` and
+  `launchGame` clear it, and `lobbyExpire` gets the `createdAt` captured at
+  arm time and leaves any other game alone.
+- **(c) Boot.** `listPersistedGames()` (store) and `rearmMafiaTimers(client)`
+  arm the remainder for lobby, day and night games, resolving at once if the
+  deadline passed while the bot was down. `ClientReady` calls it.
+- **(d) Launch.** `launchGame` takes a synchronous `launching` claim, and both
+  join paths refuse while it is held.
+
+Harness results: all pass.
+- Day race: one elimination, no spurious "no majority", night, one night timer,
+  one night DM.
+- Night race: day +1 exactly, one kill, one day timer.
+- Stale lobby: B untouched by A's still-armed timer, and cancel clears the timer.
+- Re-arm: a day with its deadline 1 s out resolved after 1021 ms.
+- Double launch: one `startDay`, 5 role DMs, not 10.
+
+**Mutation check:** with the claims commented out, the day race, night race and
+double-launch checks all fail. `npm run typecheck` is clean.

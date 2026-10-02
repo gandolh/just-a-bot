@@ -771,3 +771,11 @@ message is at most 2000 characters, covering reminders stored before the cap.
 and appends "…and N more" when it cut the list.
 
 Full outcome on [the brief](briefs/done/15-reminder-text-length.md).
+
+## [2026-10-02] done | Brief 17: Mafia phases resolve once, timers belong to their game, restarts re-arm
+
+All four parts done, with a scratch harness around a stubbed client (exactly
+`users.fetch().send` and `channels.fetch()` → `isSendable`/`send`) on throwaway
+`harness-*` guild files, deleted afterwards.
+
+Full outcome on [the brief](briefs/done/17-mafia-phase-timers.md).

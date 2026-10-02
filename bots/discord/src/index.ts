@@ -16,6 +16,7 @@ import { handleTriviaButton } from './commands/trivia.ts';
 import { handleRpgButton } from './commands/rpg-buttons.ts';
 import { handleMafiaButton } from './commands/mafia.ts';
 import { handleConnectFourButton } from './commands/connect-four.ts';
+import { rearmMafiaTimers } from './mafia/phases.ts';
 import { handleInstagramButton } from './commands/post.ts';
 
 const log = logger.scoped('discord');
@@ -45,6 +46,9 @@ const client = new Client({
 
 client.once(Events.ClientReady, (c) => {
   log.info(`Logged in as ${c.user.tag}`);
+  // Mafia phase timers live in memory; a restart mid-game would otherwise leave
+  // that game stuck forever. Deadlines are persisted, so re-arm from them.
+  rearmMafiaTimers(c).catch((err) => log.error('rearmMafiaTimers failed', err));
 });
 
 // discord.js builds the client with `captureRejections: true`, so a rejected

@@ -95,7 +95,7 @@ Now (real and cheap):
 
 Next (a bigger slice):
 
-- [17](../briefs/todo/17-mafia-phase-timers.md): mafia phases can resolve
+- [17](../briefs/done/17-mafia-phase-timers.md): mafia phases can resolve
   twice, a stale lobby timer can kill the next lobby, and nothing re-arms timers
   after a restart.
 - [18](../briefs/todo/18-crash-safe-json-persistence.md): JSON writes aren't
