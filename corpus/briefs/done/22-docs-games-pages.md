@@ -71,3 +71,25 @@ They only come up in passing (`docs/discord/hangman/README.md:63`,
   `SlashCommandBuilder`.
 - The regenerated `manual/` diff mirrors the `docs/` diff, and
   `npm run docs -w @bots/docs-site` builds with the two new pages in the sidebar.
+
+## Outcome (2026-10-02)
+
+The Connect Four page now splits `/c4` (solo, you are Red, the bot answers in
+the same press) from `/c42 opponent` (challenge; not yourself, not a bot). It
+describes the bot from `ai.ts`: six-ply minimax with alpha-beta, centre-out
+move order, open-line scoring that blocks threes hard. It also states the
+per-turn timer that brief 06 made true. New pages: Wordle (thread start,
+anyone guesses, letters-only and in-list validation, repeated-letter marking,
+the `delete` rule and its Manage Threads need, about 480 words serving as both
+targets and accepted guesses, in-memory state) and tic-tac-toe (optional
+`opponent`, ❌ moves first, the perfect-minimax bot with random tie-breaks, a
+highlighted winning line, no timeout so an abandoned game lives until a
+restart). Both are in the feature index.
+
+Verified: `grep -rn "c4 @opponent" docs/` returns nothing, and `c42` appears
+only in the Connect Four page and the index. Every option mentioned exists in
+its builder. After `sync-corpus`, `npm run docs -w @bots/docs-site` built 35
+pages with `manual/discord/wordle` and `manual/discord/tictactoe` present.
+
+Found while reading, not fixed here: `docs/discord/hangman/README.md`
+documents `/hangman give-up`, but the registered command has only `start`.

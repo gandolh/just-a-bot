@@ -27,5 +27,7 @@ D&D campaign layer — plus a steady drip of smaller features.
 - [Mafia](mafia/README.md) — `/mafia` Werewolf-style social deduction game with DM-based night actions
 - [Confession Box](confessions/README.md) — `/confess` anonymous per-guild confession channel with admin setup
 - [Timezone Clock](clock/README.md) — `/clock` register your timezone, see everyone's local time at a glance
-- [Connect Four](connect-four/README.md) — `/c4 @opponent` button-driven 7×6 two-player Connect Four
+- [Connect Four](connect-four/README.md) — `/c4` against the bot, `/c42 opponent` against another member; button-driven 7×6 Connect Four
+- [Wordle](wordle/README.md) — `/wordle` guess a five-letter word in six tries, in a thread
+- [Tic-tac-toe](tictactoe/README.md) — `/tictactoe [opponent]` against the bot or another member, with buttons
 - [Ask](ask/README.md) — `/ask` Ollama Cloud–backed Q&A command

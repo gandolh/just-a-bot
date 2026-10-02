@@ -114,7 +114,7 @@ Second pass (it read `../vps-deploy`, which the first didn't):
   them publicly.
 - [21](../briefs/done/21-help-from-registry.md): `/help` lists 7 removed music
   commands and omits 11 of the 25 registered ones. Build it from the registry.
-- [22](../briefs/todo/22-docs-games-pages.md): `/c4` is documented with an
+- [22](../briefs/done/22-docs-games-pages.md): `/c4` is documented with an
   option it doesn't take, `/c42` isn't documented, and Wordle and tic-tac-toe
   have no pages.
 - [24](../briefs/todo/24-reject-impossible-dates.md): `/birthday` accepts 04-31

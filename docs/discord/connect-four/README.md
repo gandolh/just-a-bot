@@ -1,16 +1,19 @@
 # Connect Four
 
-A two-player, button-driven Connect Four game. One player challenges another with `/c4 @opponent`; they take turns dropping discs into a 7-wide × 6-tall grid until someone connects four or the board fills.
+Button-driven Connect Four on a 7-wide × 6-tall grid, solo against the bot (`/c4`) or against another member (`/c42`). Players take turns dropping discs until someone connects four or the board fills.
 
 ## Command surface
 
-| Command          | Effect                                                        |
-| ---------------- | ------------------------------------------------------------- |
-| `/c4 @opponent`  | Start a new game against the mentioned user. Red goes first.  |
+| Command               | Effect                                                                 |
+| --------------------- | ---------------------------------------------------------------------- |
+| `/c4`                 | Play the bot. You are Red and move first; the bot answers each move.   |
+| `/c42 opponent:@user` | Challenge another member. You are Red and move first. You can't challenge yourself or a bot (use `/c4` for that). |
 
 ## How it works
 
-The challenger always plays Red (🔴); the mentioned opponent plays Yellow (🟡). Empty cells render as ⚫.
+The player who ran the command always plays Red (🔴) and moves first; the opponent, or the bot in `/c4`, plays Yellow (🟡). Empty cells render as ⚫.
+
+**The bot (`/c4`).** It replies instantly, in the same button press as your move. It searches six plies ahead with minimax and alpha-beta pruning, trying columns centre-out, and scores positions by open lines of two and three, weighting the centre column and blocking your three-in-a-rows hard ([`connect-four/ai.ts`](../../../bots/discord/src/connect-four/ai.ts)). It is strong enough to punish a missed block, not a perfect player.
 
 After each turn the board is re-drawn as an embed description, with seven column-buttons (labelled 1–7) beneath it. Players click a button to drop their disc into that column. The disc falls to the lowest unfilled row.
 
@@ -18,7 +21,7 @@ After each turn the board is re-drawn as an embed description, with seven column
 
 **Turn enforcement:** button presses from anyone other than the current player are rejected with an ephemeral reply.
 
-**Timeout:** if the current player does not move within 90 seconds, their opponent wins by forfeit. The embed is updated to reflect the result and all buttons are removed.
+**Timeout:** if the current player does not move within 90 seconds of their turn starting, their opponent wins by forfeit. The clock restarts after every move. In `/c4` only you can time out. The embed is updated to reflect the result and all buttons are removed.
 
 **State:** entirely in-memory. One game per message ID. No persistence across bot restarts.
 
@@ -27,7 +30,8 @@ After each turn the board is re-drawn as an embed description, with seven column
 | Concern          | Location                                                                                          |
 | ---------------- | ------------------------------------------------------------------------------------------------- |
 | Game logic       | [`bots/discord/src/connect-four/game.ts`](../../../bots/discord/src/connect-four/game.ts)           |
-| Slash command + button handler | [`bots/discord/src/commands/connect-four.ts`](../../../bots/discord/src/commands/connect-four.ts) |
+| Bot opponent     | [`bots/discord/src/connect-four/ai.ts`](../../../bots/discord/src/connect-four/ai.ts)               |
+| Slash commands (`/c4`, `/c42`) + button handler | [`bots/discord/src/commands/connect-four.ts`](../../../bots/discord/src/commands/connect-four.ts) |
 | Command registry | [`bots/discord/src/commands/index.ts`](../../../bots/discord/src/commands/index.ts)                 |
 | Button router    | [`bots/discord/src/index.ts`](../../../bots/discord/src/index.ts) (`c4:` prefix)                   |
 

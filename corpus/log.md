@@ -825,3 +825,19 @@ groups:
 - Other, a catch-all for anything unmapped
 
 Full outcome on [the brief](briefs/done/21-help-from-registry.md).
+
+## [2026-10-02] done | Brief 22: /c4 vs /c42 documented correctly; Wordle and tic-tac-toe pages
+
+The Connect Four page now splits `/c4` (solo, you are Red, the bot answers in
+the same press) from `/c42 opponent` (challenge; not yourself, not a bot). It
+describes the bot from `ai.ts`: six-ply minimax with alpha-beta, centre-out
+move order, open-line scoring that blocks threes hard. It also states the
+per-turn timer that brief 06 made true. New pages: Wordle (thread start,
+anyone guesses, letters-only and in-list validation, repeated-letter marking,
+the `delete` rule and its Manage Threads need, about 480 words serving as both
+targets and accepted guesses, in-memory state) and tic-tac-toe (optional
+`opponent`, ❌ moves first, the perfect-minimax bot with random tie-breaks, a
+highlighted winning line, no timeout so an abandoned game lives until a
+restart). Both are in the feature index.
+
+Full outcome on [the brief](briefs/done/22-docs-games-pages.md).
