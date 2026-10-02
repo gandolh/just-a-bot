@@ -12,7 +12,7 @@ export const WORDS: Record<string, string[]> = {
   food: [
     'pineapple', 'broccoli', 'avocado', 'blueberry', 'cauliflower',
     'cinnamon', 'croissant', 'eggplant', 'guacamole', 'hummus',
-    'jalapeño', 'lasagna', 'mozzarella', 'pancake', 'raspberry',
+    'jalapeno', 'lasagna', 'mozzarella', 'pancake', 'raspberry',
     'risotto', 'sriracha', 'strawberry', 'tiramisu', 'zucchini',
     'artichoke', 'asparagus', 'cabbage', 'cantaloupe', 'cardamom',
     'cashew', 'cilantro', 'clementine', 'courgette', 'cranberry',

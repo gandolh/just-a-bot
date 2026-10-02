@@ -32,3 +32,9 @@ the only word in the hangman or Wordle lists with a character outside `[a-z]`
   `grep -oP "'[^']+'" bots/discord/src/hangman/words.ts | tr -d "'" | grep -vP '^[a-z]+$'`
 - If brief 19 has landed, add a test asserting every hangman word matches
   `/^[a-z]+$/`.
+
+## Outcome (2026-10-02)
+
+`'jalapeño'` is now `'jalapeno'`. The acceptance grep prints nothing: every
+hangman word matches `^[a-z]+$`. Brief 19 hasn't landed, so the guard test is
+for it to add.

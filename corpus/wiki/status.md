@@ -90,7 +90,7 @@ Now (real and cheap):
   timeout.
 - [15](../briefs/todo/15-reminder-text-length.md): a long reminder is deleted
   undelivered and breaks `/remindme list`.
-- [16](../briefs/todo/16-hangman-jalapeno.md): "jalapeño" is an unwinnable
+- [16](../briefs/done/16-hangman-jalapeno.md): "jalapeño" is an unwinnable
   hangman word.
 
 Next (a bigger slice):

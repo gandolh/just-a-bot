@@ -754,3 +754,10 @@ rejects into the existing catch, which returns `fromFallback(...)`. Nothing else
 changed.
 
 Full outcome on [the brief](briefs/done/14-trivia-fetch-timeout.md).
+
+## [2026-10-02] done | Brief 16: "jalapeño" is now a winnable hangman word
+
+`'jalapeño'` is now `'jalapeno'`. The acceptance grep prints nothing: every
+hangman word matches `^[a-z]+$`. Brief 19 hasn't landed, so the guard test is
+
+Full outcome on [the brief](briefs/done/16-hangman-jalapeno.md).
