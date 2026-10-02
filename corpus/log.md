@@ -761,3 +761,13 @@ Full outcome on [the brief](briefs/done/14-trivia-fetch-timeout.md).
 hangman word matches `^[a-z]+$`. Brief 19 hasn't landed, so the guard test is
 
 Full outcome on [the brief](briefs/done/16-hangman-jalapeno.md).
+
+## [2026-10-02] done | Brief 15: long reminders are delivered truncated; the list stays usable (register needed in prod)
+
+The `text` option has `.setMaxLength(1000)`. `tick.ts` builds the message with
+an exported `reminderMessage`, which truncates with an ellipsis so the delivered
+message is at most 2000 characters, covering reminders stored before the cap.
+`handleList` clips each text to 80 characters, stops adding lines before 1900,
+and appends "…and N more" when it cut the list.
+
+Full outcome on [the brief](briefs/done/15-reminder-text-length.md).

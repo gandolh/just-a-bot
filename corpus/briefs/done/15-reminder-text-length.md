@@ -51,3 +51,19 @@ Nothing downstream trims it.
   `bots/data/reminders.json`. It's delivered truncated instead of dropped.
 - With 15 reminders of 200 characters each, `/remindme list` replies with the
   capped list.
+
+## Outcome (2026-10-02)
+
+The `text` option has `.setMaxLength(1000)`. `tick.ts` builds the message with
+an exported `reminderMessage`, which truncates with an ellipsis so the delivered
+message is at most 2000 characters, covering reminders stored before the cap.
+`handleList` clips each text to 80 characters, stops adding lines before 1900,
+and appends "…and N more" when it cut the list.
+
+Verified: `npm run typecheck` is clean. A tsx check of `reminderMessage` turned a
+1,990-character text under an 18-digit user id into exactly 2000 characters
+ending in `…`, and passes short text through untouched. **Not done:** `npm run
+discord:register` (no dev token here). **The slash-command schema changed, so
+production needs `npm run discord:register` after the next deploy**, and until
+then the 1000-character cap isn't enforced client-side. The truncation on send
+covers that gap. The live list and delivery checks are still owed.

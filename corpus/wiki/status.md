@@ -88,7 +88,7 @@ Now (real and cheap):
   controller can rest, explore or travel mid-fight.
 - [14](../briefs/done/14-trivia-fetch-timeout.md): the OpenTDB fetch has no
   timeout.
-- [15](../briefs/todo/15-reminder-text-length.md): a long reminder is deleted
+- [15](../briefs/done/15-reminder-text-length.md): a long reminder is deleted
   undelivered and breaks `/remindme list`.
 - [16](../briefs/done/16-hangman-jalapeno.md): "jalapeño" is an unwinnable
   hangman word.

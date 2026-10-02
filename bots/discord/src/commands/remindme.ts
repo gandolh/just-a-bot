@@ -14,7 +14,9 @@ const data = new SlashCommandBuilder()
         o.setName('when').setDescription('e.g. 30m, 2h, 3d, tomorrow 9am, 2026-06-01 15:00').setRequired(true),
       )
       .addStringOption((o) =>
-        o.setName('text').setDescription('What to remind you about').setRequired(true),
+        // 1000 keeps the delivered "<@id> reminder: …" well under Discord's
+        // 2000-character message limit.
+        o.setName('text').setDescription('What to remind you about').setRequired(true).setMaxLength(1000),
       ),
   )
   .addSubcommand((s) => s.setName('list').setDescription('List your pending reminders'))
@@ -78,11 +80,27 @@ async function handleList(interaction: ChatInputCommandInteraction): Promise<voi
     await interaction.reply({ content: 'You have no pending reminders.', ephemeral: true });
     return;
   }
-  const lines = reminders.map(
-    (r) => `\`${r.id}\` — <t:${Math.floor(new Date(r.dueAt).getTime() / 1000)}:R> — ${r.text}`,
-  );
+  // Discord rejects a message over 2000 characters, and a failed list hides the
+  // IDs a user needs to cancel anything. So each text is clipped and the list
+  // stops before the limit, saying how many it left out.
+  const lines: string[] = [];
+  let length = 0;
+  for (const r of reminders) {
+    const text = r.text.length > LIST_TEXT_MAX ? `${r.text.slice(0, LIST_TEXT_MAX - 1)}…` : r.text;
+    const line = `\`${r.id}\` — <t:${Math.floor(new Date(r.dueAt).getTime() / 1000)}:R> — ${text}`;
+    if (length + line.length + 1 > LIST_BUDGET) break;
+    lines.push(line);
+    length += line.length + 1;
+  }
+  const hidden = reminders.length - lines.length;
+  if (hidden > 0) lines.push(`…and ${hidden} more`);
   await interaction.reply({ content: lines.join('\n'), ephemeral: true });
 }
+
+/** Characters of each reminder's text shown in `/remindme list`. */
+const LIST_TEXT_MAX = 80;
+/** Room for the list lines, leaving margin under Discord's 2000 for "…and N more". */
+const LIST_BUDGET = 1900;
 
 async function handleCancel(interaction: ChatInputCommandInteraction): Promise<void> {
   const id = interaction.options.getString('id', true);
