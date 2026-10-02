@@ -1,3 +1,9 @@
+---
+title: /hangman give-up is documented but not registered
+created: 2026-10-02
+status: open
+---
+
 # `/hangman give-up` is documented but not registered
 
 Found 2026-10-02 while writing the games pages (brief 22) and building `/help`
