@@ -35,6 +35,12 @@ const client = new Client({
     GatewayIntentBits.DirectMessages,
   ],
   partials: [Partials.Channel],
+  // The default for every send that doesn't pass its own. Users only: reminder
+  // text, `/ask` prompts and RPG character names are user-supplied and posted as
+  // plain content, and without this any member could make the bot ping
+  // @everyone, @here or a role. Deliberate `<@id>` pings (reminders, birthdays,
+  // mafia, give) still work. `parse: []` would silence those too.
+  allowedMentions: { parse: ['users'], repliedUser: true },
 });
 
 client.once(Events.ClientReady, (c) => {

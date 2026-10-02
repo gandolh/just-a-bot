@@ -654,3 +654,12 @@ handler. The MessageCreate listener now only routes Wordle and Hangman thread
 messages.
 
 Full outcome on [the brief](briefs/done/04-crash-guard-event-listeners.md).
+
+## [2026-10-02] done | Brief 05: user text can no longer ping @everyone or roles
+
+`allowedMentions: { parse: ['users'], repliedUser: true }` is now the client
+default, as specified. It covers every sink the brief lists: reminders, `/ask`,
+the RPG duel proposal and the town crier. `give.ts`'s per-message override is
+untouched.
+
+Full outcome on [the brief](briefs/done/05-default-allowed-mentions.md).

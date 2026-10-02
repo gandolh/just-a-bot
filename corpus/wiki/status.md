@@ -60,7 +60,7 @@ Now (real and cheap):
 - [04](../briefs/done/04-crash-guard-event-listeners.md): any member can crash
   the bot. A failed echo reply becomes an unhandled client `error`. Also drops the
   unused voice intent.
-- [05](../briefs/todo/05-default-allowed-mentions.md): user text in reminders,
+- [05](../briefs/done/05-default-allowed-mentions.md): user text in reminders,
   `/ask` and RPG names can ping @everyone. Fix with one client option.
 - [06](../briefs/todo/06-connect-four-per-turn-timer.md): the Connect Four
   timer runs per game, not per turn. Any game longer than 90 s ends in a forfeit.

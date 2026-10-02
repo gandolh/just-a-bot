@@ -63,3 +63,14 @@ person by typing `<@id>`, but members can do that themselves anyway.
 - `/ask prompt:"@here hello"` notifies no one else (needs `OLLAMA_API_KEY` on dev,
   otherwise skip).
 - `/give` still pings its target.
+
+## Outcome (2026-10-02)
+
+`allowedMentions: { parse: ['users'], repliedUser: true }` is now the client
+default, as specified. It covers every sink the brief lists: reminders, `/ask`,
+the RPG duel proposal and the town crier. `give.ts`'s per-message override is
+untouched.
+
+Verified: `npm run typecheck` is clean. **Not verified live**, for the same
+reason as brief 04 (no dev token here). The three dev-guild checks are still
+owed.
