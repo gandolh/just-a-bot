@@ -39,8 +39,10 @@ that will be relitigated.
   `astro build` (`npm run docs -w @bots/docs-site`), a static docs site. Relative imports carry explicit `.ts` suffixes
   (`from './play.ts'`) — `tsconfig.base.json` sets `allowImportingTsExtensions`
   + `noEmit`.
-- **Verify with `npm run typecheck`** (`tsc --noEmit` across every workspace).
-  There is no test suite.
+- **Verify with `npm run typecheck` and `npm test`.** Typecheck is `tsc --noEmit`
+  across every workspace. The tests are zero-dependency `node:test` files next to
+  the pure game logic they cover (`*.test.ts`, run through tsx); they don't
+  touch Discord.
 - **Run a bot:** `npm run discord:dev` (tsx watch) / `discord:start` (pm2 path).
   `npm run discord:register` pushes slash-command definitions to Discord.
 - **One running instance per bot token.** Discord delivers every interaction to

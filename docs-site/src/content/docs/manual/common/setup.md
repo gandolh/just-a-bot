@@ -33,11 +33,13 @@ npm run docs -w @bots/docs-site   # → docs-site/dist, served at /just-a-bot/do
 
 ```bash
 npm run typecheck     # tsc --noEmit across the workspaces
+npm test              # node:test suites for the pure game logic (*.test.ts)
 npm run corpus:lint   # corpus/ health check (frontmatter, links, page size)
 ```
 
-There is no test suite; `typecheck` plus running the bot is the verification
-path.
+The tests cover pure modules only: blackjack, Wordle, Connect Four, reminder
+parsing and delivery, RPG trades, the hangman word list. Anything that talks to
+Discord is still verified by running the bot.
 
 ## Layout
 

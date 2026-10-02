@@ -101,7 +101,7 @@ Next (a bigger slice):
 - [18](../briefs/done/18-crash-safe-json-persistence.md): JSON writes aren't
   atomic, one failed write stops all later ones, and shutdown doesn't wait for
   writes.
-- [19](../briefs/todo/19-node-test-suite.md): a zero-dependency `node:test`
+- [19](../briefs/done/19-node-test-suite.md): a zero-dependency `node:test`
   suite for the pure game logic.
 
 Second pass (it read `../vps-deploy`, which the first didn't):

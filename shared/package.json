@@ -8,6 +8,9 @@
   "exports": {
     ".": "./src/index.ts"
   },
+  "scripts": {
+    "test": "node --import tsx --test \"src/**/*.test.ts\""
+  },
   "dependencies": {
     "dotenv": "16.4.7",
     "zod": "4.4.3"

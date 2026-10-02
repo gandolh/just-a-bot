@@ -7,7 +7,8 @@
     "typecheck": "tsc",
     "start": "tsx src/index.ts",
     "dev": "tsx watch src/index.ts",
-    "register": "tsx src/register.ts"
+    "register": "tsx src/register.ts",
+    "test": "node --import tsx --test \"src/**/*.test.ts\""
   },
   "dependencies": {
     "@bots/shared": "0.1.0",

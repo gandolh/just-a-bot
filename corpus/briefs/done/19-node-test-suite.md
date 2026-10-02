@@ -71,3 +71,29 @@ TypeScript test files through `node --import tsx --test`. No new dependencies.
 - `npm run typecheck` clean.
 - Temporarily delete the ace-demotion loop in `handValue`. A test fails. Then put
   the loop back.
+
+## Outcome (2026-10-02)
+
+`npm test` runs `node --import tsx --test "src/**/*.test.ts"` in `bots/discord`
+and `shared`, via `npm run test --workspaces --if-present` at the root. There
+are no new dependencies. 24 tests, about 0.7 s for the whole run.
+- **Blackjack:** ace demotion ({A,A,9}, {A,A,A,8}), soft hands, and
+  `isBlackjack` (a two-card 21 only).
+- **Wordle:** duplicate Es against targets with 0, 1 and 2 Es, with exact
+  expected marks.
+- **Connect Four, through `dropDisc`:** a win in each of the four directions
+  (the two diagonals were checked to win on a diagonal), a gapped near-win, a
+  42-move full-board draw, and the full-column and finished-game refusals.
+- **Reminder parsing:** `parseDuration` for every unit, "tomorrow 12am/12pm"
+  as 00:00/12:00 UTC, the ISO branch and `parseWhen`.
+- **Trades:** item and coin conservation, plus the brief 08 multi-copy case,
+  which has landed, so it is a real test and not a todo.
+- **Hangman:** every word matches `^[a-z]+$`.
+- **Beyond the targets:** `reminderMessage` truncation (brief 15).
+
+The root `CLAUDE.md` "Verify with" bullet and `docs/common/setup.md` name
+`npm test`, and the manual copy is re-synced.
+
+Verified: `npm test` passes 20 + 4 and `npm run typecheck` is clean.
+**Mutation:** with the ace-demotion loop deleted from `handValue`, two tests
+fail; with it restored, all pass. No test exposed a new bug.
