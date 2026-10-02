@@ -78,3 +78,31 @@ Building the list from the registry at runtime removes the drift instead.
 - If brief 19 has landed, make that a `commands/help.test.ts` that sets the three
   env vars before a dynamic import, instead of a scratch script.
 - On the dev application, `/help` shows every group with no Music section.
+
+## Outcome (2026-10-02)
+
+`/help` is built from the registry. `commands/index.ts` calls
+`setHelpCatalog(all, allContextMenus)`, and `help.ts` maps command names to
+groups:
+- Gambling (with `give`) and Games (with `mafia`, `hangman`, `trivia`)
+- RPG, which keeps its hand-written text
+- Social: `quote`, `confess`, `birthday`, `remindme`, `clock` and the Save
+  Quote menu
+- AI and images (`ask`, `img`), Leaderboards (`top`) and Misc
+- Other, a catch-all for anything unmapped
+
+Lines come from `data.toJSON()`, one per subcommand (subcommand groups
+included). The Music group is gone. `buildHelpFields()` is pure and packs a
+group into extra "(cont.)" fields past 1024 characters, capped at 25 fields.
+The commented D&D block is kept as a comment in `help.ts`.
+
+Verified: `npm run typecheck` is clean, and the new `commands/help.test.ts`
+(dummy env vars, then a dynamic import of the real registry) asserts every
+registered command and menu appears, `/play` and Music don't, and the embed
+limits hold. `npm test` passes 22 + 4. The rendered list was printed and read:
+Social is the largest field at 1005 of 1024 characters, so the next social
+command will spill into a "(cont.)" field by design.
+
+Descriptions that read oddly in the list (not edited, per the brief):
+`/hangman start` is the only Hangman entry, and `/ping`'s "Replies with Pong!"
+says little in a help list. **Not verified live:** `/help` on the dev app.

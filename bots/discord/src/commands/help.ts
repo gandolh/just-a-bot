@@ -1,56 +1,35 @@
-import { EmbedBuilder, SlashCommandBuilder } from 'discord.js';
-import type { Command } from './types.ts';
+import { ApplicationCommandOptionType, EmbedBuilder, SlashCommandBuilder } from 'discord.js';
+import type { APIApplicationCommandOption, APIEmbedField } from 'discord.js';
+import type { Command, ContextMenuCommand } from './types.ts';
 
-interface Entry {
-  name: string;
-  desc: string;
+/**
+ * `/help` is built from the registered commands, not written by hand. The
+ * hand-kept list drifted both ways: it advertised seven music commands that no
+ * longer exist and left out eleven that do. `commands/index.ts` hands the
+ * registry over once it is built (`setHelpCatalog`), so a new command shows up
+ * here without anyone remembering to add it.
+ */
+let catalog: { commands: readonly Command[]; menus: readonly ContextMenuCommand[] } = {
+  commands: [],
+  menus: [],
+};
+
+export function setHelpCatalog(commands: readonly Command[], menus: readonly ContextMenuCommand[]): void {
+  catalog = { commands, menus };
 }
 
 interface Group {
   title: string;
   emoji: string;
-  entries?: Entry[];
+  /** Hand-written instead of a command list, where prose explains it better. */
   text?: string;
 }
 
-const GROUPS: Group[] = [
-  {
-    title: 'Music',
-    emoji: '🎵',
-    entries: [
-      { name: '/play', desc: 'Play a song or add it to the queue' },
-      { name: '/skip', desc: 'Skip the current track' },
-      { name: '/pause', desc: 'Pause playback' },
-      { name: '/resume', desc: 'Resume playback' },
-      { name: '/stop', desc: 'Stop and clear the queue' },
-      { name: '/queue', desc: 'Show the queue' },
-      { name: '/nowplaying', desc: 'Show the current track' },
-    ],
-  },
-  {
-    title: 'Gambling',
-    emoji: '🎰',
-    entries: [
-      { name: '/coins balance', desc: 'Show your current coin balance' },
-      { name: '/coins add', desc: 'Add coins to your account (0 – 100,000)' },
-      { name: '/slots', desc: '5×5 slot machine, 12 paylines' },
-      { name: '/blackjack', desc: 'Play a hand vs the dealer (hit / stand / double)' },
-      { name: '/blackjack2', desc: 'Challenge another player — both play one shared dealer' },
-      { name: '/dice', desc: 'Roll 2d6 against the bot — biggest dice wins' },
-      { name: '/dice2', desc: 'Challenge another player to a 2d6 duel — winner takes the pot' },
-    ],
-  },
-  {
-    title: 'Games',
-    emoji: '🎮',
-    entries: [
-      { name: '/wordle', desc: 'Start a Wordle game in a thread (type guesses, `delete` removes it)' },
-      { name: '/tictactoe', desc: 'Play tic-tac-toe with buttons (mention an opponent or play the bot)' },
-      { name: '/c4', desc: 'Play Connect Four against the bot' },
-      { name: '/c42', desc: 'Challenge another player to Connect Four' },
-    ],
-  },
-  {
+/** Display order. A registered command missing from `CATEGORY` lands in Other. */
+const GROUPS: Record<string, Group> = {
+  gambling: { title: 'Gambling', emoji: '🎰' },
+  games: { title: 'Games', emoji: '🎮' },
+  rpg: {
     title: 'RPG',
     emoji: '🐉',
     text: [
@@ -63,6 +42,15 @@ const GROUPS: Group[] = [
       'Die → you wake at the Plaza, lighter of coin. Equipment is never lost.',
     ].join('\n'),
   },
+  social: { title: 'Social', emoji: '💬' },
+  ai: { title: 'AI and images', emoji: '🤖' },
+  leaderboards: { title: 'Leaderboards', emoji: '🏆' },
+  misc: { title: 'Misc', emoji: '🛠️' },
+  other: { title: 'Other', emoji: '📦' },
+};
+
+// The hidden /dnd command's text, kept for when its fate is decided
+// (corpus/wiki/open-questions.md):
   // {
   //   title: 'D&D',
   //   emoji: '🐲',
@@ -77,16 +65,83 @@ const GROUPS: Group[] = [
   //     '**DM bookkeeping:** `/dnd damage <target>`, `/dnd heal <target>`, `/dnd xp`, `/dnd give`',
   //   ].join('\n'),
   // },
-  {
-    title: 'Misc',
-    emoji: '🛠️',
-    entries: [
-      { name: '/ping', desc: 'Health check' },
-      { name: '/ask', desc: 'Ask an Ollama-hosted model a question' },
-      { name: '/help', desc: 'Show this message' },
-    ],
-  },
-];
+
+const CATEGORY: Record<string, keyof typeof GROUPS> = {
+  coins: 'gambling', give: 'gambling', slots: 'gambling', blackjack: 'gambling',
+  blackjack2: 'gambling', dice: 'gambling', dice2: 'gambling',
+  wordle: 'games', tictactoe: 'games', c4: 'games', c42: 'games',
+  mafia: 'games', hangman: 'games', trivia: 'games',
+  rpg: 'rpg',
+  quote: 'social', confess: 'social', birthday: 'social', remindme: 'social', clock: 'social',
+  ask: 'ai', img: 'ai',
+  top: 'leaderboards',
+  ping: 'misc', help: 'misc',
+};
+
+/** One line per runnable form: a line per subcommand, or one for the command. */
+function commandLines(command: Command): string[] {
+  const json = command.data.toJSON();
+  const subs = (json.options ?? []).flatMap((option: APIApplicationCommandOption): [string, string][] => {
+    if (option.type === ApplicationCommandOptionType.Subcommand) {
+      return [[`${json.name} ${option.name}`, option.description]];
+    }
+    if (option.type === ApplicationCommandOptionType.SubcommandGroup) {
+      return (option.options ?? []).map((sub) => [`${json.name} ${option.name} ${sub.name}`, sub.description]);
+    }
+    return [];
+  });
+  const forms = subs.length > 0 ? subs : [[json.name, json.description] as [string, string]];
+  return forms.map(([name, description]) => `\`/${name}\` — ${description}`);
+}
+
+/** Discord's embed limits, which a long group would otherwise break. */
+const FIELD_VALUE_MAX = 1024;
+const MAX_FIELDS = 25;
+
+/** Pack lines into as few field values as fit under the per-field limit. */
+function packLines(lines: string[]): string[] {
+  const values: string[] = [];
+  let current = '';
+  for (const line of lines) {
+    const next = current ? `${current}\n${line}` : line;
+    if (next.length > FIELD_VALUE_MAX && current) {
+      values.push(current);
+      current = line.slice(0, FIELD_VALUE_MAX);
+    } else {
+      current = next.slice(0, FIELD_VALUE_MAX);
+    }
+  }
+  if (current) values.push(current);
+  return values;
+}
+
+/** The embed fields for the current catalog. Pure, so it can be checked
+ * without a client. */
+export function buildHelpFields(): APIEmbedField[] {
+  const lines = new Map<string, string[]>(Object.keys(GROUPS).map((key) => [key, []]));
+  for (const command of catalog.commands) {
+    const key = CATEGORY[command.data.name] ?? 'other';
+    if (GROUPS[key]?.text) continue;
+    lines.get(key)!.push(...commandLines(command));
+  }
+  for (const menu of catalog.menus) {
+    lines.get('social')!.push(`**${menu.data.name}** — right-click a message → Apps`);
+  }
+
+  const fields: APIEmbedField[] = [];
+  for (const [key, group] of Object.entries(GROUPS)) {
+    const name = `${group.emoji} ${group.title}`;
+    if (group.text) {
+      if (catalog.commands.some((c) => (CATEGORY[c.data.name] ?? 'other') === key)) {
+        fields.push({ name, value: group.text });
+      }
+      continue;
+    }
+    const values = packLines(lines.get(key)!);
+    values.forEach((value, i) => fields.push({ name: i === 0 ? name : `${name} (cont.)`, value }));
+  }
+  return fields.slice(0, MAX_FIELDS);
+}
 
 export const help: Command = {
   data: new SlashCommandBuilder()
@@ -96,13 +151,8 @@ export const help: Command = {
     const embed = new EmbedBuilder()
       .setTitle('just-a-bot — commands')
       .setColor(0x5865f2)
-      .setDescription('Coins are hypothetical. No real payments are made.');
-
-    for (const group of GROUPS) {
-      const value = group.text
-        ?? group.entries!.map((e) => `\`${e.name}\` — ${e.desc}`).join('\n');
-      embed.addFields({ name: `${group.emoji} ${group.title}`, value });
-    }
+      .setDescription('Coins are hypothetical. No real payments are made.')
+      .addFields(buildHelpFields());
 
     await interaction.reply({ embeds: [embed], ephemeral: true });
   },

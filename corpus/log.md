@@ -811,3 +811,17 @@ are no new dependencies. 24 tests, about 0.7 s for the whole run.
 - **Beyond the targets:** `reminderMessage` truncation (brief 15).
 
 Full outcome on [the brief](briefs/done/19-node-test-suite.md).
+
+## [2026-10-02] done | Brief 21: /help is built from the registered commands
+
+`/help` is built from the registry. `commands/index.ts` calls
+`setHelpCatalog(all, allContextMenus)`, and `help.ts` maps command names to
+groups:
+- Gambling (with `give`) and Games (with `mafia`, `hangman`, `trivia`)
+- RPG, which keeps its hand-written text
+- Social: `quote`, `confess`, `birthday`, `remindme`, `clock` and the Save
+  Quote menu
+- AI and images (`ask`, `img`), Leaderboards (`top`) and Misc
+- Other, a catch-all for anything unmapped
+
+Full outcome on [the brief](briefs/done/21-help-from-registry.md).

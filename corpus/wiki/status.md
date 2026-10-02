@@ -112,7 +112,7 @@ Second pass (it read `../vps-deploy`, which the first didn't):
 - [23](../briefs/todo/23-quote-add-channel-permission.md): `/quote add` saves
   messages from channels the invoker can't read, and `/quote search` then posts
   them publicly.
-- [21](../briefs/todo/21-help-from-registry.md): `/help` lists 7 removed music
+- [21](../briefs/done/21-help-from-registry.md): `/help` lists 7 removed music
   commands and omits 11 of the 25 registered ones. Build it from the registry.
 - [22](../briefs/todo/22-docs-games-pages.md): `/c4` is documented with an
   option it doesn't take, `/c42` isn't documented, and Wordle and tic-tac-toe

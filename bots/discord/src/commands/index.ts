@@ -9,7 +9,7 @@ import { dice } from './dice.ts';
 import { dice2 } from './dice2.ts';
 import { wordle } from './wordle.ts';
 import { tictactoe } from './tictactoe.ts';
-import { help } from './help.ts';
+import { help, setHelpCatalog } from './help.ts';
 import { rpg } from './rpg.ts';
 // import { dnd } from './dnd.ts';
 import { top } from './top.ts';
@@ -43,6 +43,9 @@ const all: Command[] = [
 ];
 
 const allContextMenus: ContextMenuCommand[] = [saveQuoteMenu];
+
+// /help lists whatever is registered, so it can't advertise a removed command.
+setHelpCatalog(all, allContextMenus);
 
 export const commands = new Map<string, Command>(all.map((c) => [c.data.name, c]));
 export const contextMenuCommands = new Map<string, ContextMenuCommand>(
