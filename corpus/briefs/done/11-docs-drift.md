@@ -76,3 +76,20 @@ committed copies go stale unless you re-sync them after editing.
 - `grep -rn "DISCORD_CLIENT_ID\|docs/todo/" docs/` returns nothing.
 - `grep -rn "1080" docs/` returns only mentions you kept on purpose.
 - The regenerated `manual/` diff mirrors the `docs/` diff.
+
+## Outcome (2026-10-02)
+
+All five fixed against the code. `docs/discord/setup.md` names `CLIENT_ID` and
+`GUILD_ID` and points at `.env.example`. The gambling table and the feature index
+gain `/blackjack2` (two players, shared dealer, each hand settled against the
+dealer), `/dice2` (both ante, the higher 2d6 takes the pot, a tie refunds) and
+`/give`, which was listed nowhere. `/post` reads 256×256 in all three places, and
+its page states plainly that 256 is below Instagram's 320 px minimum; no code
+was changed. The img page's "Cross-feature hooks" now says `/top` and `/quote`
+shipped text-only and drops the two dead `docs/todo/` links.
+`docs/common/setup.md` lists three workspaces, the docs build command and a
+`docs-site/` layout row.
+
+Verified: `grep -rn "DISCORD_CLIENT_ID\|docs/todo/" docs/` and
+`grep -rn "1080" docs/` both return nothing. `npm run sync-corpus -w
+@bots/docs-site` regenerated exactly the six matching `manual/` pages.

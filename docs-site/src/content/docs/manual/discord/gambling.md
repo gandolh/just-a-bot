@@ -22,6 +22,9 @@ file, all guilds and users). Coins are added via `/coins add`, capped at
 | `/slots`          | 5×5 slot machine, 12 paylines (5 rows + 5 cols + 2 diagonals)      |
 | `/blackjack`      | Classic blackjack vs the dealer with Hit / Stand / Double buttons  |
 | `/dice`           | Roll 2d6 against the bot; higher total wins                        |
+| `/blackjack2 @opponent bet` | Two players at one table against a shared dealer. The challenger antes on the command, the opponent on **Accept & ante**; each hand then settles against the dealer on its own, Double included |
+| `/dice2 @opponent bet` | Dice duel: both ante `bet`, both roll 2d6 on **Accept & roll**, the higher total takes the pot of both antes, a tie refunds both |
+| `/give @user amount` | Move coins from your wallet to another player's (not a bot, not yourself) |
 
 ## Slots
 

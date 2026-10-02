@@ -12,7 +12,7 @@ Generated on every docs build. Edit the source in `docs/`, not here.
 > code is intact and re-enabling is uncommenting. Everything below describes
 > the feature as built; none of it is live.
 
-`/post` renders a 1080×1080 image from a template, previews it in Discord with **Approve & Post** / **Cancel** buttons, and on approval publishes it to Instagram via the Graph API.
+`/post` renders a 256×256 image from a template, previews it in Discord with **Approve & Post** / **Cancel** buttons, and on approval publishes it to Instagram via the Graph API.
 
 The image is hosted on Discord's CDN — Instagram fetches it once during container creation, so the short-lived signed Discord URL is fine.
 
@@ -71,7 +71,12 @@ If either is missing, `/post` still registers but replies "Instagram is not conf
 
 ## Image specs
 
-Instagram requires JPEG/PNG, aspect ratio 4:5 to 1.91:1, min 320px, max 8MB. The square templates render at 1080×1080 PNG, well within limits.
+Instagram requires JPEG/PNG, aspect ratio 4:5 to 1.91:1, min 320px, max 8MB.
+
+**The square templates render at 256×256 PNG** (`SIZE` in `commands/post.ts`),
+which is **below Instagram's 320 px minimum**: as written, a published post
+would be rejected. The size and the command's future are an open question while
+`/post` is hidden; nothing here has been changed in code.
 
 ## Rate limits
 

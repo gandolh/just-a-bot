@@ -73,7 +73,7 @@ Now (real and cheap):
   offset for every zone.
 - [10](../briefs/done/10-bump-discordjs-and-audit.md): discord.js 14.27.0 plus
   `npm audit fix` clears 5 production advisories.
-- [11](../briefs/todo/11-docs-drift.md): five `docs/` pages contradict the
+- [11](../briefs/done/11-docs-drift.md): five `docs/` pages contradict the
   code. The setup page names the wrong env vars.
 - [12](../briefs/todo/12-corpus-drift.md): the wiki and root CLAUDE.md still
   describe `player.ts`, two workspaces, and yt-dlp upkeep.

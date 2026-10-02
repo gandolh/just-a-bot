@@ -5,14 +5,18 @@ page covers the bot's own configuration.
 
 ## Token
 
-Put the bot token in `bots/discord/.env`:
+Copy `bots/discord/.env.example` to `bots/discord/.env` and fill in the three
+required values:
 
 ```
-DISCORD_TOKEN=...
-DISCORD_CLIENT_ID=...
+DISCORD_TOKEN=...   # the bot token
+CLIENT_ID=...       # the application id (a numeric snowflake)
+GUILD_ID=...        # the guild slash commands are registered to
 ```
 
-`env.ts` validates with zod and fails fast on boot if anything is missing.
+`env.ts` validates with zod and fails fast on boot if any of them is missing or
+not numeric where it should be. `OLLAMA_API_KEY` (for `/ask`) and the Instagram
+pair below are optional.
 
 ### Optional: Instagram publishing (`/post`)
 

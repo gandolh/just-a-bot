@@ -703,3 +703,18 @@ list no breaking changes or deprecations touching reply options
 `allowedMentions`. The one relevant fix makes `update()`'s options optional.
 
 Full outcome on [the brief](briefs/done/10-bump-discordjs-and-audit.md).
+
+## [2026-10-02] done | Brief 11: the docs pages that contradicted the code are fixed
+
+All five fixed against the code. `docs/discord/setup.md` names `CLIENT_ID` and
+`GUILD_ID` and points at `.env.example`. The gambling table and the feature index
+gain `/blackjack2` (two players, shared dealer, each hand settled against the
+dealer), `/dice2` (both ante, the higher 2d6 takes the pot, a tie refunds) and
+`/give`, which was listed nowhere. `/post` reads 256×256 in all three places, and
+its page states plainly that 256 is below Instagram's 320 px minimum; no code
+was changed. The img page's "Cross-feature hooks" now says `/top` and `/quote`
+shipped text-only and drops the two dead `docs/todo/` links.
+`docs/common/setup.md` lists three workspaces, the docs build command and a
+`docs-site/` layout row.
+
+Full outcome on [the brief](briefs/done/11-docs-drift.md).

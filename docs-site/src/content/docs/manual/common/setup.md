@@ -13,7 +13,7 @@ commands, required intents — is in [../discord/setup.md](../discord/setup.md).
 ## Requirements
 
 - **Node ≥ 22.12** (`engines` in the root `package.json`).
-- npm (the repo uses npm workspaces: `shared`, `bots/discord`).
+- npm (the repo uses npm workspaces: `shared`, `bots/discord`, `docs-site`).
 
 ## Install
 
@@ -21,8 +21,13 @@ commands, required intents — is in [../discord/setup.md](../discord/setup.md).
 npm install
 ```
 
-One install at the repo root covers both workspaces. There is **no build step** —
-`tsx` runs the TypeScript directly.
+One install at the repo root covers all three workspaces, including the Astro
+toolchain the documentation site builds with. The bot has **no build step**:
+`tsx` runs the TypeScript directly. Only the docs site builds:
+
+```bash
+npm run docs -w @bots/docs-site   # → docs-site/dist, served at /just-a-bot/docs
+```
 
 ## Verify
 
@@ -43,6 +48,7 @@ path.
 | `bots/data/`           | persisted JSON state, gitignored                               |
 | `corpus/`              | project knowledge: decisions, status, work lifecycle           |
 | `docs/`                | these docs — per-feature operating manuals                     |
+| `docs-site/`           | the Astro/Starlight site that renders `docs/` and `corpus/`    |
 
 ## Environment
 
