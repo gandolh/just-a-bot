@@ -1,5 +1,7 @@
 # Task 07 — Container: keep bot state outside the container, and settle pm2 vs Docker
 
+> **Progress 2026-10-04.** Done: steps 1 (answered by brief 20's addendum and the owner: the container is production), 2, 3, 5, 6, 7. Checked: `docker compose config` shows both mounts; a fresh image has no `/app/bots/data`. **Left, on the box, by the owner:** step 4, which is brief 20's step 4, and the `/coins` recreate check after the deploy.
+
 ## Context
 
 Source: the 2026-09-26 improvements audit, recorded in [log.md](../../log.md).

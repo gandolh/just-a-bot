@@ -48,9 +48,11 @@ stays mechanically enforced.
   as a Starlight site at `/just-a-bot/docs` (`npm run docs -w @bots/docs-site`).
   Its `manual/` copies are committed and must be re-synced after a `docs/` edit.
 - **Container image** (2026-09-06): `infrastructure/` holds the Dockerfile and
-  compose file the estate deploys. Which path runs production, and where its
-  state lives, is brief [07](../briefs/todo/07-container-state-volumes.md) (with
-  [20](../briefs/todo/20-estate-state-protection.md)). Both wait on the owner.
+  compose file the estate deploys. **Production is the container** (decisions.md,
+  revisited 2026-10-04). Its state moves to two bind mounts outside the rsync
+  mirror; the repo side of briefs [07](../briefs/todo/07-container-state-volumes.md)
+  and [20](../briefs/todo/20-estate-state-protection.md) is done. Not deployed:
+  the owner runs the server steps and picks which copy of each file survives.
 
 ## Queued work
 
@@ -78,9 +80,9 @@ Now (real and cheap):
   `/ask` and RPG names can ping @everyone. Fix with one client option.
 - [06](../briefs/done/06-connect-four-per-turn-timer.md): the Connect Four
   timer runs per game, not per turn. Any game longer than 90 s ends in a forfeit.
-- [07](../briefs/todo/07-container-state-volumes.md): the container has no data
-  volume and `bots/data` is baked into the image. Needs the user to say whether
-  pm2 or Docker is live.
+- [07](../briefs/todo/07-container-state-volumes.md): repo side done 2026-10-04
+  (mounts, `.dockerignore`, the pm2 revisit). Waits on the owner's server steps
+  with [20](../briefs/todo/20-estate-state-protection.md).
 - [08](../briefs/done/08-rpg-trade-item-dupe.md): RPG trades can duplicate
   items.
 - [09](../briefs/done/09-clock-utc-offset.md): `/clock` shows the host's UTC

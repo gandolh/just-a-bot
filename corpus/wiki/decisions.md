@@ -41,15 +41,17 @@ still never builds. `bots/dice-activity`, which built, is gone as of 2026-08-27.
 The one build in the repo since 2026-09-07 is `docs-site`'s `astro build`, a
 static documentation site that the bot neither imports nor needs at runtime.
 
-## pm2 for process management
+## A container in production, pm2 locally (revisited 2026-10-04)
 
-_pre-2026-06-26_ — Long-lived bots run under pm2 via `ecosystem.config.cjs`
-(`autorestart`, `max_restarts: 10`, `restart_delay: 5000`). Rejected: systemd
-units, containers.
-Reason: one small shared VPS, several sibling processes, no container runtime to
-maintain — pm2 gives restart policy and log tailing (`pm2 logs`) with a single
-committed config file. `pm2 logs` is the first debugging tool in every incident
-recorded in [log.md](../log.md), which is the main thing keeping this locked.
+_pre-2026-06-26, revisited 2026-10-04 (brief 07)_ — Production runs the bot as
+a container through the estate's deploy (`vps-deploy` `stacks/just-a-bot.ts`,
+container-only since 2026-09-06; the image is from `53a5cbb`). Its state is two
+bind mounts outside the rsync mirror. `docker compose logs` replaces `pm2 logs`
+there. `ecosystem.config.cjs` stays for local runs. Unchanged: tsx at runtime,
+no build step, the `.env` bind-mounted and never baked in.
+Was: pm2 everywhere, rejecting containers for "no container runtime to
+maintain". That reason lapsed when the estate took on rootless Docker for every
+service.
 
 ## Env validated with Zod at startup, optional integrations degrade
 

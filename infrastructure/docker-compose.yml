@@ -13,4 +13,12 @@ services:
       # The bot's own .env, pushed to the box by the deploy and mounted
       # read-only. Kept OUT of the image so the token does not travel in a layer.
       - ${JUST_A_BOT_ENV:-../bots/discord/.env}:/app/bots/discord/.env:ro
+      # ALL of the bot's state lives in these two directories, as JSON:
+      # reminders and birthdays in the first; wallets, timezones, quotes,
+      # confessions, RPG worlds, mafia and dnd games in the second. They must
+      # survive a recreate, so they are bind mounts, never the container's own
+      # layer. The deploy points both outside its rsync mirror (vps-deploy
+      # stacks/just-a-bot.ts); the defaults are for a local run.
+      - ${JUST_A_BOT_DATA:-../bots/data}:/app/bots/data
+      - ${JUST_A_BOT_DISCORD_DATA:-../bots/discord/data}:/app/bots/discord/data
     restart: unless-stopped

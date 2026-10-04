@@ -8,6 +8,9 @@ docs
 .env
 bots/*/.env
 bots/*/data
+# The shared reminders/birthdays store. `bots/*/data` does not match it, so it
+# used to be baked into every image: dev data, with user ids, in a layer.
+bots/data
 logs
 *.log
 **/*.map
