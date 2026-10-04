@@ -874,3 +874,7 @@ so every check that needs the live bot is named as owed in its brief's outcome.
 Production needs `npm run discord:register` after the next deploy (brief 15
 changed `/remindme`'s schema). Captured along the way:
 [hangman-give-up-docs](todos/hangman-give-up-docs.md).
+
+## [2026-10-04] decide | Briefs 07 and 20: the owner runs the server steps
+
+Asked how to get the live server's state, the owner chose to run the checks themselves: the agent writes the exact commands (brief 20 steps 1 and 4), the owner runs them on the VPS, pastes the output, and picks which copy of each state file survives. Recorded in decisions.md. No deploy until then.

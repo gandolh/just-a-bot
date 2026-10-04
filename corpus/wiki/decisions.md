@@ -190,3 +190,11 @@ command in place, feature-flagging one command into two behaviors.
 Reason: the original keeps working for the people already using it, both
 variants stay comparable in real use, and a bad variant is deleted instead of
 reverted. Cost accepted: command-list clutter and two surfaces to maintain.
+
+## Production state: the owner reads the server and picks each file
+
+_2026-10-04, owner_ — Before briefs 07 and 20 deploy, the owner runs the
+read-only checks on the VPS (brief 20 step 1) and the side-by-side copy
+(step 4), then chooses the pm2-era or container copy per file. Rejected: the
+agent holding SSH to the box, even read-only. Repo-side changes can land first,
+but no deploy runs until the chosen files are in place.
