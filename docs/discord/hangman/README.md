@@ -4,12 +4,7 @@ Classic hangman in a Discord thread. Anyone in the thread can guess letters; 6 w
 
 ## Command surface
 
-A single slash command, `/hangman <sub>`:
-
-| Subcommand | Effect |
-| --- | --- |
-| `/hangman start [category]` | Spawn a thread, pick a random word from the (optionally filtered) word list, post the initial state. |
-| `/hangman give-up` | Reveal the word in the current thread, end the game. Only the starter or an admin can call this. |
+A single slash command, `/hangman start [category]`: it spawns a thread, picks a random word from the (optionally filtered) word list and posts the initial state. There is no way to give up early; a game ends on a win or on the sixth wrong guess.
 
 Letter guesses are typed directly in the thread — no slash command per guess. A single character `a–z` posted in the thread is the guess.
 
@@ -25,8 +20,6 @@ Available categories: `animals`, `food`, `tech`, `countries`, `sports`. If no ca
    - Wrong → bot reacts `❌`, posts updated state; wrong letter added to the list.
    - 6 wrong guesses → game over, full word revealed, thread archived.
    - All letters revealed → win, thread archived.
-
-3. `/hangman give-up` (starter or admin only) reveals the word and archives the thread immediately.
 
 The game is **cooperative** — the thread is open to everyone.
 
@@ -62,4 +55,4 @@ The gallows progresses through 7 ASCII frames (0–6 wrong guesses).
 - **Cooperative by default.** The thread is open to all guild members; no solo mode.
 - **Mirrors Wordle's interaction model.** `MessageCreate` events in a thread are checked against `hasHangmanGame` before falling through to other handlers, the same pattern Wordle uses.
 - **Static word list.** 40 words per category, bundled in TypeScript. No dictionary API dependency.
-- **Thread lifecycle.** On win or loss the thread is archived (not deleted), so the final state stays readable. On `/hangman give-up` the same archive path is taken.
+- **Thread lifecycle.** On win or loss the thread is archived (not deleted), so the final state stays readable.
