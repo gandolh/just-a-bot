@@ -8,21 +8,18 @@ JSON-over-SQLite stance) is in [../common/architecture.md](../common/architectur
 ```
 bots/discord/src/
 ├── index.ts            client bootstrap, interaction router
-├── player.ts           discord-player init (music)
 ├── env.ts              zod-validated env
 ├── register.ts         registers slash commands per guild
 ├── commands/           thin slash-command handlers
 │   ├── *.ts            one file per command (or close family)
 │   └── index.ts        exports the Command[] used by index.ts + register.ts
 ├── gambling/           wallet + slot/blackjack/dice game logic
-├── rpg/                world model, combat, mob spawn/tick, map renderer
-├── dnd/                campaign state + dice parser for the DM-led layer
-└── instagram/          Graph API client used by /post
+└── rpg/                world model, combat, mob spawn/tick, map renderer
 ```
 
 **Convention:** `commands/*.ts` is the Discord-facing surface (slash defs,
 interaction parsing, embed rendering). Real logic lives next to it in
-`gambling/`, `rpg/`, `dnd/`, etc. Easy to unit-test the game modules without
+`gambling/`, `rpg/`, etc. Easy to unit-test the game modules without
 touching Discord types.
 
 ## Interaction routing
@@ -37,7 +34,6 @@ are dispatched by `customId` prefix:
 | `ttt:` | Tic-tac-toe (`handleTicTacToeButton`) |
 | `c4:` | Connect Four |
 | `rpg:` | RPG action buttons |
-| `ig:` | Instagram post approve/cancel (`/post`) |
 | _(else)_ | Command map keyed by `data.name` |
 
 Wordle is the odd one out — it plays in a thread and listens to
@@ -50,7 +46,6 @@ router.
 | --- | --- |
 | `bots/discord/data/wallets.json` | Per-user gambling balances (single file, all users) |
 | `bots/discord/data/rpg/<guild-id>.json` | One RPG world per Discord guild |
-| `bots/discord/data/dnd/<guild-id>.json` | One D&D campaign per Discord guild |
 | `bots/discord/data/<feature>.json` | Per-feature flat stores (quotes, reminders, birthdays, timezones, confessions, …) |
 
 All stores: in-memory cache + serialized writes (per-key promise chain for

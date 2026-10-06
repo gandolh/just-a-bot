@@ -11,7 +11,6 @@ import { wordle } from './wordle.ts';
 import { tictactoe } from './tictactoe.ts';
 import { help, setHelpCatalog } from './help.ts';
 import { rpg } from './rpg.ts';
-// import { dnd } from './dnd.ts';
 import { top } from './top.ts';
 import { quote, saveQuoteMenu } from './quote.ts';
 import { remindme } from './remindme.ts';
@@ -19,7 +18,6 @@ import { birthday } from './birthday.ts';
 import { hangman } from './hangman.ts';
 import { trivia } from './trivia.ts';
 import { img } from './img.ts';
-// import { post } from './post.ts';
 import { mafia } from './mafia.ts';
 import { confess } from './confess.ts';
 import { clock } from './clock.ts';
@@ -37,7 +35,6 @@ const all: Command[] = [
   hangman,
   trivia,
   img,
-  // post,  // hidden for now
   ask,
   help,
 ];

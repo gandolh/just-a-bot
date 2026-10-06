@@ -22,19 +22,7 @@ GUILD_ID=...        # the guild slash commands are registered to
 ```
 
 `env.ts` validates with zod and fails fast on boot if any of them is missing or
-not numeric where it should be. `OLLAMA_API_KEY` (for `/ask`) and the Instagram
-pair below are optional.
-
-### Optional: Instagram publishing (`/post`)
-
-Add to `bots/discord/.env` to enable `/post`:
-
-```
-IG_USER_ID=...
-IG_ACCESS_TOKEN=...
-```
-
-If omitted, `/post` still registers but replies "Instagram is not configured." See [post/README.md](post/README.md) for the Meta app + token walkthrough.
+not numeric where it should be. `OLLAMA_API_KEY` (for `/ask`) is optional.
 
 ## Register slash commands
 
@@ -73,8 +61,7 @@ Runtime state lives under `bots/discord/data/` and is gitignored.
 | --- | --- |
 | `bots/discord/data/wallets.json` | Per-user gambling balances |
 | `bots/discord/data/rpg/<guild-id>.json` | One RPG world per Discord guild |
-| `bots/discord/data/dnd/<guild-id>.json` | One D&D campaign per Discord guild |
 
-Wiping a file resets that feature's state. RPG worlds and D&D campaigns can
-be hand-edited or piped to an LLM directly; their data models are described
-in [rpg/README.md](rpg/README.md) and [dnd/README.md](dnd/README.md).
+Wiping a file resets that feature's state. RPG worlds can be hand-edited or
+piped to an LLM directly; the data model is described in
+[rpg/README.md](rpg/README.md).

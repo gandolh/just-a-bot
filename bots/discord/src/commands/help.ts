@@ -49,23 +49,6 @@ const GROUPS: Record<string, Group> = {
   other: { title: 'Other', emoji: '📦' },
 };
 
-// The hidden /dnd command's text, kept for when its fate is decided
-// (corpus/wiki/open-questions.md):
-  // {
-  //   title: 'D&D',
-  //   emoji: '🐲',
-  //   text: [
-  //     'Tabletop campaign in chat. One DM narrates; players act.',
-  //     '',
-  //     '**Setup:** `/dnd setup` (claim DM) • `/dnd end` • `/dnd status`',
-  //     '**Players:** `/dnd join name:… class:…` `/dnd sheet` `/dnd hp <delta>` `/dnd leave`',
-  //     '**Anyone rolls:** `/dnd roll 1d20+5` `/dnd check ability:dex` `/dnd say text:…`',
-  //     '**DM narration:** `/dnd narrate`, `/dnd npc`, `/dnd scene`, `/dnd whisper`, `/dnd dmroll`',
-  //     '**DM combat:** `/dnd init` • `/dnd next` • `/dnd endcombat` • `/dnd monster`',
-  //     '**DM bookkeeping:** `/dnd damage <target>`, `/dnd heal <target>`, `/dnd xp`, `/dnd give`',
-  //   ].join('\n'),
-  // },
-
 const CATEGORY: Record<string, keyof typeof GROUPS> = {
   coins: 'gambling', give: 'gambling', slots: 'gambling', blackjack: 'gambling',
   blackjack2: 'gambling', dice: 'gambling', dice2: 'gambling',

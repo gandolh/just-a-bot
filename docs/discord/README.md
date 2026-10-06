@@ -1,12 +1,7 @@
 # Discord bot
 
-A Discord bot with gambling games, a shared multiplayer RPG world, a DM-led
-D&D campaign layer — plus a steady drip of smaller features.
-
-> **Two commands are currently hidden:** `/dnd` and `/post` are commented out of
-> `bots/discord/src/commands/index.ts`, so they do not appear in Discord. Their
-> code and the pages below are intact. See
-> [corpus/wiki/status.md](../../corpus/wiki/status.md).
+A Discord bot with gambling games, a shared multiplayer RPG world, and a
+steady drip of smaller features.
 
 - [Architecture](architecture.md) — interaction routing, button prefixes,
   Discord-specific data paths.
@@ -16,14 +11,12 @@ D&D campaign layer — plus a steady drip of smaller features.
 
 - [Gambling](gambling/README.md) — `/coins` `/give` `/slots` `/blackjack` `/blackjack2` `/dice` `/dice2`
 - [RPG](rpg/README.md) — `/rpg` shared multiplayer world, mobs, loot, leveling
-- [D&D](dnd/README.md) — **hidden** — `/dnd` DM-led campaigns: narration, initiative, monsters
 - [Leaderboards](leaderboards/README.md) — `/top` cross-category top 10
 - [Quote Book](quotes/README.md) — `/quote` save/recall memorable server messages, context-menu shortcut
 - [Reminders & Birthdays](reminders/README.md) — `/remindme` one-shot pings, `/birthday` annual wishes, shared tick loop
 - [Hangman](hangman/README.md) — `/hangman` cooperative thread-based guessing game
 - [Trivia](trivia/README.md) — `/trivia` multiple-choice questions via OpenTDB, first correct answer wins
 - [Img](img/README.md) — `/img meme` `/img card` PNG image generation (Satori + resvg)
-- [Post](post/README.md) — **hidden** — `/post meme` `/post card` render 256×256 (below Instagram's 320 px minimum, see the page), preview in Discord, approve & publish to Instagram via Graph API
 - [Mafia](mafia/README.md) — `/mafia` Werewolf-style social deduction game with DM-based night actions
 - [Confession Box](confessions/README.md) — `/confess` anonymous per-guild confession channel with admin setup
 - [Timezone Clock](clock/README.md) — `/clock` register your timezone, see everyone's local time at a glance

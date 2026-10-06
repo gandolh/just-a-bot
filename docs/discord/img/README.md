@@ -104,13 +104,9 @@ License texts: [Inter](https://github.com/rsms/inter/blob/master/LICENSE.txt),
 
 ## Cross-feature hooks
 
-- [`/post`](../post/README.md) (hidden) reuses `renderToPng` with 256×256
-  `meme-square` / `card-square` sibling templates and publishes the result to
-  Instagram.
-
 `/top` and `/quote` both shipped as text-only commands. Neither has an image or
 card option, and no leaderboard or quote template exists. Adding one would be a
-new `renderToPng` call with its own template, the way `/post` does it.
+new `renderToPng` call with its own template.
 
 ## Design notes
 
