@@ -38,7 +38,7 @@ Configured in `player.ts` `initPlayer`:
   `streamWithYtDlp` (yt-dlp `createStream` override) are kept in code but gated
   behind `const YOUTUBE_ENABLED = false` and marked `@deprecated`, because
   YouTube blocks the VPS datacenter IP. Flip the flag to re-enable. See
-  [todo](../todos/revisit-youtube-provider.md).
+  todo.
 
 ## Stack
 

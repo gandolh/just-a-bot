@@ -8,8 +8,8 @@ updated: 2026-10-02
 **just-a-bot** is a personal **Discord bot** (`@bots/discord`) with games,
 gambling, AI chat, image generation, reminders and an RPG world. Music was
 removed entirely on 2026-08-27 — post-mortem: [music.md](music.md). A D&D layer
-and an Instagram `/post` command are built but **hidden** (commented out of the
-command registry) — see [status.md](status.md).
+and an Instagram `/post` command were hidden for months and deleted on
+2026-10-06 — see [decisions.md](decisions.md).
 
 It *was* a multi-bot monorepo — Slack, WhatsApp and a dice-table voice Activity
 lived here until 2026-08-27, when they were removed to make this a Discord-only

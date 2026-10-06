@@ -1,6 +1,8 @@
 # Task 20 — Estate deploy: keep the bot's state out of the rsync mirror, and choose which copy survives
 
 > **Progress 2026-10-04.** Done in `../vps-deploy` (`4acca94`): steps 2 and 3. The dry run prints `--exclude=bots/data` and `--exclude=/state`. The rsync simulation with the exact flags keeps a server-only `bots/data` file, the server's `reminders.json`, `state/`, and the pm2-era `bots/discord/data`. **Left, by the owner on the VPS** (decided 2026-10-04): step 1 (read-only), step 4 (back up, stage both copies, pick per file), then step 5's deploy and the acceptance checks.
+>
+> **2026-10-07:** step 1 is answered. The owner confirmed the pm2-to-container cutover ran for all four services, so the bot is live as a container. Steps 4 and 5 are still the owner's.
 
 ## Context
 

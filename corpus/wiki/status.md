@@ -154,7 +154,7 @@ every wiki page, a generated `index.md` catalog, [lint.sh](../lint.sh), a
 [glossary](glossary.md), knowledge routing in [routing.md](../routing.md), and
 `decisions.md` reformatted with rejected alternatives + reasons. The code-graph
 half of the spec is deliberately not installed — see
-[todo](../todos/add-code-graph-layer.md).
+todo.
 
 ## Rest of the bot
 
@@ -163,11 +163,7 @@ Not yet catalogued in the corpus — pages will be added as work touches them;
 their operating manuals are under
 [`docs/discord/`](../../docs/discord/README.md).
 
-**Two commands are hidden, and nobody wrote down why** (found 2026-08-27):
-`/dnd` and `/post` are commented out of `commands/index.ts` — `/dnd` in commit
-`0e41efc` ("save"), `/post` in `732889c` ("comment post for now"). Their code and
-docs are intact. Until the reason is recorded these are *undefended* hides: the
-wiki and docs claimed both worked, which has now been corrected, but the intent
-(temporary? abandoned?) is still unknown. See
-[open-questions.md](open-questions.md).
+**`/dnd` and `/post` are deleted** (2026-10-06). Both had been hidden since
+early June with no recorded reason; the owner chose to delete them. See
+[decisions.md](decisions.md).
 

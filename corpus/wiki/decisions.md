@@ -1,6 +1,6 @@
 ---
 summary: Locked tech/design calls with their rejected alternatives and reasons — read before proposing pnpm, a build step, an ORM-style rewrite, or a different music source.
-updated: 2026-08-27
+updated: 2026-10-06
 ---
 
 # Decisions (locked)
@@ -147,27 +147,11 @@ Consequences worth knowing, since none of them are visible in the diff:
 - The "feature logic free of platform imports" decision above lost its stated
   reason and was formally downgraded rather than quietly kept.
 
-## `/dicetable` removed — the Activities experiment is concluded
+## Removed features
 
-_2026-08-27_ — The `/dicetable` feature is deleted outright: `dicetable/`
-(451 lines), `commands/dicetable.ts`, `shared/src/dice-protocol.ts`, the <!-- stale-ok -->
-`DICE_ACTIVITY_WS_URL` / `DICE_ACTIVITY_TOKEN` / `DICETABLE_ACTIVITY_URL` env
-vars, and the docs page. Rejected: shelving it the way music was shelved (the
-precedent existed and was considered), and hosting the Activity from its own repo
-to make the client work again.
-Reason: the Activity app was added and disabled in the *same* commit
-(`0de2132`, 2026-06-03) and never ran on the VPS — this was an experiment that
-ended at birth, not a working feature that broke. Shelving preserves code for a
-revival that isn't planned; Discord Activities will be revisited as a *new* build
-rather than by reviving this one.
-Cost accepted: the Activity plumbing writeup (OAuth, session, the `/play` +
-`/engine` WebSockets, per-channel instance lifecycle) is deleted with the docs
-page and survives only in git history — chosen knowingly over keeping a 92-line
-reference page.
-Follow-on the user owns: `bots/dice-activity/.env` is deleted locally, but <!-- stale-ok -->
-`DISCORD_CLIENT_SECRET`, `SESSION_HMAC_KEY` and `ENGINE_AUTH_TOKEN` must be
-**rotated or the Discord app deleted** in the developer portal — deleting a local
-file does not invalidate a live secret.
+`/dicetable` (2026-08-27) and `/dnd` + `/post` (2026-10-06) were deleted outright
+rather than shelved. The calls and their follow-ons are in
+[decisions-removals.md](decisions-removals.md).
 
 ## `docs/` and `corpus/` both stay, split why vs how
 

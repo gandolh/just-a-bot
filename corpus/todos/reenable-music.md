@@ -108,4 +108,4 @@ IP block), yt-dlp + cookies (works, but manual refresh forever). Still untried:
 
 See [music.md](../wiki/music.md) and the 2026-06-26 incidents in
 [log.md](../log.md). Supersedes the narrower
-[revisit-youtube-provider.md](revisit-youtube-provider.md).
+revisit-youtube-provider.md.

@@ -75,7 +75,7 @@ music source: **SoundCloud** is now the temporary primary provider (active,
 streams natively, `SOUNDCLOUD_SEARCH`), and **YouTube** is the disabled secondary
 (`YOUTUBE_ENABLED = false` in [player.ts](../bots/discord/src/player.ts), yt-dlp
 path kept + `@deprecated`). Music commands stay live. Filed
-[todo](todos/revisit-youtube-provider.md) to re-enable YouTube later. Wiki:
+todo to re-enable YouTube later. Wiki:
 [music.md](wiki/music.md), [decisions.md](wiki/decisions.md).
 
 ## [2026-06-26] done | Brief 01 — music audio quality + code cleanup
@@ -121,7 +121,7 @@ earlier version). Changes:
 
 Deliberately **not** done: the code-graph layer (§0b) needs a pinned dependency
 and a committed `.mcp.json`, which is a repo change rather than a doc update —
-filed as [todo](todos/add-code-graph-layer.md) with the case for and against.
+filed as todo with the case for and against.
 No `test-plans/` layer either (no browser UI).
 
 ## [2026-08-27] maintenance | repo-level adoption: root CLAUDE.md, docs boundary, lint script
@@ -191,7 +191,7 @@ by default — the worst-measuring query — so `.mcp.json` sets
 disables the shim's GitHub-Releases fallback so only the pinned, registry-fetched
 artifact ever runs. Envelope filed at [code-graph.md](wiki/code-graph.md) and
 `.claude/skills/codegraph/SKILL.md`; routing rows replaced; MCP handshake
-smoke-tested. Todo [closed](todos/add-code-graph-layer.md).
+smoke-tested. Todo closed.
 
 ## [2026-08-27] decision | Discord-only: Slack, WhatsApp and dice-activity removed
 
@@ -298,7 +298,7 @@ Settled:
   **rotated, or the Discord app deleted**, in the developer portal. A local file
   delete does not invalidate a live secret. That part is the user's to do.
 
-[revisit-youtube-provider.md](todos/revisit-youtube-provider.md) marked
+revisit-youtube-provider.md marked
 `superseded` — its premise (re-enabling YouTube is a flag flip) stops being true
 once brief 03 lands. No glossary changes were needed: deleting `/dicetable`
 collapses the "dormant" state I had been using, leaving *shelved* as the only
@@ -873,7 +873,7 @@ operation, so that is the owner's call. No dev application token was available,
 so every check that needs the live bot is named as owed in its brief's outcome.
 Production needs `npm run discord:register` after the next deploy (brief 15
 changed `/remindme`'s schema). Captured along the way:
-[hangman-give-up-docs](todos/hangman-give-up-docs.md).
+hangman-give-up-docs.
 
 ## [2026-10-04] decide | Briefs 07 and 20: the owner runs the server steps
 
@@ -891,3 +891,13 @@ check. `docs/discord/hangman/README.md` now documents only `/hangman start`, and
 says a game ends on a win or the sixth wrong guess. Todo `hangman-give-up-docs`
 is done.
 
+
+## [2026-10-06] decision | `/dnd` and `/post` deleted
+
+The owner answered the last open question: both hidden commands go, the way
+`/dicetable` went. Deleted the commands, `dnd/` (including an orphaned
+`dice.ts`), `instagram/`, the `meme-square`/`card-square` templates, the `ig:`
+button route in `index.ts` (still wired to the hidden command), the `IG_*` env
+vars, both docs pages and the diagram's Instagram node. Also dropped a stale
+`player.ts` line from the architecture page; music took that file on 2026-08-27.
+Recorded in decisions-removals.md (split out of decisions.md, which hit the page cap).

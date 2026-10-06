@@ -1,6 +1,6 @@
 ---
-summary: The genuinely unresolved threads only — currently why /dnd and /post are hidden and what should happen to them.
-updated: 2026-08-27
+summary: The genuinely unresolved threads only — none open as of 2026-10-06; the music rebuild is a plan, not a question.
+updated: 2026-10-06
 ---
 
 # Open questions
@@ -14,15 +14,8 @@ freshness, Opus passthrough viability) moved to
 while music is shelved and YouTube is disabled, because nothing in the repo runs
 yt-dlp at all.
 
-- **Why are `/dnd` and `/post` hidden, and what should happen to them?** Both are
-  commented out of `commands/index.ts` with no recorded reason — `/dnd` in commit
-  `0e41efc` ("save"), `/post` in `732889c` ("comment post for now"). `/dnd` is the
-  larger of the two (a ~35 KB command plus `dnd/state.ts`); `/post` carries an
-  Instagram Graph API integration and two env vars. Until someone says why, the
-  fate is undecidable: **temporarily hidden** (leave them, the docs now say
-  "hidden"), **shelved indefinitely** (record a decision, as music got), or
-  **abandoned** (delete, as `/dicetable` was). The false claims that both worked
-  were corrected on 2026-08-27; only the intent is still open.
+_Nothing is open._ The `/dnd` and `/post` question was answered on 2026-10-06:
+both are deleted ([decisions.md](decisions.md)).
 
 The `/dicetable` question was answered on 2026-08-27 (delete it — see
 [decisions.md](decisions.md) and brief 02) and removed from this page, per the
