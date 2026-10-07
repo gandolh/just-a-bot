@@ -3,6 +3,8 @@
 > **Progress 2026-10-04.** Done in `../vps-deploy` (`4acca94`): steps 2 and 3. The dry run prints `--exclude=bots/data` and `--exclude=/state`. The rsync simulation with the exact flags keeps a server-only `bots/data` file, the server's `reminders.json`, `state/`, and the pm2-era `bots/discord/data`. **Left, by the owner on the VPS** (decided 2026-10-04): step 1 (read-only), step 4 (back up, stage both copies, pick per file), then step 5's deploy and the acceptance checks.
 >
 > **2026-10-07:** step 1 is answered. The owner confirmed the pm2-to-container cutover ran for all four services, so the bot is live as a container. Steps 4 and 5 are still the owner's.
+>
+> **2026-10-07: the owner chose to purge all state and start fresh**, so nothing is reconciled. A read-only check that day found less than feared: no pm2 process, no pm2-era `/srv/just-a-bot/bots/discord/data` on the host, and no `/app/bots/discord/data` inside the running container (`infrastructure-just-a-bot-1`, up 4 weeks). The only state anywhere is `bots/data/{reminders,birthdays}.json` (12 KB), on the host and in the container. A dry run of `node cli.ts just-a-bot server` shows the expected plan: empty `state/shared` and `state/discord`, `--exclude=bots/data --exclude=/state`, rebuild, `up -d`. **Left for the owner** (the agent's deploy was blocked as a production action): run that deploy from `../vps-deploy`, then `ssh hetzner-svc 'rm -rf /srv/just-a-bot/bots/data'`, then `/coins add 1`, deploy again, and check the balance survived.
 
 ## Context
 

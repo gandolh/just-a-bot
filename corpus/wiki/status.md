@@ -45,8 +45,9 @@ stays mechanically enforced.
   compose file the estate deploys. **Production is the container** (decisions.md,
   revisited 2026-10-04). Its state moves to two bind mounts outside the rsync
   mirror; the repo side of briefs [07](../briefs/todo/07-container-state-volumes.md)
-  and [20](../briefs/todo/20-estate-state-protection.md) is done. Not deployed:
-  the owner runs the server steps and picks which copy of each file survives.
+  and [20](../briefs/todo/20-estate-state-protection.md) is done. Not deployed.
+  On 2026-10-07 the owner chose to purge the state and start fresh; what is left
+  is one deploy and deleting the old `bots/data` on the host.
 
 ## Queued work
 
@@ -74,8 +75,8 @@ Now (real and cheap):
 - [06](../briefs/done/06-connect-four-per-turn-timer.md): the Connect Four
   timer runs per game, not per turn. Any game longer than 90 s ends in a forfeit.
 - [07](../briefs/todo/07-container-state-volumes.md): repo side done 2026-10-04
-  (mounts, `.dockerignore`, the pm2 revisit). Waits on the owner's server steps
-  with [20](../briefs/todo/20-estate-state-protection.md).
+  (mounts, `.dockerignore`, the pm2 revisit). Waits on the owner's deploy, with
+  [20](../briefs/todo/20-estate-state-protection.md). State is purged, not reconciled.
 - [08](../briefs/done/08-rpg-trade-item-dupe.md): RPG trades can duplicate
   items.
 - [09](../briefs/done/09-clock-utc-offset.md): `/clock` shows the host's UTC
@@ -111,6 +112,7 @@ Second pass (it read `../vps-deploy`, which the first didn't):
 - [20](../briefs/todo/20-estate-state-protection.md): the estate deploy treats
   the bot as stateless. Its rsync overwrites `bots/data` on every deploy, and
   07's step 4 would overwrite the pm2-era state. **Deploy 07 and 20 together.**
+  2026-10-07: no pm2-era copy exists; the owner purges and deploys.
 - [23](../briefs/done/23-quote-add-channel-permission.md): `/quote add` saves
   messages from channels the invoker can't read, and `/quote search` then posts
   them publicly.

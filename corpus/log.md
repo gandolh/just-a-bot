@@ -780,3 +780,14 @@ links for them, and the `/play` guard in `help.test.ts`. decisions.md now holds
 one entry: no music, and a future feature starts from zero. The owner's new idea
 (in-house, on-demand loading or downloaded files) is captured as
 [music-in-house](todos/music-in-house.md). Tests 27/27, typecheck clean, lint clean.
+
+## [2026-10-07] maintenance | Briefs 07 and 20: state is purged, not reconciled; the deploy is the owner's
+
+The owner chose to purge the bot's state and start fresh. A read-only check of
+the VPS that day: `infrastructure-just-a-bot-1` up 4 weeks, no pm2 process, no
+pm2-era `bots/discord/data` on the host, no `/app/bots/discord/data` in the
+container. The only state is `bots/data/{reminders,birthdays}.json` (12 KB) on the
+host and in the container. `node cli.ts just-a-bot server --dry-run` shows empty
+`state/shared` and `state/discord`, the new excludes, a rebuild and `up -d`. The
+real deploy was blocked for the agent as a production action, so the owner runs
+it, then deletes `/srv/just-a-bot/bots/data`. Both briefs carry the steps.
