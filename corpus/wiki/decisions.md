@@ -68,8 +68,8 @@ third-party sources (YouTube, yt-dlp, SoundCloud) with their extractors, is
 dropped for good, findings included. Its code and dependencies went on
 2026-08-27; its post-mortem, research todo and superseded provider decisions
 went on 2026-10-07. The owner plans a different design: in-house, with
-on-demand loading or downloaded files, built from zero
-([todo](../todos/music-in-house.md)).
+on-demand loading or downloaded files, built from zero. The owner files the
+brief when it is time.
 Rejected: keeping the post-mortem and the untried SoundCloud test as the
 starting point for a rebuild. The new design shares nothing with them.
 

@@ -779,7 +779,7 @@ log entries from 2026-06-26 and 2026-08-27, the docs-site pages and sidebar
 links for them, and the `/play` guard in `help.test.ts`. decisions.md now holds
 one entry: no music, and a future feature starts from zero. The owner's new idea
 (in-house, on-demand loading or downloaded files) is captured as
-[music-in-house](todos/music-in-house.md). Tests 27/27, typecheck clean, lint clean.
+`music-in-house` (retired the same day). Tests 27/27, typecheck clean, lint clean.
 
 ## [2026-10-07] maintenance | Briefs 07 and 20: state is purged, not reconciled; the deploy is the owner's
 
@@ -802,3 +802,10 @@ empty; the old host `bots/data` is gone. Both briefs moved to `done/`. The
 Discord `/coins` survival check is left to the owner. Also from the owner today:
 committing straight to `main` is allowed (root CLAUDE.md), and the music-purge
 branch is merged into main and deleted.
+
+## [2026-10-07] maintenance | Music todo retired
+
+The owner will write the music brief when it is time, so the placeholder todo
+`music-in-house` is deleted (git has it). decisions.md still records that the old
+third-party approach is gone and an in-house design is planned; status.md,
+open-questions.md and routing.md now say so without linking a todo.

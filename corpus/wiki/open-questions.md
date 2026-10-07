@@ -19,7 +19,7 @@ rule above.
 
 Live threads that are *not* open questions:
 
-- Music, a new in-house design the owner will specify:
-  [music-in-house.md](../todos/music-in-house.md).
+- Music, a new in-house design the owner will specify and file as a brief when it
+  is time.
 - Whether Discord Activities return, and in what form — deferred by the user, not
   under investigation.

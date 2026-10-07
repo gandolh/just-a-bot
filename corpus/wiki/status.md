@@ -11,7 +11,8 @@ Where things stand right now.
 
 Not built. The old third-party approach is gone, code and notes alike
 (2026-10-07). The owner plans an in-house design with on-demand loading or
-downloaded files, to be built from zero: [music-in-house.md](../todos/music-in-house.md).
+downloaded files, to be built from zero. The owner files the brief when it is
+time; nothing is tracked until then.
 
 ## Scope — Discord-only since 2026-08-27
 
