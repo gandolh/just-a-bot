@@ -1,22 +1,17 @@
 ---
-summary: Dated snapshot of where the project stands right now — a single Discord bot with music and /dicetable both removed, and 21 audit briefs (04-24) queued from two passes, in rank order.
-updated: 2026-10-02
+summary: Dated snapshot of where the project stands right now — a single Discord bot with no music (a new in-house design is planned) and /dicetable removed, and 21 audit briefs (04-24) queued from two passes, in rank order.
+updated: 2026-10-07
 ---
 
 # Status — 2026-10-02
 
 Where things stand right now.
 
-## Music — REMOVED
+## Music
 
-Gone as of 2026-08-27: 333 lines and all eight audio dependencies
-(`npm install` dropped 275 packages). Reviving it is a **rebuild**, not an
-uncomment. Post-mortem with the findings worth keeping:
-[music.md](music.md). Plan, including the one cheap test that was never run:
-[reenable-music.md](../todos/reenable-music.md).
-
-Hold is active — the user is researching a provider that works from a datacenter
-IP without cookie refreshing.
+Not built. The old third-party approach is gone, code and notes alike
+(2026-10-07). The owner plans an in-house design with on-demand loading or
+downloaded files, to be built from zero: [music-in-house.md](../todos/music-in-house.md).
 
 ## Scope — Discord-only since 2026-08-27
 
@@ -38,8 +33,7 @@ stays mechanically enforced.
 - **`docs/` ↔ `corpus/` boundary settled** (2026-08-27): `docs/` is the how
   (per-feature operating manuals, setup, triage), `corpus/` is the why, and
   `docs/` ranks last in the source-of-truth order. Both front doors say so. Two
-  drifted `docs/` pages were corrected at the time; the music page has since been
-  deleted with the feature.
+  drifted `docs/` pages were corrected at the time.
 - **Code graph installed** — `codegraph` 1.6.0, global, MCP in `.mcp.json`.
   Re-benchmarked after the trim: `impact` exact, transitive and 13.5× cheaper;
   `explore` only 1.6× (ruled out); 12 duplicate names still conflate, so never
@@ -67,9 +61,8 @@ its outcome. Brief 15 also changed a slash-command schema, so production needs
 The list below is the original catalog, in rank order, from the two passes on
 2026-09-26 (04-19 from the "Improvements audit", 20-24 from the "Second
 improvements pass").
-[01](../briefs/done/01-music-audio-quality.md) and
-[02](../briefs/done/02-remove-dicetable.md) are done, and
-[03](../briefs/superseded/03-remove-ytdlp-path.md) was superseded.
+[02](../briefs/done/02-remove-dicetable.md) is done. Briefs 01 and 03 were about
+the old music approach and were deleted with it on 2026-10-07.
 
 Now (real and cheap):
 
@@ -121,7 +114,7 @@ Second pass (it read `../vps-deploy`, which the first didn't):
 - [23](../briefs/done/23-quote-add-channel-permission.md): `/quote add` saves
   messages from channels the invoker can't read, and `/quote search` then posts
   them publicly.
-- [21](../briefs/done/21-help-from-registry.md): `/help` lists 7 removed music
+- [21](../briefs/done/21-help-from-registry.md): `/help` lists 7 removed
   commands and omits 11 of the 25 registered ones. Build it from the registry.
 - [22](../briefs/done/22-docs-games-pages.md): `/c4` is documented with an
   option it doesn't take, `/c42` isn't documented, and Wordle and tic-tac-toe

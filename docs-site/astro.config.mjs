@@ -70,10 +70,8 @@ export default defineConfig({
           label: 'Maintainer — from the corpus',
           items: [
             { label: 'Decisions', link: '/wiki/decisions/' },
-            { label: 'Superseded decisions', link: '/wiki/decisions-superseded/' },
             { label: 'Glossary', link: '/wiki/glossary/' },
             { label: 'The code graph', link: '/wiki/code-graph/' },
-            { label: 'Music — a post-mortem', link: '/wiki/music/' },
             { label: 'Open questions', link: '/wiki/open-questions/' },
           ],
         },

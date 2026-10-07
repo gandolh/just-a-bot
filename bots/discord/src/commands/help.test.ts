@@ -9,7 +9,7 @@ process.env.GUILD_ID ??= '1';
 const { commands, contextMenuCommands } = await import('./index.ts');
 const { buildHelpFields } = await import('./help.ts');
 
-test('/help lists every registered command and menu, and nothing removed', () => {
+test('/help lists every registered command and menu', () => {
   const fields = buildHelpFields();
   const text = fields.map((f) => `${f.name}\n${f.value}`).join('\n');
   assert.ok(commands.size > 20, 'expected the registry to load');
@@ -19,8 +19,6 @@ test('/help lists every registered command and menu, and nothing removed', () =>
   for (const name of contextMenuCommands.keys()) {
     assert.ok(text.includes(name), `the "${name}" menu is missing from /help`);
   }
-  assert.ok(!text.includes('/play'), 'a removed music command is still listed');
-  assert.ok(!fields.some((f) => f.name.includes('Music')));
 });
 
 test('/help fits Discord\'s embed limits', () => {

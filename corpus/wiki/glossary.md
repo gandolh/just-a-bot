@@ -1,6 +1,6 @@
 ---
 summary: The project's vocabulary — what command, feature dir, sibling command and shelved mean here, and which synonyms to stop using.
-updated: 2026-08-27
+updated: 2026-10-07
 ---
 
 # Glossary
@@ -37,15 +37,7 @@ _Avoid_: v2, fork, replacement
 A finished feature whose commands are commented out of
 `bots/discord/src/commands/index.ts` — invisible in Discord — with all of its
 code kept intact and re-enablable by uncommenting. Distinct from **removed**,
-where the code is deleted and reviving it means rebuilding. Music was shelved in
-June and then *removed* in August; nothing is currently shelved.
+where the code is deleted and reviving it means rebuilding. Nothing is currently
+shelved.
 _Avoid_: removed, deleted, turned off — for a *shelved* thing. Say "removed" only
 when the code is actually gone.
-
-## Retired terms
-
-**Provider** and **Extractor** were defined here while the music subsystem
-existed (a *provider* was the upstream service, an *extractor* the
-discord-player class that talked to it). Both were removed with the code on
-2026-08-27. The distinction is preserved in [music.md](music.md) and matters
-again only if music is rebuilt — it is not current vocabulary.

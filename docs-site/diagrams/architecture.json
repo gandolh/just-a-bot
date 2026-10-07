@@ -231,7 +231,7 @@
       "dot": "amber",
       "title": "Removed",
       "items": [
-        "Music is gone entirely, with a post-mortem rather than a changelog line",
+        "Music is gone; a new in-house design is planned, built from zero",
         "/dnd and /post were deleted on 2026-10-06; git history keeps them"
       ]
     }

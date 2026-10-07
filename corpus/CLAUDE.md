@@ -74,7 +74,7 @@ A corpus exists to make an agent **cheaper**, not just better-informed.
   actually stops drift). Definitions, not mechanism. Write an entry the moment a
   term is settled. A term used against its definition is a **finding**, not a
   typo; two live meanings means two terms and two names.
-- Plus one page per meaningful subsystem (e.g. [music.md](wiki/music.md)).
+- Plus one page per meaningful subsystem, added as work touches it.
 
 ## Work lifecycle
 

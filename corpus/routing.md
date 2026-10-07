@@ -13,8 +13,8 @@ layer instead of grepping twenty files or asking the wiki a structural question.
 | ----------------------------------------------------- | ------------------------------------------------------------ |
 | "why is it like this", "was this decided"              | `wiki/decisions.md` → `log.md`                               |
 | "where do things stand", "what's shipped"              | `wiki/status.md`                                             |
-| "why is there no music / what was tried"                | `wiki/music.md` — post-mortem; the subsystem is gone         |
-| "what is a *feature dir* / *provider* / *shelved*"     | `wiki/glossary.md`                                           |
+| "why is there no music"                                 | `wiki/decisions.md` → [music-in-house.md](todos/music-in-house.md) |
+| "what is a *feature dir* / *shelved*"                  | `wiki/glossary.md`                                           |
 | "how is the repo put together"                         | `wiki/architecture.md`                                       |
 | "how do I set this feature up / what env vars"          | [`docs/`](../docs/README.md) — the how-layer, verify against code |
 | "how do I triage this feature when it breaks"           | that feature's `docs/` runbook, then `pm2 logs`              |
@@ -41,7 +41,7 @@ layer instead of grepping twenty files or asking the wiki a structural question.
 | "what does the wiki say about X"                     | corpus-flow §5 (query)            |
 | "lint the corpus" / "is the wiki stale"              | `bash corpus/lint.sh`, then corpus-flow §7 |
 | review a diff/PR                                     | code-review skill                 |
-| rebuilding music                                     | [reenable-music.md](todos/reenable-music.md) — start with the untried SoundCloud test |
+| building music                                       | [music-in-house.md](todos/music-in-house.md) — the owner specifies the design first |
 
 ## READ / SKIP / SKILLS
 

@@ -1,6 +1,6 @@
 ---
-summary: Locked tech/design calls with their rejected alternatives and reasons — read before proposing pnpm, a build step, an ORM-style rewrite, or a different music source.
-updated: 2026-10-06
+summary: Locked tech/design calls with their rejected alternatives and reasons — read before proposing pnpm, a build step, or an ORM-style rewrite.
+updated: 2026-10-07
 ---
 
 # Decisions (locked)
@@ -13,9 +13,8 @@ An entry earns a place here only if it is **hard to reverse**, **surprising
 without context**, and **a genuine trade-off**. Obvious choices belong in
 [architecture.md](architecture.md), not here.
 
-Decisions that no longer bind anything live in
-[decisions-superseded.md](decisions-superseded.md) — this page is what still
-constrains new work, so a reader can trust that everything on it is live.
+Everything on this page still constrains new work. A decision that stops
+binding is deleted, and log.md keeps its history.
 
 ## npm workspaces, not pnpm or yarn
 
@@ -62,27 +61,17 @@ Reason: bad *required* config fails fast at boot rather than at first use, but a
 *missing optional* integration reports "not configured" instead of crashing the
 whole bot — one broken API key must not take the other twenty features down.
 
-## Music subsystem removed entirely
+## No music; a future music feature starts from zero
 
-_2026-08-27_ — All eight audio dependencies (`discord-player`,
-`@discord-player/extractor`, `discord-player-youtubei`, `@discordjs/voice`,
-`@discordjs/opus`, `sodium-native`, `ffmpeg-static`, `youtube-dl-exec`) and the
-333 lines that used them (`player.ts`, `commands/_music.ts`, the seven commands)
-are deleted, along with both cookie env vars, the `music:update-ytdlp` script and
-the `docs/discord/music/` <!-- stale-ok --> page. `npm install` drops 275 packages.
-Rejected: keeping the code shelved (the standing decision, below — superseded by
-this one), and the narrower "remove yt-dlp only" scope decided earlier the same
-day, which would have left the youtubei extractor in place.
-Reason: with the feature on an open-ended hold, dead code for a provider stack
-that had already failed was pure carrying cost — eight dependencies to audit and
-upgrade for something nobody could run. The revival is now explicitly a **rebuild**
-against whatever provider wins the research, and the discord-player glue would not
-have transferred to Lavalink anyway.
-Cost accepted, and it is real: reviving music is no longer an uncomment. The
-mitigation is that the *findings* survive where the code does not —
-[music.md](music.md) is kept as a post-mortem and pins
-`git show 4d03ca0:bots/discord/src/player.ts` for anyone who wants the
-implementation back.
+_2026-10-07_ — The bot has no music. The old approach, playback through
+third-party sources (YouTube, yt-dlp, SoundCloud) with their extractors, is
+dropped for good, findings included. Its code and dependencies went on
+2026-08-27; its post-mortem, research todo and superseded provider decisions
+went on 2026-10-07. The owner plans a different design: in-house, with
+on-demand loading or downloaded files, built from zero
+([todo](../todos/music-in-house.md)).
+Rejected: keeping the post-mortem and the untried SoundCloud test as the
+starting point for a rebuild. The new design shares nothing with them.
 
 ## JSON files on disk for all state — no SQLite
 
@@ -161,8 +150,8 @@ synthesis. The boundary is written into both front doors and `docs/` ranks last
 in the source-of-truth order. Rejected: folding `docs/` into `corpus/wiki/` and
 deleting it (would blow the 200-line-per-page cap immediately and lose the
 per-feature structure), and leaving the two layers unrelated (they had already
-drifted into contradiction — `docs/discord/music/README.md` <!-- stale-ok --> described the shelved
-music feature as working).
+drifted into contradiction: a `docs/` page described a shelved feature as
+working).
 Reason: they answer different questions for different readers, and the failure
 mode was never duplication — it was that nothing said which one to trust. Cost
 accepted: two places to update when a feature's usage changes.

@@ -4,8 +4,8 @@ import type { Command, ContextMenuCommand } from './types.ts';
 
 /**
  * `/help` is built from the registered commands, not written by hand. The
- * hand-kept list drifted both ways: it advertised seven music commands that no
- * longer exist and left out eleven that do. `commands/index.ts` hands the
+ * hand-kept list drifted both ways: it advertised seven commands that no longer
+ * existed and left out eleven that did. `commands/index.ts` hands the
  * registry over once it is built (`setHelpCatalog`), so a new command shows up
  * here without anyone remembering to add it.
  */

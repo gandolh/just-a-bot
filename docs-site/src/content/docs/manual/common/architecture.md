@@ -28,7 +28,7 @@ npm workspaces:
 
 This was a multi-bot monorepo until 2026-08-27, when the Slack, WhatsApp and
 dice-activity workspaces were removed, followed by the `/dicetable` feature and
-the music subsystem — see
+the old music subsystem — see
 [corpus/wiki/decisions.md](../../corpus/wiki/decisions.md). The two-workspace
 split is kept because `shared/` still holds code with no Discord dependency at
 all, which the package boundary enforces mechanically.

@@ -6,87 +6,8 @@ Chronological record of meaningful corpus + project changes. Newest last.
 
 Created `corpus/` at repo root: CLAUDE.md, index.md, log.md, routing.md, and
 the wiki spine (overview, architecture, decisions, status, open-questions) plus
-a [music](wiki/music.md) concept page. Seeded from the repo structure and the
+a music concept page. Seeded from the repo structure and the
 in-flight music work.
-
-## [2026-06-26] ingest | music playback fixed (joins-but-silent)
-
-YouTube SABR/PO-token enforcement broke `discord-player-youtubei`'s youtubei.js
-stream cascade — tracks resolved (so they "queued") but produced no audio. Fixed
-by adding a `createStream` override in
-[player.ts](../bots/discord/src/player.ts) that streams via `youtube-dl-exec`
-(`bestaudio`) directly, bypassing the flaky client cascade + SABR. Updated the
-bundled yt-dlp binary 2026.03.17 → 2026.06.09. See [music.md](wiki/music.md).
-
-## [2026-06-26] todo | brief 01 filed — music audio quality + code cleanup
-
-Set `/play` `volume: 100` (skips discord-player's PCM volume filter). Filed
-[brief 01](briefs/done/01-music-audio-quality.md) for further audio-quality and
-music-code improvements.
-
-## [2026-06-26] incident | DiscordAPIError 40060 on /play (duplicate interaction)
-
-`/play` threw "Interaction has already been acknowledged" (40060) at
-`deferReply`. **Root cause: the same `DISCORD_TOKEN` was running in two places at
-once — local `discord:dev` AND the VPS (pm2) deployment.** Discord delivers each
-interaction to every live gateway session of a bot, so both instances ran
-`execute` and called `deferReply`; the loser of the race 40060'd. Verified there
-is only one local process and exactly one `InteractionCreate` listener in code,
-so it is NOT a double-registered listener, NOT a music bug, and NOT (primarily)
-the tsx-watch reload overlap.
-
-Fix / rule: one running instance per bot token. Best practice — use a **separate
-Discord application + token for local dev** (set in local `.env`), leaving the
-VPS on the production token; `env.ts` + `GUILD_ID` already support this with no
-code change.
-
-A graceful SIGINT/SIGTERM shutdown was also added to
-[index.ts](../bots/discord/src/index.ts) (`client.destroy()` on exit) — good
-hygiene for clean `tsx watch` reloads and pm2 restarts, but not the cause here.
-The `ephemeral: true` deprecation warning (142 sites) is separate and still open.
-
-## [2026-06-26] incident | VPS music silent — YouTube anti-bot block
-
-After ruling out the duplicate-instance 40060 (ran VPS-only), `/play` still
-joined and was silent while all other commands worked. `pm2 logs` showed yt-dlp
-exiting code 1 with `Sign in to confirm you're not a bot` — YouTube blocks the
-Hetzner datacenter IP and won't stream without auth (works on residential/local
-IPs). Fix: added `YT_COOKIES_FILE` env → passed to yt-dlp as `--cookies` in
-[player.ts](../bots/discord/src/player.ts) `streamWithYtDlp`. User must drop a
-Netscape `cookies.txt` on the VPS and set the env var. See
-[music.md](wiki/music.md).
-
-## [2026-06-26] decision | Music feature shelved — commands disabled
-
-SoundCloud also failed on the VPS: extraction + voice connect succeed, but the
-test track returned a 0:30 preview and even `skipFFmpeg:false` left it at
-`playbackDuration: 120` ms then finished (empty/unreadable preview stream). With
-YouTube IP-blocked and yt-dlp same, no direct-from-VPS source works. Shelved the
-feature: commented the 7 music commands out of
-[commands/index.ts](../bots/discord/src/commands/index.ts) (hidden from Discord);
-all code kept intact. Full resume plan + saga in
-[reenable-music.md](todos/reenable-music.md). Likely endgame: Lavalink or YouTube
-+ residential proxy.
-
-## [2026-06-26] decision | SoundCloud primary, YouTube disabled secondary
-
-With no low-maintenance cookie-free way past YouTube's VPS IP block, switched the
-music source: **SoundCloud** is now the temporary primary provider (active,
-streams natively, `SOUNDCLOUD_SEARCH`), and **YouTube** is the disabled secondary
-(`YOUTUBE_ENABLED = false` in [player.ts](../bots/discord/src/player.ts), yt-dlp
-path kept + `@deprecated`). Music commands stay live. Filed
-todo to re-enable YouTube later. Wiki:
-[music.md](wiki/music.md), [decisions.md](wiki/decisions.md).
-
-## [2026-06-26] done | Brief 01 — music audio quality + code cleanup
-
-Shipped: `volume: 100`; yt-dlp format `bestaudio[acodec=opus]/bestaudio`
-(WebM/Opus @ 48 kHz, Discord-native — ffmpeg remuxes instead of transcoding AAC);
-new `commands/_music.ts` `getActiveQueue` helper deduping the six music control
-commands; root `music:update-ytdlp` script. Typecheck clean; script verified.
-True Opus passthrough deferred (needs live voice test) — see
-[open-questions.md](wiki/open-questions.md). Brief →
-[done](briefs/done/01-music-audio-quality.md).
 
 ## [2026-08-27] maintenance | corpus updated to corpus-flow 0.29.0
 
@@ -116,7 +37,7 @@ earlier version). Changes:
   npm-workspaces flagged as undefended (reason predates the corpus).
 - Lint fixes found on the way: [open-questions.md](wiki/open-questions.md)
   pointed at brief 01 in `todo/` (it's in `done/`), and
-  [music.md](wiki/music.md) described the providers as active without saying the
+  music.md described the providers as active without saying the
   commands are commented out — now banner-flagged as shelved.
 
 Deliberately **not** done: the code-graph layer (§0b) needs a pinned dependency
@@ -269,7 +190,7 @@ Settled:
 - **Music: active hold, not a closed door.** The user is researching a different
   provider or a cookie-free YouTube route; cookies are ruled out as the standing
   fix. No code moves until a source is proven from the VPS. Recorded in
-  [reenable-music.md](todos/reenable-music.md) — which also now flags that the
+  reenable-music.md — which also now flags that the
   cheapest test in that file (does a *fully streamable* SoundCloud track play on
   the VPS?) **has never been run**; every VPS failure so far was measured against
   a 0:30 preview.
@@ -285,7 +206,7 @@ Settled:
 - **`shared/` stays a workspace** at 168 lines / 4 files. The package split is
   what makes "no `discord.js` dependency" mechanically enforced rather than a
   convention; collapsing it would touch 14 import sites to buy tidiness.
-- **yt-dlp path removed, youtubei kept** — [brief 03](briefs/superseded/03-remove-ytdlp-path.md).
+- **yt-dlp path removed, youtubei kept** — brief 03.
   Removing the *whole* disabled YouTube secondary was recommended and declined.
   The consequence is recorded loudly in
   [decisions.md](wiki/decisions.md) and is the load-bearing line of that brief:
@@ -305,62 +226,6 @@ collapses the "dormant" state I had been using, leaving *shelved* as the only
 term.
 
 Nothing implemented yet — both briefs are in `todo/`.
-
-## [2026-08-27] done | Music subsystem removed entirely — all 8 audio deps gone
-
-Widened scope, same day: rather than removing only the yt-dlp half (the Q8
-answer), the user asked to remove **every external library used to play music**.
-Executed directly; [brief 03](briefs/superseded/03-remove-ytdlp-path.md) was
-superseded before it ever ran.
-
-Removed — 333 lines of code:
-
-- `player.ts` (146), `commands/_music.ts` (26), and the seven commands
-  play/skip/pause/resume/stop/queue/nowplaying (161).
-- The `initPlayer(client)` call and import in `index.ts`; the commented-out music
-  block and its now-false "code is kept intact" comment in `commands/index.ts`.
-- `YT_COOKIE` + `YT_COOKIES_FILE` from `env.ts`; `music:update-ytdlp` from the
-  root `package.json`; the `docs/discord/music/` page and its index entries.
-
-Removed — 8 dependencies: `discord-player`, `@discord-player/extractor`,
-`discord-player-youtubei`, `@discordjs/voice`, `@discordjs/opus`,
-`sodium-native`, `ffmpeg-static`, `youtube-dl-exec`. **`npm install` dropped 275
-packages.** `bots/discord` is down to six runtime deps. Note `@discordjs/voice`,
-`@discordjs/opus` and `sodium-native` had **no direct imports** — they were
-declared so discord-player picked up the native builds, which is why grep for
-imports alone would have missed them.
-
-Consequence, stated plainly because it reverses a June decision: **music is now
-deleted, not shelved.** Reviving it is a rebuild, not an uncomment.
-`reenable-music.md` was retitled and rewritten around that, and pins
-`git show 4d03ca0:bots/discord/src/player.ts` for the old implementation. The
-judgement call: the glue code was worth little (none of it transfers if the answer
-is Lavalink) while the *findings* are worth a lot, so [music.md](wiki/music.md)
-was converted into a post-mortem and kept — it holds which providers fail from a
-datacenter IP and the four settings that each cost real debugging time.
-
-Corpus consequences worked through rather than patched over:
-
-- **`decisions.md` hit the 200-line cap** and was split **by status**:
-  live constraints stay, and the music-provider trail (SoundCloud-primary, then
-  shelved) moved to [decisions-superseded.md](wiki/decisions-superseded.md). The
-  live page is now trustworthy as "everything here still binds". One slip caught
-  on review: the first split swept the *live* "removed entirely" decision into the
-  superseded page — moved back.
-- **`glossary.md`**: *Provider* and *Extractor* described no live code once the
-  subsystem went, so they moved to a "Retired terms" note rather than being
-  silently deleted or left implying they were current. *Shelved* kept its
-  definition and gained the explicit contrast with *removed* — the two were being
-  used interchangeably in my own writing, which is exactly the drift the page
-  exists to stop.
-- **`lint.sh` gained a frozen-records rule.** `log.md` and briefs in
-  `done/`/`superseded/` are immutable or historical, so their links to deleted
-  code rot by design and can never be fixed — linting them produced 8 unactionable
-  failures. Code links from those files are now exempt; their corpus-internal
-  links are still checked, which is what caught the `briefs/todo/03` →
-  `briefs/superseded/03` path after the move.
-
-`docs/` swept (115 links verified, 0 broken); typecheck clean; corpus lint clean.
 
 ## [2026-08-27] done | Brief 02 — /dicetable removed (via plan-split-dispatch)
 
@@ -901,3 +766,17 @@ button route in `index.ts` (still wired to the hidden command), the `IG_*` env
 vars, both docs pages and the diagram's Instagram node. Also dropped a stale
 `player.ts` line from the architecture page; music took that file on 2026-08-27.
 Recorded in decisions-removals.md (split out of decisions.md, which hit the page cap).
+
+## [2026-10-07] decision | The old music approach is purged; music will be rebuilt in-house from zero
+
+The owner asked to purge everything about the old music approach: playback
+through third-party sources (YouTube, yt-dlp, SoundCloud) and their extractors.
+The code and all eight audio dependencies were already gone (2026-08-27; no
+audio package is installed). Deleted now: the post-mortem (`wiki/music.md`), the
+research todo (`reenable-music`), the superseded provider decisions
+(`wiki/decisions-superseded.md`, music-only), briefs 01 and 03, the music-only
+log entries from 2026-06-26 and 2026-08-27, the docs-site pages and sidebar
+links for them, and the `/play` guard in `help.test.ts`. decisions.md now holds
+one entry: no music, and a future feature starts from zero. The owner's new idea
+(in-house, on-demand loading or downloaded files) is captured as
+[music-in-house](todos/music-in-house.md). Tests 27/27, typecheck clean, lint clean.

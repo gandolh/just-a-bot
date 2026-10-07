@@ -1,12 +1,11 @@
 ---
 summary: Features deleted outright rather than shelved — /dicetable (2026-08-27), /dnd and /post (2026-10-06) — with the reasons and the owner's follow-ons.
-updated: 2026-10-06
+updated: 2026-10-07
 ---
 
 # Decisions: removed features
 
-Split out of [decisions.md](decisions.md) on 2026-10-06. Music was removed too,
-but shelved with a post-mortem rather than deleted as a decision; its entry stays
+Split out of [decisions.md](decisions.md) on 2026-10-06. Music has its own entry
 in decisions.md.
 
 ## `/dicetable` removed — the Activities experiment is concluded
