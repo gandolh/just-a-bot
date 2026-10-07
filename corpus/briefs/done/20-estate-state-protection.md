@@ -165,3 +165,15 @@ rsync mirror, so the image carries whatever trap 2 pushed.
 - `/coins balance` shows the balance the chosen copy says you have. Run
   `/coins add 1`, deploy again, and the balance still includes it.
 - `/remindme list` shows production reminders, not the dev ones.
+
+## Outcome (2026-10-07)
+
+Deployed by the owner on 2026-10-07 with both briefs in, after the owner chose
+to purge the bot's state instead of reconciling copies. The owner also deleted
+`/srv/just-a-bot/bots/data` on the host. Checked the same day, read-only: the
+container `infrastructure-just-a-bot-1` runs the new image and logs in; its
+mounts are `/srv/just-a-bot/state/shared -> /app/bots/data` and
+`/srv/just-a-bot/state/discord -> /app/bots/discord/data`, both empty (a fresh
+start); `/srv/just-a-bot/bots/data` is gone. Not run by the agent: the Discord
+check (`/coins add 1`, deploy again, the balance survives). The owner can run it
+in Discord at any time.

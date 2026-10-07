@@ -107,3 +107,15 @@ evidence is in brief [20](20-estate-state-protection.md).
 - Wherever the container runs: `/coins add 123`, then
   `docker compose up -d --force-recreate`. `/coins balance` still shows the coins.
 - `decisions.md` no longer contradicts the repo, and `bash corpus/lint.sh` is clean.
+
+## Outcome (2026-10-07)
+
+Deployed by the owner on 2026-10-07 with both briefs in, after the owner chose
+to purge the bot's state instead of reconciling copies. The owner also deleted
+`/srv/just-a-bot/bots/data` on the host. Checked the same day, read-only: the
+container `infrastructure-just-a-bot-1` runs the new image and logs in; its
+mounts are `/srv/just-a-bot/state/shared -> /app/bots/data` and
+`/srv/just-a-bot/state/discord -> /app/bots/discord/data`, both empty (a fresh
+start); `/srv/just-a-bot/bots/data` is gone. Not run by the agent: the Discord
+check (`/coins add 1`, deploy again, the balance survives). The owner can run it
+in Discord at any time.

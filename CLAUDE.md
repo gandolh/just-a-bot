@@ -53,4 +53,4 @@ that will be relitigated.
   `bots/discord/data/` (bot-local). No database, deliberately — see
   `decisions.md`.
 - **`npm run corpus:lint`** before committing corpus changes.
-- **Commit only when asked**, and never to `main` without branching first.
+- **Commit only when asked.** Committing straight to `main` is fine (owner, 2026-10-07).

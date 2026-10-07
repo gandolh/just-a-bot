@@ -791,3 +791,14 @@ host and in the container. `node cli.ts just-a-bot server --dry-run` shows empty
 `state/shared` and `state/discord`, the new excludes, a rebuild and `up -d`. The
 real deploy was blocked for the agent as a production action, so the owner runs
 it, then deletes `/srv/just-a-bot/bots/data`. Both briefs carry the steps.
+
+## [2026-10-07] done | Briefs 07 and 20 deployed; the bot starts with fresh state
+
+The owner ran `node cli.ts just-a-bot server` and deleted
+`/srv/just-a-bot/bots/data`. Read-only check afterwards: the container runs the
+new image and logs in as the bot; `/app/bots/data` and `/app/bots/discord/data`
+are bind-mounted from `/srv/just-a-bot/state/shared` and `/state/discord`, both
+empty; the old host `bots/data` is gone. Both briefs moved to `done/`. The
+Discord `/coins` survival check is left to the owner. Also from the owner today:
+committing straight to `main` is allowed (root CLAUDE.md), and the music-purge
+branch is merged into main and deleted.
