@@ -41,7 +41,7 @@ layer instead of grepping twenty files or asking the wiki a structural question.
 | "what does the wiki say about X"                     | corpus-flow §5 (query)            |
 | "lint the corpus" / "is the wiki stale"              | `bash corpus/lint.sh`, then corpus-flow §7 |
 | review a diff/PR                                     | code-review skill                 |
-| building music                                       | nothing yet — the owner writes the brief when it is time |
+| building music (the Jukebox)                         | briefs 25 → 26 → 27, after atrium briefs 80 and 81 |
 
 ## READ / SKIP / SKILLS
 

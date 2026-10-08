@@ -1,6 +1,6 @@
 ---
 summary: The genuinely unresolved threads only — none open as of 2026-10-07.
-updated: 2026-10-07
+updated: 2026-10-08
 ---
 
 # Open questions
@@ -19,7 +19,7 @@ rule above.
 
 Live threads that are *not* open questions:
 
-- Music, a new in-house design the owner will specify and file as a brief when it
-  is time.
+- Music: designed on 2026-10-08 as the Jukebox and filed as briefs 25 to 27
+  (see [status.md](status.md)). Nothing about it is open.
 - Whether Discord Activities return, and in what form — deferred by the user, not
   under investigation.

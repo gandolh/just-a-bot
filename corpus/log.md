@@ -809,3 +809,26 @@ The owner will write the music brief when it is time, so the placeholder todo
 `music-in-house` is deleted (git has it). decisions.md still records that the old
 third-party approach is gone and an in-house design is planned; status.md,
 open-questions.md and routing.md now say so without linking a todo.
+
+## [2026-10-08] decision | Music comes from atrium: the Jukebox
+
+Grilled with the owner across two rounds, together with atrium. The bot plays
+only Tracks from atrium's music library, signed in as its own Ward account,
+whose `jukebox` grant atrium enforces as an allowlist (atrium D55). Atrium owns
+every Player, the Playlist is atrium's whole music library, and each Player has
+a Queue (atrium D56 and D57). The bot keeps no Player state, long-polls atrium
+for commands and still binds no port. Anyone in the guild may control it, all
+commands sit under `/jukebox`, and the bot posts nothing on its own. Audio
+streams from atrium, converted to Ogg Opus by ffmpeg, with the next two Tracks
+buffered in a temp directory, following the discord.js voice guide. DAVE has
+been mandatory since 2026-03-01. Recorded in decisions.md, and the Jukebox terms
+are in glossary.md.
+
+## [2026-10-08] todo | Briefs 25-27: the Jukebox
+
+Filed from that session: 25 signs in to atrium (Ward login without a browser,
+saved refresh token, lockout-safe retries), 26 plays audio and runs the
+long-poll link, 27 adds `/jukebox` and its docs. They depend on atrium briefs 80
+and 81. open-questions.md, routing.md and status.md no longer say the owner will
+file the music brief later.
+

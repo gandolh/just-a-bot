@@ -1,6 +1,6 @@
 ---
 summary: Locked tech/design calls with their rejected alternatives and reasons — read before proposing pnpm, a build step, or an ORM-style rewrite.
-updated: 2026-10-07
+updated: 2026-10-08
 ---
 
 # Decisions (locked)
@@ -72,6 +72,31 @@ on-demand loading or downloaded files, built from zero. The owner files the
 brief when it is time.
 Rejected: keeping the post-mortem and the untried SoundCloud test as the
 starting point for a rebuild. The new design shares nothing with them.
+
+## Music comes from atrium, signed in as the bot's own Ward account
+
+_2026-10-08_, grilled with the owner. This is the in-house design the entry
+above was waiting for. The bot plays only Tracks from atrium's music library,
+and it has no other music source. It reaches atrium as its own Ward account,
+signing in with a password from `.env` the way a person does. That account's
+`atrium` grant has the role `jukebox`, which atrium enforces as an allowlist of
+routes (atrium D55): list music, stream a Track, and the bot-facing Jukebox
+endpoints. Nothing else. Any member of the guild may control playback, from
+Discord or from atrium's Jukebox page.
+The bot keeps **no Player state of its own**. Atrium holds each Player, its
+Queue and its position (atrium D57). The bot holds one long-poll request open to
+atrium for commands, reports its status back, and still binds no port. Slash
+commands call atrium too, so a Player has one writer. This is the one feature
+whose state is not JSON on the bot's disk; the files it buffers in a temp
+directory are disposable copies of atrium's Tracks.
+Rejected: audio files on the bot's own disk, which would be a second library to
+keep in step with atrium's; a key only atrium and the bot share, which would
+make atrium authenticate someone Ward does not know about; and running as a
+profile in the owner's account, which would hand the bot the owner's session.
+Reason: atrium already has the library, the covers, the metadata, the upload
+page and HTTP range streaming. The bot only has to play. A separate Ward account
+is the one way to make "the bot can only use its own profile" a rule, because
+atrium profiles switch without a password.
 
 ## JSON files on disk for all state — no SQLite
 
