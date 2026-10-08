@@ -145,3 +145,54 @@ Bot conventions that apply:
   Health 200 proves the container reaches `gandolh.ro`. Record the result in
   the outcome.
 - No credentials appear in any committed file.
+
+## Outcome (2026-10-09)
+
+Done, except the production reachability check, which is the owner's (below).
+
+**Change:**
+- `env.ts`: the four `JUKEBOX_*` variables, optional, with an empty value read
+  as unset. A zod refinement refuses a partial set and names what is missing.
+  The rule itself is `jukebox/atrium/env-rule.ts`, so it is testable without
+  loading the real `.env`.
+- `jukebox/atrium/`: `config.ts` (`jukeboxConfig()`, `isJukeboxConfigured()`),
+  `errors.ts` (the four errors the brief names, plus `JukeboxRequestError` for
+  any other refusal with its `{error}` code, which brief 27 needs for
+  `PLAYER_OFFLINE` and the like), `session.ts`, `client.ts` and `check.ts`.
+- `session.ts`: Ward sends `accessTokenExpiresAt` as epoch **seconds** and
+  `refreshTokenExpiresAt` as an ISO string (seen live 2026-10-08); `toEpochMs`
+  reads both. The refresh is lazy: a call within two minutes of the access
+  token's expiry refreshes first. The long-poll calls at least every 20 s, so
+  that is in time. A 429 or a network or 5xx failure sets a "not before" time,
+  and calls before it throw `JukeboxUnavailable` without asking Ward. Nothing
+  sleeps inside a call.
+- `client.ts`: `atriumFetch` (JSON) and `atriumStream` (the raw `Response`;
+  the timeout covers only the headers, so a long download is never cut off),
+  both on one shared `AtriumClient`. A 401 refreshes or logs in once and
+  retries once.
+- `npm run discord:jukebox-check`, `.env.example` (all four empty, the example
+  URLs in a comment, because a copied partial set would stop the bot), and
+  `docs/discord/setup.md`.
+
+**Verified (2026-10-09)** against the local Ward container and atrium's dev
+server, with `discord-bot-dev` in `bots/discord/.env`:
+- First run: logged in, rotated, `/health` 200, `/library` 403
+  `JUKEBOX_ROLE_FORBIDDEN`.
+- Second run: resumed by refresh. Ward's audit log has one `session.login` for
+  the two runs.
+- Wrong password, done live once: one attempt, one `session.login_failed` in the
+  audit log, a clear error naming `JUKEBOX_WARD_USERNAME`, exit 1. The fake-Ward
+  test proves the no-retry rule, along with single-flight sign-in, resuming
+  from the saved token, a foreign username's token ignored, a refused refresh
+  falling back to login, `Retry-After`, and the 2 s backoff.
+- All four unset: `isJukeboxConfigured()` is false. Two unset: boot refuses and
+  names both.
+- `npm run typecheck` and `npm test` are clean (13 new tests).
+
+**Owed by the owner:** once atrium brief 80 is deployed and the production
+`discord-bot` account exists, run the check inside the built container with the
+production `.env` and record that `/health` answers 200 from `gandolh.ro`.
+
+The check shares `data/jukebox-session.json` with the bot. Run it with the bot
+stopped; otherwise the two rotate one refresh token and Ward revokes it, and the
+bot has to sign in again.

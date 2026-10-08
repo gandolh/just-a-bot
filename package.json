@@ -17,6 +17,7 @@
     "codegraph:sync": "codegraph sync",
     "discord:dev": "npm run dev -w @bots/discord",
     "discord:register": "npm run register -w @bots/discord",
+    "discord:jukebox-check": "npm run jukebox:check -w @bots/discord",
     "discord:start": "npm run start -w @bots/discord",
     "test": "npm run test --workspaces --if-present"
   },

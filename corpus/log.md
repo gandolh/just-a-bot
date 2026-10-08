@@ -832,3 +832,12 @@ long-poll link, 27 adds `/jukebox` and its docs. They depend on atrium briefs 80
 and 81. open-questions.md, routing.md and status.md no longer say the owner will
 file the music brief later.
 
+
+## [2026-10-09] done | Brief 25 — the Jukebox signs in to atrium
+
+`jukebox/atrium/` signs in to Ward as the Bot account without a browser, saves
+the refresh token before using what it bought, refreshes two minutes early and
+single-flight, and tries a refused password once only. `npm run
+discord:jukebox-check` passed against the local Ward and atrium: login, refresh,
+`/health` 200, `/library` 403 `JUKEBOX_ROLE_FORBIDDEN`, and a second run resumed
+without a login. The production check is the owner's.
