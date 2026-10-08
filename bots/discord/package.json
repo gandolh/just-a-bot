@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@bots/shared": "0.1.0",
+    "@discordjs/voice": "0.19.2",
     "@resvg/resvg-js": "2.6.2",
     "discord.js": "14.27.0",
     "satori": "0.26.0",

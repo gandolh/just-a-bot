@@ -78,6 +78,10 @@ Bot facts, checked 2026-10-08:
   ([decisions.md](../../wiki/decisions.md)). Keep the buffer plan and the
   empty-channel timer free of `discord.js` so they can be tested.
 
+## Note from atrium brief 82 (2026-10-09)
+
+Two status rules changed, no shape did: [jukebox.md](../../wiki/jukebox.md#atriums-rules).
+
 ## Files you OWN
 
 - `bots/discord/package.json`: `@discordjs/voice`, pinned
@@ -186,3 +190,10 @@ Bot facts, checked 2026-10-08:
 - **Not verified in production** until the owner deploys:
   `node cli.ts just-a-bot deploy` from `~/projects/vps-deploy`. Say so in the
   outcome.
+
+## Outcome (2026-10-09)
+
+Built and run against the local atrium with a stand-in speaker; **nothing was
+played in Discord** (the local token could be production's). The design, the
+image's dependency report, triage lines and the owner's checks are in
+[jukebox.md](../../wiki/jukebox.md); what was verified is in the 2026-10-09 log.

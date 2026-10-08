@@ -21,6 +21,9 @@ RUN npm ci
 
 FROM node:24-alpine AS prod
 LABEL org.opencontainers.image.title="just-a-bot"
+# The Jukebox (brief 26) converts each MP3 from atrium to Ogg Opus with the
+# ffmpeg binary. Nothing else in the bot needs it.
+RUN apk add --no-cache ffmpeg
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY package.json ./
@@ -28,6 +31,10 @@ COPY shared ./shared
 COPY bots ./bots
 # Keep every linux prebuild; delete only what this image can never be. (See the
 # note in Ward's Dockerfile for why this is a blacklist and not a whitelist.)
+# DAVE (@snazzah/davey, the voice encryption Discord has required since
+# 2026-03-01) is untouched by this: it ships per-platform packages, not a
+# `prebuilds` directory, and `npm ci` above ran on alpine, so the
+# `linux-x64-musl` one is the one installed.
 RUN cd node_modules \
  && find . -type d -name prebuilds -exec sh -c \
       'rm -f "$1"/darwin-*.node "$1"/win32-*.node "$1"/android-*.node' _ {} \; || true

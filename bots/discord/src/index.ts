@@ -18,6 +18,8 @@ import { handleRpgButton } from './commands/rpg-buttons.ts';
 import { handleMafiaButton } from './commands/mafia.ts';
 import { handleConnectFourButton } from './commands/connect-four.ts';
 import { rearmMafiaTimers } from './mafia/phases.ts';
+import { startJukeboxLink, type JukeboxLink } from './jukebox/link.ts';
+import { discordHost } from './jukebox/speaker.ts';
 
 const log = logger.scoped('discord');
 
@@ -34,6 +36,8 @@ const client = new Client({
     GatewayIntentBits.GuildMessages,
     GatewayIntentBits.MessageContent,
     GatewayIntentBits.DirectMessages,
+    // The Jukebox (brief 26): joining voice, and seeing who is in the channel.
+    GatewayIntentBits.GuildVoiceStates,
   ],
   partials: [Partials.Channel],
   // The default for every send that doesn't pass its own. Users only: reminder
@@ -44,8 +48,12 @@ const client = new Client({
   allowedMentions: { parse: ['users'], repliedUser: true },
 });
 
+let jukebox: JukeboxLink | null = null;
+
 client.once(Events.ClientReady, (c) => {
   log.info(`Logged in as ${c.user.tag}`);
+  // Off unless the four JUKEBOX_* variables are set. Never throws.
+  jukebox = startJukeboxLink(discordHost(c));
   // Mafia phase timers live in memory; a restart mid-game would otherwise leave
   // that game stuck forever. Deadlines are persisted, so re-arm from them.
   rearmMafiaTimers(c).catch((err) => log.error('rearmMafiaTimers failed', err));
@@ -231,10 +239,14 @@ const shutdown = async (signal: string) => {
   log.info(`Received ${signal}, shutting down…`);
   clearInterval(reminderTimer);
   clearInterval(crierTimer);
-  const flushed = (async () => {
-    await flushAllWorlds();
-    await flushPendingWrites();
-  })().catch((err) => log.error('Flushing state on shutdown failed', err));
+  const flushed = Promise.all([
+    (async () => {
+      await flushAllWorlds();
+      await flushPendingWrites();
+    })().catch((err) => log.error('Flushing state on shutdown failed', err)),
+    // Leave voice and tell atrium, inside the same window.
+    jukebox?.stop().catch((err) => log.error('Stopping the Jukebox failed', err)),
+  ]);
   const timedOut = new Promise<'timeout'>((resolve) => setTimeout(() => resolve('timeout'), SHUTDOWN_FLUSH_MS));
   if ((await Promise.race([flushed, timedOut])) === 'timeout') {
     log.error(`State flush still running after ${SHUTDOWN_FLUSH_MS} ms; exiting anyway`);

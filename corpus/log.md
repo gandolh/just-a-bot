@@ -841,3 +841,27 @@ single-flight, and tries a refused password once only. `npm run
 discord:jukebox-check` passed against the local Ward and atrium: login, refresh,
 `/health` 200, `/library` 403 `JUKEBOX_ROLE_FORBIDDEN`, and a second run resumed
 without a login. The production check is the owner's.
+
+## [2026-10-09] done | Brief 26 — the Jukebox plays and listens to atrium
+
+`jukebox/` holds the long-poll link, a player per guild, the disk buffer (MP3
+to Ogg Opus with ffmpeg; the current Track and two more) and the empty-channel
+timer. Voice sits behind a `Speaker` interface, so the real link was run against
+the local atrium with a stand-in. Restart, cold and buffered starts, transport,
+auto-advance, atrium going down and coming back, and SIGTERM all behaved. The
+dependency report from the built image shows voice, DAVE, FFmpeg 8.1.2 and
+aes-256-gcm. Nothing was played in Discord; that is listed for the owner. One
+atrium race was fixed along the way: an `advance` on a stopped Player no longer
+starts the next Track.
+
+Verified 2026-10-09, link against the local atrium as `discord-bot-dev`, with a
+stand-in speaker that ends each Track after 12 s:
+- restart: the cursor poll left the Player idle, Queue intact;
+- cold start: first Ogg bytes 72-80 ms after the `play`; buffered: 1-2 ms after
+  the previous Track ended; a buffered file probes as Ogg Opus, 48 kHz, stereo;
+- pause, resume, next, previous, stop; Tracks advanced on their own;
+- the buffer held at most three files, was wiped at boot and cleared at stop;
+- atrium killed mid-Track: the buffered Track finished, the poll backed off to
+  30 s, the `advance` retry started the next Track as soon as atrium was back;
+- SIGTERM: left voice and reported in 19 ms; atrium showed idle, no voice.
+The bot side is now described in [jukebox.md](wiki/jukebox.md).

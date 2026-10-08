@@ -1,5 +1,5 @@
 ---
-summary: Dated snapshot of where the project stands right now — a single Discord bot whose music (the Jukebox, playing atrium's library) is being built in briefs 25-27 (25 done), /dicetable removed, and 21 audit briefs (04-24) queued from two passes, in rank order.
+summary: Dated snapshot of where the project stands right now — a single Discord bot whose music (the Jukebox, playing atrium's library) is being built in briefs 25-27 (25 and 26 done; nothing heard in Discord yet), /dicetable removed, and 21 audit briefs (04-24) queued from two passes, in rank order.
 updated: 2026-10-09
 ---
 
@@ -16,9 +16,10 @@ and atrium owns every Player, so the bot long-polls atrium for commands (see
 - [25](../briefs/done/25-jukebox-atrium-client.md): sign in to atrium as the
   Bot account. **Done 2026-10-09**; `npm run discord:jukebox-check` passes
   locally. The production check is the owner's.
-- [26](../briefs/todo/26-jukebox-voice-playback.md): voice playback with
+- [26](../briefs/done/26-jukebox-voice-playback.md): voice playback with
   `@discordjs/voice` and DAVE, ffmpeg to Ogg Opus, a two-Track buffer on disk,
-  and the long-poll link.
+  and the long-poll link. **Done 2026-10-09**, run against the local atrium
+  with a stand-in speaker. Hearing it in Discord is the owner's check.
 - [27](../briefs/todo/27-jukebox-slash-commands.md): `/jukebox` subcommands and
   the docs.
 
