@@ -1,13 +1,14 @@
 ---
 summary: What just-a-bot is: a personal, feature-rich Discord bot in an npm-workspaces repo (bot, shared library, docs site); the orientation page and the map of what lives where.
-updated: 2026-10-07
+updated: 2026-10-09
 ---
 
 # Overview
 
 **just-a-bot** is a personal **Discord bot** (`@bots/discord`) with games,
-gambling, AI chat, image generation, reminders and an RPG world. It has no
-music; a new in-house design is planned. A D&D layer
+gambling, AI chat, image generation, reminders and an RPG world. It also plays
+music in voice: the Jukebox, a speaker that atrium steers (see
+[jukebox.md](jukebox.md)). A D&D layer
 and an Instagram `/post` command were hidden for months and deleted on
 2026-10-06 — see [decisions.md](decisions.md).
 
