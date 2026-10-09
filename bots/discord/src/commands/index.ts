@@ -23,6 +23,7 @@ import { confess } from './confess.ts';
 import { clock } from './clock.ts';
 import { connectFour, connectFour2 } from './connect-four.ts';
 import { ask } from './ask.ts';
+import { jukebox } from './jukebox.ts';
 
 const all: Command[] = [
   ping,
@@ -36,6 +37,7 @@ const all: Command[] = [
   trivia,
   img,
   ask,
+  jukebox,
   help,
 ];
 

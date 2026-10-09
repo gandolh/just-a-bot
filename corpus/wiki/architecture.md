@@ -1,6 +1,6 @@
 ---
 summary: How the repo and the Discord bot are put together: the three workspaces (two runtime, one docs build), the no-build tsx runtime, one-feature-dir-per-capability layout, and the commands→features→shared dependency direction.
-updated: 2026-10-07
+updated: 2026-10-09
 ---
 
 # Architecture
@@ -57,8 +57,11 @@ map; that one is revisited only when a pattern changes.
 - **One directory per feature** under `src/` — `rpg/`, `mafia/`, `trivia/`,
   `hangman/`, `wordle/`, `connect-four/`, `tictactoe/`, `gambling/`, `ollama/`
   (AI chat), `img/`, `confessions/`, `quotes/`, `leaderboard/`, `reminders/`,
-  `clock/`. Every directory backs a registered command.
-- There is **no audio stack** and no music. See [decisions.md](decisions.md).
+  `clock/`, `jukebox/`. Every directory backs a registered command.
+- **Music is the Jukebox** (`jukebox/`, `/jukebox`): the bot plays atrium's
+  music library in voice, signed in as its own Ward account, and atrium owns
+  every Player. It is the only part of the bot that talks to another of the
+  owner's apps. See [jukebox.md](jukebox.md) and [decisions.md](decisions.md).
 
 ### Dependency direction
 

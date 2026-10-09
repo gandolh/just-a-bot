@@ -29,3 +29,10 @@ test('/help fits Discord\'s embed limits', () => {
     + 'just-a-bot — commands'.length + 'Coins are hypothetical. No real payments are made.'.length;
   assert.ok(total <= 6000, `${total} chars in total`);
 });
+
+test('/jukebox is listed under Music, not Other', () => {
+  const music = buildHelpFields().find((f) => f.name.includes('Music'));
+  assert.ok(music, 'a Music group');
+  assert.ok(music.value.includes('/jukebox play'));
+  assert.ok(music.value.includes('/jukebox nowplaying'));
+});

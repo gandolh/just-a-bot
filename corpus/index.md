@@ -27,7 +27,7 @@ to read on. Conventions: [CLAUDE.md](CLAUDE.md).
 - [wiki/jukebox.md](wiki/jukebox.md) — How the bot's Jukebox works (briefs 25-27) — the Ward sign-in, the long-poll link to atrium, the per-guild player and disk buffer, the Speaker seam, atrium's status rules the bot must follow, triage log lines, and the live Discord checks still owed. Atrium's side is atrium's corpus/wiki/jukebox.md.
 - [wiki/open-questions.md](wiki/open-questions.md) — The genuinely unresolved threads only — none open as of 2026-10-07.
 - [wiki/overview.md](wiki/overview.md) — What just-a-bot is: a personal, feature-rich Discord bot in an npm-workspaces repo (bot, shared library, docs site); the orientation page and the map of what lives where.
-- [wiki/status.md](wiki/status.md) — Dated snapshot of where the project stands right now — a single Discord bot whose music (the Jukebox, playing atrium's library) is being built in briefs 25-27 (25 and 26 done; nothing heard in Discord yet), /dicetable removed, and 21 audit briefs (04-24) queued from two passes, in rank order.
+- [wiki/status.md](wiki/status.md) — Dated snapshot of where the project stands right now — a single Discord bot whose music (the Jukebox, playing atrium's library) is built in briefs 25-27 but not yet heard in Discord or deployed, /dicetable removed, and 21 audit briefs (04-24) queued from two passes, in rank order.
 
 <!-- END GENERATED CATALOG -->
 

@@ -1,5 +1,5 @@
 ---
-summary: Dated snapshot of where the project stands right now — a single Discord bot whose music (the Jukebox, playing atrium's library) is being built in briefs 25-27 (25 and 26 done; nothing heard in Discord yet), /dicetable removed, and 21 audit briefs (04-24) queued from two passes, in rank order.
+summary: Dated snapshot of where the project stands right now — a single Discord bot whose music (the Jukebox, playing atrium's library) is built in briefs 25-27 but not yet heard in Discord or deployed, /dicetable removed, and 21 audit briefs (04-24) queued from two passes, in rank order.
 updated: 2026-10-09
 ---
 
@@ -9,7 +9,7 @@ Where things stand right now.
 
 ## Music
 
-Designed 2026-10-08, being built. The **Jukebox** plays Tracks from atrium's
+Built 2026-10-09 (briefs 25-27); not yet heard in Discord or deployed. The **Jukebox** plays Tracks from atrium's
 music library in a voice channel. It signs in to atrium as its own Ward account,
 and atrium owns every Player, so the bot long-polls atrium for commands (see
 [decisions.md](decisions.md)). Three briefs, in order:
@@ -20,8 +20,9 @@ and atrium owns every Player, so the bot long-polls atrium for commands (see
   `@discordjs/voice` and DAVE, ffmpeg to Ogg Opus, a two-Track buffer on disk,
   and the long-poll link. **Done 2026-10-09**, run against the local atrium
   with a stand-in speaker. Hearing it in Discord is the owner's check.
-- [27](../briefs/todo/27-jukebox-slash-commands.md): `/jukebox` subcommands and
-  the docs.
+- [27](../briefs/done/27-jukebox-slash-commands.md): `/jukebox` subcommands and
+  the docs. **Done 2026-10-09**, driven against the local atrium; registering
+  and checking in Discord are the owner's.
 
 Atrium's side is built (its briefs 80, 81 and 82, 2026-10-08 to 2026-10-09):
 the `jukebox` role allowlist, the Jukebox API, and the page that steers the

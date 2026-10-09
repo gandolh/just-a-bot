@@ -79,16 +79,27 @@ found" is expected. Log lines, all scope `[jukebox]`:
 `npm run discord:jukebox-check` tests the sign-in on its own; run it with the
 bot stopped, since both use the saved session.
 
+## The command
+
+`/jukebox` (brief 27, `commands/jukebox.ts`) is the second remote; atrium's
+page is the first. Every subcommand calls atrium and changes nothing locally.
+Each call gets 2.5 s; a reply pending at 1.5 s is deferred ephemerally, so
+errors stay ephemeral and controls still answer publicly. Reply text and the
+autocomplete filter are in `jukebox/format.ts`.
+
 ## Owed: hearing it in Discord
 
-Not run yet, because the local token could be production's. With the dev
-application, a dev guild, `npm run discord:dev` and the local atrium:
+Not run yet: this machine's `bots/discord/.env` is the one the deploy pushes,
+so its token is production's. With a dev application, a dev guild, `npm run
+discord:register` and `npm run discord:dev` against the local atrium:
 - Join puts the bot in the channel; a cold start is audible within 2 s; a
   buffered next Track starts with no gap over 1 s.
 - Pause, resume, stop, next and previous are heard; a Track that ends advances.
 - Everyone leaves → the Player pauses. Shorten `LEAVE_AFTER_MS` locally to see
   the leave, and don't commit that.
 - SIGTERM leaves the channel visibly.
+- Every `/jukebox` subcommand, a song added from Discord showing on atrium's
+  page with the Discord name, and `/help` listing it under Music.
 - Production: deploy with `node cli.ts just-a-bot deploy` from
   `~/projects/vps-deploy` once atrium has briefs 80 to 82 and the `discord-bot`
   account exists.

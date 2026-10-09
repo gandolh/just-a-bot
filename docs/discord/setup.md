@@ -35,6 +35,18 @@ The account is made in Ward's console with one grant, `atrium` role
 dev bot (`discord-bot-dev` on the local Ward container): two processes must
 never share one refresh token, or Ward revokes it.
 
+**The deploy pushes `bots/discord/.env` to the server as it is**, so that file
+holds the production values. For a local run against the local Ward and
+atrium, give the four variables on the command line instead; they win over the
+file:
+
+```
+JUKEBOX_ATRIUM_URL=http://localhost:5173/atrium-api \
+JUKEBOX_WARD_URL=http://localhost:8792/ward-api \
+JUKEBOX_WARD_USERNAME=discord-bot-dev JUKEBOX_WARD_PASSWORD=... \
+npm run discord:jukebox-check
+```
+
 Check the setup without starting the bot:
 
 ```

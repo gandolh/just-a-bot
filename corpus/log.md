@@ -865,3 +865,30 @@ stand-in speaker that ends each Track after 12 s:
   30 s, the `advance` retry started the next Track as soon as atrium was back;
 - SIGTERM: left voice and reported in 19 ms; atrium showed idle, no voice.
 The bot side is now described in [jukebox.md](wiki/jukebox.md).
+
+## [2026-10-09] resume | Brief 27 paused mid-way (owner asked to stop for the day)
+
+Done and committed: atrium briefs 80-82, just-a-bot briefs 25 and 26. Brief 27
+is written but **uncommitted** in the working tree: `commands/jukebox.ts`,
+`jukebox/format.ts` + tests (11 pass), the Music group in `help.ts`, the
+registry line. Typecheck and tests were clean. Still to do: finish driving
+`execute` with fake interactions against the local atrium (a scratch harness,
+not in the repo), the revoked-grant and unset-variable checks, the docs page
+`docs/discord/jukebox/README.md` + its index row + `npm run sync-corpus` in
+docs-site, the `architecture.md` line, and the outcome. Fix
+`docs/discord/setup.md` too: the deploy pushes the local `bots/discord/.env` to
+production, so local `JUKEBOX_*` values go on the command line, never in that
+file. Registration and every live Discord check are the owner's: the local
+token is production's.
+
+## [2026-10-09] done | Brief 27 — `/jukebox`
+
+Twelve subcommands over atrium's routes, autocomplete from a 60-second Track
+cache, a Music group in `/help`, and `docs/discord/jukebox/README.md`. Driven
+with fake interactions against the local atrium: every subcommand, a Discord
+name on a queued song, a page skip seen by `nowplaying`, a revoked grant, and
+unset variables all answered as the brief says. Found on the way: this
+machine's `bots/discord/.env` is production's (the deploy pushes it), so the
+local Jukebox lines brief 25 had added to it were removed and `setup.md` now
+says to give local values on the command line. Registering and the Discord
+checks are the owner's.

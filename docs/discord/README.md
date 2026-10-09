@@ -24,3 +24,4 @@ steady drip of smaller features.
 - [Wordle](wordle/README.md) — `/wordle` guess a five-letter word in six tries, in a thread
 - [Tic-tac-toe](tictactoe/README.md) — `/tictactoe [opponent]` against the bot or another member, with buttons
 - [Ask](ask/README.md) — `/ask` Ollama Cloud–backed Q&A command
+- [Jukebox](jukebox/README.md) — `/jukebox` plays atrium's music library in a voice channel; atrium's page is the other remote

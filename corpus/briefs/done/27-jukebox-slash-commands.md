@@ -141,3 +141,43 @@ Bot facts, checked 2026-10-08:
 - **Not verified in production** until the owner deploys:
   `node cli.ts just-a-bot deploy` from `~/projects/vps-deploy`. That also
   registers the commands. Say so in the outcome.
+
+## Outcome (2026-10-09)
+
+Built and driven against the local atrium; **not registered and not run in
+Discord**, because this machine's `bots/discord/.env` is the file the deploy
+pushes to production, so its token is production's.
+
+**Change:** `commands/jukebox.ts` (twelve subcommands, autocomplete over a
+60-second Track cache), `jukebox/format.ts` (matching, choice labels, reply
+text, error replies), a Music group in `/help`, `docs/discord/jukebox/README.md`
+with its index row and synced docs-site page, and the `architecture.md` line.
+`setup.md` now says the deploy pushes `.env` as it is, and shows local values
+given on the command line instead.
+
+**Calls the brief left open:**
+- Each atrium call gets 2.5 s. A reply still pending at 1.5 s is deferred
+  ephemerally; a public answer then goes out as a follow-up and the placeholder
+  is deleted, so errors stay ephemeral either way.
+- `play` checks the Player is online first ("The player is offline."), and a
+  typed value that is not a Track id resolves to its best match.
+- `join` answers "Joining **channel**", since the bot joins after atrium's
+  command reaches it.
+
+**Verified (2026-10-09)** with fake interactions against the local atrium and
+the real link (stand-in speaker), signed in as `discord-bot-dev`:
+- Every subcommand answered in under 25 ms with the reply the brief gives.
+  Autocomplete matched case-insensitively ("ana" → two songs).
+- A song added with `/jukebox play` showed in atrium's Queue as added by
+  "Discord Dana", kind `discord`.
+- A skip from the person's side was in the next `/jukebox nowplaying`.
+- With the grant revoked: every subcommand that reaches atrium answered the
+  sign-in message, autocomplete returned no choices, nothing threw.
+- With the variables unset: "The Jukebox isn't set up on this bot."
+- `/help` lists `/jukebox` under Music (a test). Typecheck and tests are clean
+  (11 new tests).
+
+**Owed by the owner:** `npm run discord:register` and the checks in Discord, on
+a dev application or after the production deploy (`node cli.ts just-a-bot
+deploy` from `~/projects/vps-deploy`, which registers the commands). The full
+list is in [jukebox.md](../../wiki/jukebox.md). Not verified in production.
