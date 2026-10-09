@@ -54,3 +54,8 @@ that will be relitigated.
   `decisions.md`.
 - **`npm run corpus:lint`** before committing corpus changes.
 - **Commit only when asked.** Committing straight to `main` is fine (owner, 2026-10-07).
+
+## brief-board
+
+Brief progress goes on brief-board. Run `brief-board guide` before you
+start or resume a brief, and follow it.
