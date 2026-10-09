@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 720" width="1200" height="720" role="img" aria-labelledby="title desc">
+  <title id="title">How a slash command moves through just-a-bot</title>
+  <desc id="desc">A member types /slots bet:50 in Discord. The interaction reaches the router in index.ts, which hands it to commands/slots.ts. The command calls the game rules in gambling/, which read and write JSON files on disk. The command replies to Discord with a message, often with buttons. Other ways in: a button press goes to the feature that owns its customId prefix; Wordle and Hangman read guesses from thread messages; timers send reminders and birthdays every 60 seconds and the RPG crier every 20 seconds; the Jukebox takes commands from atrium by long-poll and plays in voice.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#6b7189"/>
+    </marker>
+    <marker id="arrow-reply" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#4752c4"/>
+    </marker>
+  </defs>
+
+  <rect x="1" y="1" width="1198" height="718" rx="24" fill="#f6f7fb" stroke="#dde0ea" stroke-width="2"/>
+
+  <g font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif">
+    <text x="48" y="66" font-size="34" font-weight="700" fill="#1d2130">How a slash command moves through just-a-bot</text>
+    <text x="48" y="106" font-size="24" fill="#555b70">Example: a member types <tspan font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" fill="#1d2130">/slots bet:50</tspan></text>
+
+    <!-- main path: five boxes -->
+    <rect x="48" y="136" width="180" height="164" rx="16" fill="#5865f2"/>
+    <text x="138" y="186" font-size="30" font-weight="700" fill="#ffffff" text-anchor="middle">Discord</text>
+    <text x="138" y="232" font-size="24" fill="#e6e8ff" text-anchor="middle">sends the</text>
+    <text x="138" y="266" font-size="24" fill="#e6e8ff" text-anchor="middle">interaction</text>
+
+    <rect x="279" y="136" width="180" height="164" rx="16" fill="#ffffff" stroke="#c9cde0" stroke-width="2"/>
+    <text x="369" y="186" font-size="30" font-weight="700" fill="#1d2130" text-anchor="middle">Router</text>
+    <text x="369" y="232" font-size="24" fill="#1d2130" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">index.ts</text>
+    <text x="369" y="266" font-size="24" fill="#555b70" text-anchor="middle">one handler</text>
+
+    <rect x="510" y="136" width="180" height="164" rx="16" fill="#ffffff" stroke="#c9cde0" stroke-width="2"/>
+    <text x="600" y="186" font-size="30" font-weight="700" fill="#1d2130" text-anchor="middle">Command</text>
+    <text x="600" y="232" font-size="24" fill="#1d2130" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">commands/</text>
+    <text x="600" y="266" font-size="24" fill="#1d2130" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">slots.ts</text>
+
+    <rect x="741" y="136" width="180" height="164" rx="16" fill="#ffffff" stroke="#c9cde0" stroke-width="2"/>
+    <text x="831" y="186" font-size="30" font-weight="700" fill="#1d2130" text-anchor="middle">Feature</text>
+    <text x="831" y="232" font-size="24" fill="#1d2130" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">gambling/</text>
+    <text x="831" y="266" font-size="24" fill="#555b70" text-anchor="middle">game rules</text>
+
+    <rect x="972" y="136" width="180" height="164" rx="16" fill="#ffffff" stroke="#c9cde0" stroke-width="2"/>
+    <text x="1062" y="186" font-size="30" font-weight="700" fill="#1d2130" text-anchor="middle">State</text>
+    <text x="1062" y="232" font-size="24" fill="#1d2130" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">data/</text>
+    <text x="1062" y="266" font-size="24" fill="#555b70" text-anchor="middle">JSON files</text>
+
+    <g stroke="#6b7189" stroke-width="3" fill="none" marker-end="url(#arrow)">
+      <line x1="232" y1="218" x2="273" y2="218"/>
+      <line x1="463" y1="218" x2="504" y2="218"/>
+      <line x1="694" y1="218" x2="735" y2="218"/>
+      <line x1="925" y1="218" x2="966" y2="218"/>
+    </g>
+
+    <!-- the reply goes back from the command to Discord -->
+    <path d="M600 304 V346 H138 V308" stroke="#4752c4" stroke-width="3" stroke-dasharray="10 7" fill="none" marker-end="url(#arrow-reply)"/>
+    <text x="369" y="386" font-size="24" fill="#4752c4" text-anchor="middle">reply: a message, often with buttons</text>
+
+    <line x1="48" y1="420" x2="1152" y2="420" stroke="#dde0ea" stroke-width="2"/>
+
+    <!-- other ways in -->
+    <text x="48" y="466" font-size="26" font-weight="700" fill="#1d2130">Other ways in</text>
+
+    <rect x="48" y="488" width="290" height="42" rx="21" fill="#ffffff" stroke="#c9cde0" stroke-width="2"/>
+    <text x="193" y="517" font-size="22" font-weight="600" fill="#1d2130" text-anchor="middle">Button press</text>
+    <text x="362" y="518" font-size="24" fill="#555b70">its <tspan font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" fill="#1d2130">customId</tspan> prefix (<tspan font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" fill="#1d2130">bj: c4: rpg:</tspan> …) picks the feature</text>
+
+    <rect x="48" y="542" width="290" height="42" rx="21" fill="#ffffff" stroke="#c9cde0" stroke-width="2"/>
+    <text x="193" y="571" font-size="22" font-weight="600" fill="#1d2130" text-anchor="middle">Thread message</text>
+    <text x="362" y="572" font-size="24" fill="#555b70">Wordle and Hangman read guesses from the thread</text>
+
+    <rect x="48" y="596" width="290" height="42" rx="21" fill="#ffffff" stroke="#c9cde0" stroke-width="2"/>
+    <text x="193" y="625" font-size="22" font-weight="600" fill="#1d2130" text-anchor="middle">Timers</text>
+    <text x="362" y="626" font-size="24" fill="#555b70">reminders and birthdays every 60 s, RPG crier every 20 s</text>
+
+    <rect x="48" y="650" width="290" height="42" rx="21" fill="#ffffff" stroke="#c9cde0" stroke-width="2"/>
+    <text x="193" y="679" font-size="22" font-weight="600" fill="#1d2130" text-anchor="middle">Jukebox</text>
+    <text x="362" y="680" font-size="24" fill="#555b70">takes commands from atrium by long-poll, plays in voice</text>
+  </g>
+</svg>
