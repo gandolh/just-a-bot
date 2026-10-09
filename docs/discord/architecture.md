@@ -30,15 +30,21 @@ are dispatched by `customId` prefix:
 
 | Prefix | Handler |
 | --- | --- |
+| `rpg:` | RPG buttons, select menus and modals (checked first) |
+| `bj2:` | Two-player Blackjack (`handleBlackjack2Button`) |
 | `bj:` | Blackjack (`handleBlackjackButton`) |
+| `dice2:` | Two-player dice (`handleDice2Button`) |
+| `slots:` | Slots (`handleSlotsButton`) |
 | `ttt:` | Tic-tac-toe (`handleTicTacToeButton`) |
-| `c4:` | Connect Four |
-| `rpg:` | RPG action buttons |
+| `quote:list:` | Quote list paging (`handleQuoteListButton`) |
+| `trv:` | Trivia (`handleTriviaButton`) |
+| `maf:` | Mafia (`handleMafiaButton`) |
+| `c4:` | Connect Four (`handleConnectFourButton`) |
 | _(else)_ | Command map keyed by `data.name` |
 
-Wordle is the odd one out — it plays in a thread and listens to
-`MessageCreate` for guesses rather than going through the slash-command
-router.
+Wordle and Hangman are the exceptions: each plays in a thread, and the
+`MessageCreate` handler routes guesses to whichever game owns that thread
+(`hasWordleGame`, `hasHangmanGame`) rather than going through the button router.
 
 ## Data paths
 

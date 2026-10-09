@@ -58,11 +58,11 @@ revisit note in [corpus/wiki/decisions.md](../../corpus/wiki/decisions.md).
 
 ## Persistence
 
-All persisted state is JSON on local disk, gitignored: `bots/data/` for shared
-files (birthdays, reminders, timezones, wallets, RPG worlds) and
-`bots/discord/data/` for bot-local files.
+All persisted state is JSON on local disk, gitignored: `bots/data/` for birthdays and
+reminders, and `bots/discord/data/` for everything else (wallets, timezones, RPG
+worlds, quotes, confessions, Mafia, the Jukebox session).
 In-memory cache plus a serialized write chain (per-key for per-guild/team
-files, single chain for shared files like wallets). No SQLite — files have to
+files, single chain for single-file stores like wallets). No SQLite — files have to
 be human- and LLM-readable.
 
 Scoping is per `guild_id`. Per-feature docs spell out which file layout each
