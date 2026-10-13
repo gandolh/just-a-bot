@@ -892,3 +892,31 @@ machine's `bots/discord/.env` is production's (the deploy pushes it), so the
 local Jukebox lines brief 25 had added to it were removed and `setup.md` now
 says to give local values on the command line. Registering and the Discord
 checks are the owner's.
+
+## [2026-10-13] done | wzd_auth brief 29 — the Jukebox signs in to atrium's own accounts
+
+Atrium no longer reads Ward's cookie (its brief 22), so the Jukebox's Ward
+sign-in would have broken at atrium's next deploy. `jukebox/atrium/` now logs in
+with `POST /auth/login` as a local atrium user (role `jukebox`) and keeps the
+`atrium_session` cookie in memory (`session.ts`; the client moved to
+`request.ts`). A 401 logs in again once, single-flight; a renewed `Set-Cookie`
+is picked up; a refused password is tried once until a restart; atrium down or
+rate-limiting is `JukeboxUnavailable`. Variables: `JUKEBOX_ATRIUM_URL` stays;
+`JUKEBOX_WARD_URL`, `JUKEBOX_WARD_USERNAME`, `JUKEBOX_WARD_PASSWORD` become
+`JUKEBOX_ATRIUM_USERNAME` and `JUKEBOX_ATRIUM_PASSWORD` (all three or none).
+The spent `data/jukebox-session.json` is deleted at start, and boot logs a
+warning while any old `JUKEBOX_WARD_*` name is still set. Decision recorded in
+[decisions.md](wiki/decisions.md). Tests and typecheck pass; nothing ran the
+bot or read `.env`. Until step 2 below, any local test that loads the real
+`bots/discord/.env` (`help.test.ts`) fails on the partial-set rule, since that
+file still holds `JUKEBOX_ATRIUM_URL` without the new two.
+
+Owner steps, in order:
+1. Seed a `jukebox` user in atrium (username and a long generated password).
+2. Rename the variables in the bot's `bots/discord/.env`: drop `JUKEBOX_WARD_URL`,
+   rename `JUKEBOX_WARD_USERNAME` and `JUKEBOX_WARD_PASSWORD` to
+   `JUKEBOX_ATRIUM_USERNAME` and `JUKEBOX_ATRIUM_PASSWORD`, and put the new
+   user's values in them.
+3. Deploy atrium, then the bot. Deploying the bot before step 2 stops it at
+   boot (the partial-set rule names what is missing).
+4. Remove the bot's old `atrium` grant at Ward.

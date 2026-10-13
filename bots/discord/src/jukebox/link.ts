@@ -1,8 +1,9 @@
 import { Readable } from 'node:stream';
 import type { ReadableStream as WebReadableStream } from 'node:stream/web';
 import { logger } from '@bots/shared';
-import { atriumFetch, atriumStream, isPermanentJukeboxError, JukeboxForbidden } from './atrium/client.ts';
+import { atriumFetch, atriumStream, clearSpentSessionFile, isPermanentJukeboxError, JukeboxForbidden } from './atrium/client.ts';
 import { isJukeboxConfigured } from './atrium/config.ts';
+import { staleJukeboxVars } from './atrium/env-rule.ts';
 import { TrackBuffer, wipeBuffers } from './buffer.ts';
 import { GuildPlayer, type PlayerApi } from './player.ts';
 import type { JukeboxHost } from './speaker.ts';
@@ -56,6 +57,11 @@ const sleep = (ms: number, signal: AbortSignal) =>
  * logged, and the permanent ones (sign-in failed, forbidden) stop the link.
  */
 export function startJukeboxLink(host: JukeboxHost): JukeboxLink | null {
+  void clearSpentSessionFile();
+  const stale = staleJukeboxVars(process.env);
+  if (stale.length > 0) {
+    log.warn(`${stale.join(', ')} ${stale.length === 1 ? 'is' : 'are'} no longer read (brief 29); rename them as .env.example shows`);
+  }
   if (!isJukeboxConfigured()) {
     log.info('Jukebox not configured (no JUKEBOX_* variables); the link is off');
     return null;
@@ -126,7 +132,7 @@ export function startJukeboxLink(host: JukeboxHost): JukeboxLink | null {
     if (isPermanentJukeboxError(err)) {
       const hint =
         err instanceof JukeboxForbidden
-          ? `atrium refused the Bot account (${err.code ?? 'no code'}); check its Ward grant is atrium:jukebox`
+          ? `atrium refused the Bot account (${err.code ?? 'no code'}); check its atrium user has the jukebox role`
           : (err as Error).message;
       log.error(`Jukebox link stopped: ${hint}`);
       return false;

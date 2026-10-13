@@ -59,7 +59,7 @@ map; that one is revisited only when a pattern changes.
   (AI chat), `img/`, `confessions/`, `quotes/`, `leaderboard/`, `reminders/`,
   `clock/`, `jukebox/`. Every directory backs a registered command.
 - **Music is the Jukebox** (`jukebox/`, `/jukebox`): the bot plays atrium's
-  music library in voice, signed in as its own Ward account, and atrium owns
+  music library in voice, signed in as its own local atrium user, and atrium owns
   every Player. It is the only part of the bot that talks to another of the
   owner's apps. See [jukebox.md](jukebox.md) and [decisions.md](decisions.md).
 

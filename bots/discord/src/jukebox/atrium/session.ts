@@ -1,125 +1,87 @@
-import { readFile } from 'node:fs/promises';
-import { logger, writeJsonFile } from '@bots/shared';
+import { rm } from 'node:fs/promises';
+import { resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { logger } from '@bots/shared';
 import { JukeboxSignInFailed, JukeboxUnavailable } from './errors.ts';
 
 const log = logger.scoped('jukebox');
 
 /**
- * The Bot account's Ward session, without a browser (brief 25).
+ * The Bot account's session on atrium, without a browser (brief 29).
  *
- * Ward hands out two tokens, and only as `Set-Cookie`: `ward_session`, the
- * 15-minute access token atrium reads, and `ward_refresh`, good for 30 days
- * from the login and never extended. Ward's rules shape everything here:
+ * Atrium has its own accounts. The bot logs in with `POST /auth/login` and
+ * atrium answers with one cookie, `atrium_session` (14 days idle, sliding, and
+ * 30 days absolute). Everything here follows from that:
  *
- * - **A rotated refresh token is spent.** Presenting one again (outside a
- *   10-second grace) revokes the whole session. So the new refresh token is
- *   saved to disk *before* the access token that came with it is used, and
- *   refreshing is single-flight.
- * - **Five failed logins in 15 minutes lock the address out.** A wrong
- *   password is therefore tried once, and not again until a restart.
- * - **`/refresh` refuses a mismatched `Origin`.** Node's fetch sends none,
- *   which is what Ward lets through on purpose.
- *
- * The access token lives in memory only. The refresh token survives restarts
- * in `bots/discord/data/jukebox-session.json`.
+ * - **The cookie lives in memory only.** There is nothing to protect on disk:
+ *   a restart costs one login, and a login that succeeds spends none of
+ *   atrium's lockout slots. (Ward's rotating refresh token was the reason the
+ *   old session was saved to a file; there is no such token any more.)
+ * - **A 401 means the session is gone** (expired, revoked, or atrium forgot
+ *   it): the client calls `invalidate()`, and the next caller logs in again.
+ *   Logging in is single-flight, so a burst of 401s makes one login.
+ * - **Atrium re-sends the cookie** at most hourly while the session is in use.
+ *   `noteResponse()` picks the new value up.
+ * - **A refused password is tried once**, and not again until a restart: atrium
+ *   locks an address out after five failed logins.
+ * - **No `Origin` header.** Atrium's cross-site guard lets a request without
+ *   one through and refuses a wrong one. Node's fetch sends none.
  */
 
-/** Refresh this long before the access token runs out. */
-export const REFRESH_LEAD_MS = 2 * 60_000;
-/** With less than this left on the refresh token, log in afresh rather than rotate it. */
-export const RELOGIN_WITHIN_MS = 24 * 60 * 60_000;
+const here = fileURLToPath(new URL('.', import.meta.url));
+/** Ward's refresh token, saved by briefs 25-28. Spent since brief 29: the session is atrium's own and lives in memory. */
+const SPENT_SESSION_FILE = resolve(here, '../../../data/jukebox-session.json');
+
+/** Delete the spent `jukebox-session.json`, if an older run left one. Best effort; never throws. */
+export async function clearSpentSessionFile(file = SPENT_SESSION_FILE): Promise<void> {
+  await rm(file, { force: true }).catch(() => undefined);
+}
+
 const BACKOFF_FIRST_MS = 2_000;
 const BACKOFF_MAX_MS = 60_000;
-const WARD_TIMEOUT_MS = 10_000;
-/** Fallbacks if Ward's body ever omits an expiry: its cookie lifetimes. */
-const ACCESS_FALLBACK_MS = 15 * 60_000;
-const REFRESH_FALLBACK_MS = 30 * 24 * 60 * 60_000;
+const LOGIN_TIMEOUT_MS = 10_000;
+/** The cookie atrium sets. */
+export const SESSION_COOKIE = 'atrium_session';
 
-interface Token {
-  token: string;
-  expiresAtMs: number;
-}
-
-/** What is saved between runs. */
-interface StoredSession {
-  username: string;
-  refreshToken: string;
-  refreshTokenExpiresAt: string;
-}
-
-/** The two tokens out of a login or refresh response's `Set-Cookie` headers. */
-export function parseSessionCookies(setCookie: readonly string[]): { accessToken?: string; refreshToken?: string } {
-  const found: { accessToken?: string; refreshToken?: string } = {};
+/** The `atrium_session` value out of `Set-Cookie` headers. A cleared cookie (empty value) is not one. */
+export function parseSessionCookie(setCookie: readonly string[]): string | undefined {
+  let found: string | undefined;
   for (const header of setCookie) {
     const pair = header.split(';', 1)[0];
     const eq = pair.indexOf('=');
     if (eq === -1) continue;
-    const name = pair.slice(0, eq).trim();
+    if (pair.slice(0, eq).trim() !== SESSION_COOKIE) continue;
     const value = pair.slice(eq + 1).trim();
-    if (!value) continue;
-    if (name === 'ward_session') found.accessToken = value;
-    if (name === 'ward_refresh') found.refreshToken = value;
+    if (value) found = value;
   }
   return found;
 }
 
-/**
- * An expiry as epoch milliseconds. Ward sends `accessTokenExpiresAt` as epoch
- * seconds and `refreshTokenExpiresAt` as an ISO string; both are accepted, and
- * a number this small is read as seconds.
- */
-export function toEpochMs(value: unknown): number | null {
-  if (typeof value === 'number' && Number.isFinite(value)) return value < 1e12 ? value * 1000 : value;
-  if (typeof value === 'string') {
-    const parsed = Date.parse(value);
-    return Number.isNaN(parsed) ? null : parsed;
-  }
-  return null;
-}
-
-/**
- * What to do before the next call to atrium: use the access token, refresh,
- * or log in. Refresh two minutes early. Log in afresh when the refresh token
- * has under a day left, because a refresh never extends its 30 days.
- */
-export function planSignIn(
-  now: number,
-  tokens: { access: Token | null; refresh: Token | null },
-): 'use' | 'refresh' | 'login' {
-  if (tokens.access && now < tokens.access.expiresAtMs - REFRESH_LEAD_MS) return 'use';
-  if (tokens.refresh && tokens.refresh.expiresAtMs - now > RELOGIN_WITHIN_MS) return 'refresh';
-  return 'login';
-}
-
-export interface WardSessionOptions {
-  /** Ward's API root, e.g. `https://gandolh.ro/ward-api`. */
-  wardUrl: string;
+export interface AtriumSessionOptions {
+  /** Atrium's API root, e.g. `https://example.com/atrium-api`. */
+  atriumUrl: string;
   username: string;
   password: string;
-  /** Where the refresh token is kept between runs. */
-  storeFile: string;
   /** Test seams. */
   fetch?: typeof fetch;
   now?: () => number;
 }
 
-export class WardSession {
-  private access: Token | null = null;
-  private refresh: Token | null = null;
-  private loaded = false;
-  /** Set once a login is refused for good. Nothing contacts Ward again until a restart. */
+export class AtriumSession {
+  private cookieValue: string | null = null;
+  /** Set once a login is refused for good. Nothing contacts atrium to log in again until a restart. */
   private failed: string | null = null;
-  /** Ward is not asked again before this (a 429's `Retry-After`, or the network backoff). */
+  /** Atrium is not asked to log in before this (a 429's wait, or the network backoff). */
   private notBefore = 0;
   private backoffMs = 0;
   private inFlight: Promise<string> | null = null;
   private readonly fetchImpl: typeof fetch;
   private readonly now: () => number;
 
-  /** How the current access token was obtained. The check script prints it. */
-  lastSignIn: 'login' | 'refresh' | null = null;
+  /** How many logins succeeded. The check script prints it. */
+  logins = 0;
 
-  constructor(private readonly options: WardSessionOptions) {
+  constructor(private readonly options: AtriumSessionOptions) {
     this.fetchImpl = options.fetch ?? fetch;
     this.now = options.now ?? Date.now;
   }
@@ -129,53 +91,51 @@ export class WardSession {
     return this.failed !== null;
   }
 
-  /** A live access token, refreshing or logging in first if needed. Concurrent callers share one attempt. */
-  async accessToken(): Promise<string> {
+  /** The `Cookie` header value for atrium, logging in first if there is no session. Concurrent callers share one login. */
+  async cookie(): Promise<string> {
     if (this.failed) throw new JukeboxSignInFailed(this.failed);
-    if (this.access && planSignIn(this.now(), { access: this.access, refresh: this.refresh }) === 'use') {
-      return this.access.token;
-    }
-    return this.single(() => this.obtain());
-  }
-
-  /** Atrium said 401: forget the access token, so the next call refreshes or logs in. */
-  invalidate(): void {
-    this.access = null;
-  }
-
-  /** Rotate now, whatever the access token's age (the check script). Logs in if there is nothing to rotate. */
-  async forceRefresh(): Promise<void> {
-    if (this.failed) throw new JukeboxSignInFailed(this.failed);
-    await this.single(async () => {
-      await this.load();
-      this.gate();
-      if (this.refresh && (await this.rotate())) return this.access!.token;
-      await this.login();
-      return this.access!.token;
-    });
-  }
-
-  private single(work: () => Promise<string>): Promise<string> {
-    this.inFlight ??= work().finally(() => {
+    if (this.cookieValue) return `${SESSION_COOKIE}=${this.cookieValue}`;
+    const value = await (this.inFlight ??= this.login().finally(() => {
       this.inFlight = null;
-    });
-    return this.inFlight;
+    }));
+    return `${SESSION_COOKIE}=${value}`;
   }
 
-  private async obtain(): Promise<string> {
-    await this.load();
-    this.gate();
-    const step = planSignIn(this.now(), { access: this.access, refresh: this.refresh });
-    if (step === 'use') return this.access!.token;
-    if (step === 'refresh' && (await this.rotate())) return this.access!.token;
-    await this.login();
-    return this.access!.token;
+  /**
+   * Atrium said 401 to a request that carried `sentCookie`: forget the session
+   * so the next call logs in. If another caller has already replaced it, the
+   * newer session stays.
+   */
+  invalidate(sentCookie?: string): void {
+    if (sentCookie === undefined || sentCookie === `${SESSION_COOKIE}=${this.cookieValue}`) this.cookieValue = null;
+  }
+
+  /** Keep a renewed `atrium_session` if atrium sent one with this response. */
+  noteResponse(res: Response): void {
+    const renewed = parseSessionCookie(res.headers.getSetCookie());
+    if (renewed && this.cookieValue) this.cookieValue = renewed;
+  }
+
+  /** Log out at atrium (204) and forget the session. Best effort: the check script uses it to tidy up. */
+  async logout(): Promise<void> {
+    const sent = this.cookieValue;
+    this.cookieValue = null;
+    if (!sent) return;
+    try {
+      await this.fetchImpl(`${this.options.atriumUrl}/auth/logout`, {
+        method: 'POST',
+        headers: { accept: 'application/json', cookie: `${SESSION_COOKIE}=${sent}` },
+        signal: AbortSignal.timeout(LOGIN_TIMEOUT_MS),
+      }).then((res) => res.body?.cancel());
+    } catch {
+      // The session simply expires on its own.
+    }
   }
 
   /** Throw while a 429 or the network backoff says to wait. */
   private gate(): void {
     const wait = this.notBefore - this.now();
-    if (wait > 0) throw new JukeboxUnavailable(`waiting ${Math.ceil(wait / 1000)} s before asking Ward again`);
+    if (wait > 0) throw new JukeboxUnavailable(`waiting ${Math.ceil(wait / 1000)} s before asking atrium to sign in again`);
   }
 
   private backOff(reason: string): never {
@@ -184,104 +144,51 @@ export class WardSession {
     throw new JukeboxUnavailable(`${reason}; trying again in ${this.backoffMs / 1000} s`);
   }
 
-  /** The saved refresh token, if it belongs to the configured account. Read once. */
-  private async load(): Promise<void> {
-    if (this.loaded) return;
-    this.loaded = true;
-    let saved: Partial<StoredSession>;
+  private async login(): Promise<string> {
+    this.gate();
+    const { username, password, atriumUrl } = this.options;
+    let res: Response;
     try {
-      saved = JSON.parse(await readFile(this.options.storeFile, 'utf8')) as Partial<StoredSession>;
-    } catch {
-      return; // No file yet, or an unreadable one: log in.
-    }
-    const expiresAtMs = toEpochMs(saved.refreshTokenExpiresAt);
-    if (saved.username === this.options.username && typeof saved.refreshToken === 'string' && expiresAtMs) {
-      this.refresh = { token: saved.refreshToken, expiresAtMs };
-    }
-  }
-
-  private async post(path: string, body: unknown): Promise<Response> {
-    try {
-      return await this.fetchImpl(`${this.options.wardUrl}${path}`, {
+      res = await this.fetchImpl(`${atriumUrl}/auth/login`, {
         method: 'POST',
-        // No Origin: Ward lets an Origin-less request through on purpose, and
+        // No Origin: atrium lets an Origin-less request through on purpose, and
         // refuses one that is not its own.
         headers: { 'content-type': 'application/json', accept: 'application/json' },
-        body: JSON.stringify(body),
-        signal: AbortSignal.timeout(WARD_TIMEOUT_MS),
+        body: JSON.stringify({ username, password }),
+        signal: AbortSignal.timeout(LOGIN_TIMEOUT_MS),
       });
     } catch (err) {
-      return this.backOff(`Ward did not answer ${path} (${(err as Error).message})`);
+      return this.backOff(`atrium did not answer /auth/login (${(err as Error).message})`);
     }
-  }
 
-  /** Save the refresh token, then take the access token. In that order, always. */
-  private async adopt(res: Response, how: 'login' | 'refresh'): Promise<void> {
-    const cookies = parseSessionCookies(res.headers.getSetCookie());
-    const body = (await res.json().catch(() => ({}))) as { accessTokenExpiresAt?: unknown; refreshTokenExpiresAt?: unknown };
-    if (!cookies.accessToken || !cookies.refreshToken) {
-      return this.backOff(`Ward's ${how} answered 200 without both session cookies`);
-    }
-    const now = this.now();
-    const refresh = {
-      token: cookies.refreshToken,
-      expiresAtMs: toEpochMs(body.refreshTokenExpiresAt) ?? now + REFRESH_FALLBACK_MS,
-    };
-    const stored: StoredSession = {
-      username: this.options.username,
-      refreshToken: refresh.token,
-      refreshTokenExpiresAt: new Date(refresh.expiresAtMs).toISOString(),
-    };
-    await writeJsonFile(this.options.storeFile, `${JSON.stringify(stored, null, 2)}\n`);
-    this.refresh = refresh;
-    this.access = {
-      token: cookies.accessToken,
-      expiresAtMs: toEpochMs(body.accessTokenExpiresAt) ?? now + ACCESS_FALLBACK_MS,
-    };
-    this.backoffMs = 0;
-    this.notBefore = 0;
-    this.lastSignIn = how;
-  }
-
-  /** Rotate the refresh token. False when Ward no longer honours it, so the caller logs in. */
-  private async rotate(): Promise<boolean> {
-    const res = await this.post('/refresh', { refreshToken: this.refresh!.token });
     if (res.ok) {
-      await this.adopt(res, 'refresh');
-      return true;
+      const cookie = parseSessionCookie(res.headers.getSetCookie());
+      await res.body?.cancel();
+      if (!cookie) return this.backOff(`atrium's login answered ${res.status} without an ${SESSION_COOKIE} cookie`);
+      this.cookieValue = cookie;
+      this.backoffMs = 0;
+      this.notBefore = 0;
+      this.logins += 1;
+      log.info(`signed in to atrium as ${username}`);
+      return cookie;
     }
-    await res.body?.cancel();
-    if (res.status >= 500) return this.backOff(`Ward's refresh failed with ${res.status}`);
-    // 401 invalid_refresh (expired, revoked, or reused), or anything else Ward
-    // refuses: this token is done. A login starts a new session.
-    log.warn(`Ward refused the saved refresh token (${res.status}); signing in again`);
-    this.refresh = null;
-    this.access = null;
-    return false;
-  }
 
-  private async login(): Promise<void> {
-    const { username, password } = this.options;
-    const res = await this.post('/login', { username, password });
-    if (res.ok) {
-      await this.adopt(res, 'login');
-      log.info(`signed in to Ward as ${username}`);
-      return;
-    }
-    const code = ((await res.json().catch(() => ({}))) as { error?: string }).error;
+    const body = (await res.json().catch(() => ({}))) as { error?: string; retryAfterSeconds?: unknown };
+    const code = body.error;
     if (res.status === 429) {
-      const seconds = Number(res.headers.get('retry-after')) || 60;
+      const fromBody = Number(body.retryAfterSeconds);
+      const seconds = fromBody > 0 ? Math.ceil(fromBody) : Number(res.headers.get('retry-after')) || 60;
       this.notBefore = this.now() + seconds * 1000;
-      throw new JukeboxUnavailable(`Ward is rate-limiting sign-ins; waiting ${seconds} s`);
+      throw new JukeboxUnavailable(`atrium is rate-limiting sign-ins; waiting ${seconds} s`);
     }
-    if (res.status >= 500) return this.backOff(`Ward's login failed with ${res.status}`);
-    // 401 invalid_credentials, 403 account_disabled, or a 400 the request
-    // itself caused. None gets better by asking again, and every failed login
-    // spends one of Ward's five lockout slots, so stop until a restart.
+    if (res.status >= 500) return this.backOff(`atrium's login failed with ${res.status}`);
+    // 401 invalid_credentials, a 400 the request itself caused, or a 403
+    // cross_site. None gets better by asking again, and every failed login
+    // spends one of atrium's five lockout slots, so stop until a restart.
     this.failed =
-      res.status === 403 && code === 'account_disabled'
-        ? `Ward says the account JUKEBOX_WARD_USERNAME=${username} is disabled`
-        : `Ward refused the sign-in for JUKEBOX_WARD_USERNAME=${username} (${res.status}${code ? ` ${code}` : ''}); check JUKEBOX_WARD_USERNAME and JUKEBOX_WARD_PASSWORD, then restart the bot`;
+      res.status === 403 && code === 'cross_site'
+        ? `atrium refused the sign-in as cross-site (403): something is adding an Origin header, check JUKEBOX_ATRIUM_URL, then restart the bot`
+        : `atrium refused the sign-in for JUKEBOX_ATRIUM_USERNAME=${username} (${res.status}${code ? ` ${code}` : ''}); check JUKEBOX_ATRIUM_USERNAME and JUKEBOX_ATRIUM_PASSWORD, then restart the bot`;
     log.error(`Jukebox sign-in failed: ${this.failed}`);
     throw new JukeboxSignInFailed(this.failed);
   }

@@ -75,6 +75,6 @@ only list anyone reorders or clears. `/jukebox play` adds to it.
 _Avoid_: up next, playlist
 
 **Bot account**:
-The Ward account this bot signs in to atrium as. Its `atrium` grant carries the
-role `jukebox`, which atrium enforces as an allowlist.
-_Avoid_: bot user, bot profile, service account
+The local atrium user this bot logs in as (not a Ward account since brief 29).
+It has the role `jukebox`, which atrium enforces as an allowlist.
+_Avoid_: bot user, bot profile, service account, Ward account

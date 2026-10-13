@@ -1,6 +1,6 @@
 ---
-summary: How the bot's Jukebox works (briefs 25-27) — the Ward sign-in, the long-poll link to atrium, the per-guild player and disk buffer, the Speaker seam, atrium's status rules the bot must follow, triage log lines, and the live Discord checks still owed. Atrium's side is atrium's corpus/wiki/jukebox.md.
-updated: 2026-10-09
+summary: How the bot's Jukebox works (briefs 25-27) — the local atrium sign-in, the long-poll link to atrium, the per-guild player and disk buffer, the Speaker seam, atrium's status rules the bot must follow, triage log lines, and the live Discord checks still owed. Atrium's side is atrium's corpus/wiki/jukebox.md.
+updated: 2026-10-13
 ---
 
 # Jukebox (bot side)
@@ -12,10 +12,12 @@ comes from atrium"). Code: `bots/discord/src/jukebox/`.
 
 ## Pieces
 
-- **`atrium/`** (brief 25): signs in to Ward as the Bot account without a
-  browser and calls atrium. The refresh token is saved to
-  `data/jukebox-session.json` before the access token it bought is used, and a
-  refused password is tried once only (Ward's five-slot lockout). Errors are
+- **`atrium/`** (briefs 25, 29): logs in to atrium as the Bot account with
+  `POST /auth/login` and calls it with the `atrium_session` cookie, kept in
+  memory only. A 401 logs in again once (single-flight) and retries; a renewed
+  `Set-Cookie` replaces the kept one; a refused password is tried once only
+  (atrium's five-failure lockout). `session.ts` holds the session, `request.ts`
+  the client, `client.ts` the singleton. Errors are
   typed: `NotConfigured`, `SignInFailed`, `Forbidden` stop; `Unavailable`
   retries; `RequestError` carries atrium's `{error}` code.
 - **`link.ts`**: takes the command cursor **once**, reports each guild idle,
@@ -66,18 +68,19 @@ A healthy image's `generateDependencyReport()` (2026-10-09) shows
 `@snazzah/davey` 0.1.12 and FFmpeg 8.1.2 with libopus. "Opus Libraries: not
 found" is expected. Log lines, all scope `[jukebox]`:
 - Not configured: `Jukebox not configured (no JUKEBOX_* variables); the link is off`.
-- Sign-in failed: `Jukebox sign-in failed: Ward refused the sign-in for
-  JUKEBOX_WARD_USERNAME=… (401 invalid_credentials)…`, then `Jukebox link
+- Old variables: `JUKEBOX_WARD_… no longer read (brief 29)`: not renamed yet.
+- Sign-in failed: `Jukebox sign-in failed: atrium refused the sign-in for
+  JUKEBOX_ATRIUM_USERNAME=… (401 invalid_credentials)…`, then `Jukebox link
   stopped`. Nothing retries until a restart.
 - Forbidden: `Jukebox link stopped: atrium refused the Bot account
-  (JUKEBOX_ROLE_FORBIDDEN); check its Ward grant is atrium:jukebox`.
+  (JUKEBOX_ROLE_FORBIDDEN); check its atrium user has the jukebox role`.
 - Atrium unreachable: `atrium unreachable while waiting for commands (…)`,
   `Jukebox link retrying in N s`, then `Jukebox link back`. Behind the dev
   proxy a stopped atrium shows as "answered 500".
 - Each Track: `playing "<title>" in <guild> (live|buffered)`.
 
-`npm run discord:jukebox-check` tests the sign-in on its own; run it with the
-bot stopped, since both use the saved session.
+`npm run discord:jukebox-check` tests the sign-in on its own. Its session is in
+memory, so it can run beside the bot.
 
 ## The command
 

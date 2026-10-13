@@ -10,7 +10,7 @@ Where things stand right now.
 ## Music
 
 Built 2026-10-09 (briefs 25-27); not yet heard in Discord or deployed. The **Jukebox** plays Tracks from atrium's
-music library in a voice channel. It signs in to atrium as its own Ward account,
+music library in a voice channel. It signs in to atrium as its own local atrium user (brief 29, 2026-10-13; owner steps in [log.md](../log.md)),
 and atrium owns every Player, so the bot long-polls atrium for commands (see
 [decisions.md](decisions.md)). Three briefs, in order:
 - [25](../briefs/done/25-jukebox-atrium-client.md): sign in to atrium as the

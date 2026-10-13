@@ -19,11 +19,10 @@ const schema = z
     OLLAMA_API_KEY: z.string().optional(),
     OLLAMA_HOST: z.string().url().default('https://ollama.com'),
     OLLAMA_MODEL: z.string().default('gpt-oss:120b'),
-    // The Jukebox (briefs 25-27): atrium's music, signed in as the Bot account.
+    // The Jukebox (briefs 25-27): atrium's music, signed in as the Bot account, atrium's own local user (brief 29).
     JUKEBOX_ATRIUM_URL: optional(z.string().url()),
-    JUKEBOX_WARD_URL: optional(z.string().url()),
-    JUKEBOX_WARD_USERNAME: optional(z.string().min(1)),
-    JUKEBOX_WARD_PASSWORD: optional(z.string().min(1)),
+    JUKEBOX_ATRIUM_USERNAME: optional(z.string().min(1)),
+    JUKEBOX_ATRIUM_PASSWORD: optional(z.string().min(1)),
   })
   .superRefine((vars, ctx) => {
     const missing = missingJukeboxVars(vars);
@@ -31,7 +30,7 @@ const schema = z
       ctx.addIssue({
         code: 'custom',
         path: [missing[0]],
-        message: `the Jukebox needs all four JUKEBOX_* variables or none; missing: ${missing.join(', ')}`,
+        message: `the Jukebox needs all three JUKEBOX_* variables or none; missing: ${missing.join(', ')}`,
       });
     }
   });

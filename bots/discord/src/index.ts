@@ -52,7 +52,7 @@ let jukebox: JukeboxLink | null = null;
 
 client.once(Events.ClientReady, (c) => {
   log.info(`Logged in as ${c.user.tag}`);
-  // Off unless the four JUKEBOX_* variables are set. Never throws.
+  // Off unless the three JUKEBOX_* variables are set. Never throws.
   jukebox = startJukeboxLink(discordHost(c));
   // Mafia phase timers live in memory; a restart mid-game would otherwise leave
   // that game stuck forever. Deadlines are persisted, so re-arm from them.

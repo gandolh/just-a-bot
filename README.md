@@ -81,7 +81,7 @@ Net: **+54** • Balance: **1,054**
 
 One Node process runs the TypeScript directly with tsx; there is no build step. [`bots/discord/src/index.ts`](bots/discord/src/index.ts) has a single interaction handler. A slash command goes to its file in `commands/`, a button press goes to the feature that owns its `customId` prefix, such as `bj:` or `rpg:`, and a message in a Wordle or Hangman thread counts as a guess. Commands are thin and call a feature folder such as `gambling/`, `rpg/` or `mafia/`. Two timers run beside the handler: reminders and birthdays every 60 seconds, the RPG town crier every 20.
 
-State is gitignored JSON under `bots/data/` and `bots/discord/data/`, read through an in-memory cache, with writes queued one at a time. The Jukebox is the only part that talks to another app. It signs in to atrium with its own account on Ward, the owner's sign-in service, and long-polls atrium for what to play. More in [docs/discord/architecture.md](docs/discord/architecture.md) and the [wiki's architecture page](corpus/wiki/architecture.md).
+State is gitignored JSON under `bots/data/` and `bots/discord/data/`, read through an in-memory cache, with writes queued one at a time. The Jukebox is the only part that talks to another app. It signs in to atrium with its own local atrium user and long-polls atrium for what to play. More in [docs/discord/architecture.md](docs/discord/architecture.md) and the [wiki's architecture page](corpus/wiki/architecture.md).
 
 ## Run it locally
 

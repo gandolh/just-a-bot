@@ -1,198 +1,277 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
-import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { mkdtempSync, rmSync, writeFileSync, existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { AddressInfo } from 'node:net';
+import { AtriumClient } from './request.ts';
 import { JukeboxSignInFailed, JukeboxUnavailable } from './errors.ts';
-import { parseSessionCookies, planSignIn, REFRESH_LEAD_MS, RELOGIN_WITHIN_MS, toEpochMs, WardSession } from './session.ts';
+import { AtriumSession, clearSpentSessionFile, parseSessionCookie } from './session.ts';
 
-test('parses both session cookies out of Set-Cookie headers', () => {
-  const found = parseSessionCookies([
-    'ward_session=eyJhbGci.payload.sig; Path=/; HttpOnly; SameSite=Lax; Max-Age=900',
-    'ward_refresh=c6ff19abc; Path=/ward-api/refresh; HttpOnly; SameSite=Lax; Max-Age=2592000',
-    'unrelated=1; Path=/',
-  ]);
-  assert.deepEqual(found, { accessToken: 'eyJhbGci.payload.sig', refreshToken: 'c6ff19abc' });
+test('parses the session cookie out of Set-Cookie headers', () => {
+  assert.equal(
+    parseSessionCookie([
+      'unrelated=1; Path=/',
+      'atrium_session=abc.def-123; Path=/atrium-api; HttpOnly; SameSite=Lax; Max-Age=1209600',
+    ]),
+    'abc.def-123',
+  );
+  assert.equal(parseSessionCookie([]), undefined);
 });
 
-test('a cleared cookie (empty value) is not a token', () => {
-  assert.deepEqual(parseSessionCookies(['ward_session=; Path=/; Max-Age=0']), {});
+test('a cleared cookie (empty value) is not a session', () => {
+  assert.equal(parseSessionCookie(['atrium_session=; Path=/atrium-api; Max-Age=0']), undefined);
 });
 
-test("reads Ward's two expiry formats", () => {
-  assert.equal(toEpochMs(1791495524), 1791495524_000);
-  assert.equal(toEpochMs('2026-11-07T21:23:44.011Z'), Date.parse('2026-11-07T21:23:44.011Z'));
-  assert.equal(toEpochMs('soon'), null);
-});
-
-test('the refresh schedule: use, refresh two minutes early, log in with under a day left', () => {
-  const now = 1_000_000_000_000;
-  const day = 24 * 60 * 60_000;
-  const access = (ms: number) => ({ token: 'a', expiresAtMs: now + ms });
-  const refresh = (ms: number) => ({ token: 'r', expiresAtMs: now + ms });
-  assert.equal(planSignIn(now, { access: access(10 * 60_000), refresh: refresh(20 * day) }), 'use');
-  assert.equal(planSignIn(now, { access: access(REFRESH_LEAD_MS - 1), refresh: refresh(20 * day) }), 'refresh');
-  assert.equal(planSignIn(now, { access: null, refresh: refresh(20 * day) }), 'refresh');
-  assert.equal(planSignIn(now, { access: null, refresh: refresh(RELOGIN_WITHIN_MS - 1) }), 'login');
-  assert.equal(planSignIn(now, { access: null, refresh: null }), 'login');
-});
-
-/** A local stand-in for Ward's /login and /refresh, counting what it is asked. */
-async function fakeWard(handle: (req: IncomingMessage, res: ServerResponse, body: string) => void) {
+/** A local stand-in for atrium: /auth/login, /auth/logout and whatever route a test adds. */
+async function fakeAtrium(handle: (req: IncomingMessage, res: ServerResponse, body: string) => void) {
   const calls: string[] = [];
+  const cookies: Array<string | undefined> = [];
   const server = createServer((req, res) => {
     let body = '';
     req.on('data', (chunk) => (body += chunk));
     req.on('end', () => {
       calls.push(`${req.method} ${req.url}${req.headers.origin ? ' origin' : ''}`);
+      cookies.push(req.headers.cookie);
       handle(req, res, body);
     });
   });
   await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));
   const { port } = server.address() as AddressInfo;
-  return { url: `http://127.0.0.1:${port}`, calls, close: () => new Promise((r) => server.close(r)) };
+  return { url: `http://127.0.0.1:${port}`, calls, cookies, close: () => new Promise((r) => server.close(r)) };
 }
 
-function signedIn(res: ServerResponse, n: number) {
-  res.setHeader('set-cookie', [
-    `ward_session=access-${n}; Path=/; HttpOnly; Max-Age=900`,
-    `ward_refresh=refresh-${n}; Path=/ward-api/refresh; HttpOnly; Max-Age=2592000`,
-  ]);
+function json(res: ServerResponse, status: number, body: unknown, headers: Record<string, string | string[]> = {}) {
+  res.statusCode = status;
   res.setHeader('content-type', 'application/json');
-  res.end(
-    JSON.stringify({
-      accessTokenExpiresAt: Math.floor(Date.now() / 1000) + 900,
-      refreshTokenExpiresAt: new Date(Date.now() + 30 * 24 * 60 * 60_000).toISOString(),
-    }),
-  );
+  for (const [name, value] of Object.entries(headers)) res.setHeader(name, value);
+  res.end(JSON.stringify(body));
 }
 
-function scratch() {
-  const dir = mkdtempSync(join(tmpdir(), 'jukebox-session-'));
-  return { file: join(dir, 'jukebox-session.json'), cleanup: () => rmSync(dir, { recursive: true, force: true }) };
-}
+const sessionCookie = (value: string) => `atrium_session=${value}; Path=/atrium-api; HttpOnly; SameSite=Lax; Max-Age=1209600`;
+
+const options = (url: string, extra: Partial<ConstructorParameters<typeof AtriumSession>[0]> = {}) => ({
+  atriumUrl: url,
+  username: 'discord-bot',
+  password: 'pw',
+  ...extra,
+});
+
+test('login posts the credentials with no Origin, keeps the cookie, and is single-flight', async () => {
+  let n = 0;
+  const atrium = await fakeAtrium((_req, res, body) => {
+    n += 1;
+    assert.deepEqual(JSON.parse(body), { username: 'discord-bot', password: 'pw' });
+    json(res, 200, { user: {}, session: {}, ward: null }, { 'set-cookie': sessionCookie(`s${n}`) });
+  });
+  try {
+    const session = new AtriumSession(options(atrium.url));
+    const cookies = await Promise.all([session.cookie(), session.cookie(), session.cookie()]);
+    assert.deepEqual(cookies, ['atrium_session=s1', 'atrium_session=s1', 'atrium_session=s1']);
+    assert.equal(await session.cookie(), 'atrium_session=s1', 'kept in memory: no second login');
+    assert.deepEqual(atrium.calls, ['POST /auth/login'], 'one login, and no Origin header');
+    assert.equal(session.logins, 1);
+  } finally {
+    await atrium.close();
+  }
+});
 
 test('a wrong password is tried exactly once, and never again until a restart', async () => {
-  const ward = await fakeWard((_req, res) => {
-    res.statusCode = 401;
-    res.setHeader('content-type', 'application/json');
-    res.end(JSON.stringify({ error: 'invalid_credentials' }));
-  });
-  const store = scratch();
+  const atrium = await fakeAtrium((_req, res) => json(res, 401, { error: 'invalid_credentials' }));
   try {
-    const session = new WardSession({ wardUrl: ward.url, username: 'discord-bot', password: 'wrong', storeFile: store.file });
-    await assert.rejects(session.accessToken(), JukeboxSignInFailed);
-    await assert.rejects(session.accessToken(), JukeboxSignInFailed);
-    await assert.rejects(session.forceRefresh(), JukeboxSignInFailed);
-    assert.deepEqual(ward.calls, ['POST /login']);
+    const session = new AtriumSession(options(atrium.url, { password: 'wrong' }));
+    await assert.rejects(session.cookie(), JukeboxSignInFailed);
+    await assert.rejects(session.cookie(), JukeboxSignInFailed);
+    session.invalidate();
+    await assert.rejects(session.cookie(), JukeboxSignInFailed);
+    assert.deepEqual(atrium.calls, ['POST /auth/login']);
     assert.equal(session.signInFailed, true);
   } finally {
-    await ward.close();
-    store.cleanup();
+    await atrium.close();
   }
 });
 
-test('signs in once for concurrent callers, saves the refresh token, and the next run resumes with it', async () => {
-  let n = 0;
-  const ward = await fakeWard((req, res, body) => {
-    n += 1;
-    if (req.url === '/refresh') assert.equal(JSON.parse(body).refreshToken, 'refresh-1');
-    signedIn(res, n);
-  });
-  const store = scratch();
-  try {
-    const first = new WardSession({ wardUrl: ward.url, username: 'discord-bot', password: 'pw', storeFile: store.file });
-    const tokens = await Promise.all([first.accessToken(), first.accessToken(), first.accessToken()]);
-    assert.deepEqual(tokens, ['access-1', 'access-1', 'access-1']);
-    const saved = JSON.parse(readFileSync(store.file, 'utf8'));
-    assert.equal(saved.username, 'discord-bot');
-    assert.equal(saved.refreshToken, 'refresh-1');
-
-    const second = new WardSession({ wardUrl: ward.url, username: 'discord-bot', password: 'pw', storeFile: store.file });
-    assert.equal(await second.accessToken(), 'access-2');
-    assert.equal(second.lastSignIn, 'refresh');
-    assert.deepEqual(ward.calls, ['POST /login', 'POST /refresh'], 'no Origin header, and no second login');
-    assert.equal(JSON.parse(readFileSync(store.file, 'utf8')).refreshToken, 'refresh-2');
-  } finally {
-    await ward.close();
-    store.cleanup();
-  }
-});
-
-test("a saved token for another username is ignored, and a refused refresh falls back to a login", async () => {
-  let n = 0;
-  const ward = await fakeWard((req, res) => {
-    n += 1;
-    if (req.url === '/refresh') {
-      res.statusCode = 401;
-      res.end(JSON.stringify({ error: 'invalid_refresh' }));
-      return;
+test('a 400 or a cross-site 403 on login also stops for good', async () => {
+  for (const [status, error] of [
+    [400, 'invalid_request'],
+    [403, 'cross_site'],
+  ] as const) {
+    const atrium = await fakeAtrium((_req, res) => json(res, status, { error }));
+    try {
+      const session = new AtriumSession(options(atrium.url));
+      await assert.rejects(session.cookie(), JukeboxSignInFailed);
+      await assert.rejects(session.cookie(), JukeboxSignInFailed);
+      assert.equal(atrium.calls.length, 1);
+    } finally {
+      await atrium.close();
     }
-    signedIn(res, n);
-  });
-  const store = scratch();
-  try {
-    const a = new WardSession({ wardUrl: ward.url, username: 'old-bot', password: 'pw', storeFile: store.file });
-    await a.accessToken();
-    const b = new WardSession({ wardUrl: ward.url, username: 'discord-bot', password: 'pw', storeFile: store.file });
-    await b.accessToken();
-    assert.equal(b.lastSignIn, 'login');
-    const c = new WardSession({ wardUrl: ward.url, username: 'discord-bot', password: 'pw', storeFile: store.file });
-    await c.accessToken();
-    assert.equal(c.lastSignIn, 'login');
-    assert.deepEqual(ward.calls, ['POST /login', 'POST /login', 'POST /refresh', 'POST /login']);
-  } finally {
-    await ward.close();
-    store.cleanup();
   }
 });
 
-test('a 429 waits for Retry-After before asking Ward again', async () => {
+test('a 429 waits for retryAfterSeconds before logging in again', async () => {
   let now = 1_000_000_000_000;
   let locked = true;
-  const ward = await fakeWard((_req, res) => {
-    if (locked) {
-      res.statusCode = 429;
-      res.setHeader('retry-after', '30');
-      res.end(JSON.stringify({ error: 'too_many_attempts' }));
-      return;
-    }
-    signedIn(res, 1);
+  const atrium = await fakeAtrium((_req, res) => {
+    if (locked) return json(res, 429, { error: 'too_many_attempts', retryAfterSeconds: 30 });
+    json(res, 200, {}, { 'set-cookie': sessionCookie('s1') });
   });
-  const store = scratch();
   try {
-    const session = new WardSession({ wardUrl: ward.url, username: 'b', password: 'pw', storeFile: store.file, now: () => now });
-    await assert.rejects(session.accessToken(), JukeboxUnavailable);
-    await assert.rejects(session.accessToken(), JukeboxUnavailable);
-    assert.equal(ward.calls.length, 1, 'no request inside the Retry-After window');
+    const session = new AtriumSession(options(atrium.url, { now: () => now }));
+    await assert.rejects(session.cookie(), JukeboxUnavailable);
+    await assert.rejects(session.cookie(), JukeboxUnavailable);
+    assert.equal(atrium.calls.length, 1, 'no request inside the wait');
+    assert.equal(session.signInFailed, false, 'a lockout is not a refused password');
     locked = false;
     now += 30_000;
-    assert.equal(await session.accessToken(), 'access-1');
-    assert.equal(ward.calls.length, 2);
+    assert.equal(await session.cookie(), 'atrium_session=s1');
+    assert.equal(atrium.calls.length, 2);
   } finally {
-    await ward.close();
-    store.cleanup();
+    await atrium.close();
   }
 });
 
-test('an unreachable Ward backs off from 2 seconds', async () => {
+test('a 200 login with no cookie, and a 5xx, are Unavailable with backoff', async () => {
+  let status = 200;
+  const atrium = await fakeAtrium((_req, res) => json(res, status, {}));
   let now = 1_000_000_000_000;
-  const store = scratch();
   try {
-    const session = new WardSession({
-      wardUrl: 'http://127.0.0.1:9',
-      username: 'b',
-      password: 'pw',
-      storeFile: store.file,
-      now: () => now,
-    });
-    await assert.rejects(session.accessToken(), /trying again in 2 s/);
-    await assert.rejects(session.accessToken(), /waiting 2 s/);
+    const session = new AtriumSession(options(atrium.url, { now: () => now }));
+    await assert.rejects(session.cookie(), /without an atrium_session cookie; trying again in 2 s/);
     now += 2_000;
-    await assert.rejects(session.accessToken(), /trying again in 4 s/);
+    status = 503;
+    await assert.rejects(session.cookie(), /login failed with 503; trying again in 4 s/);
+    assert.equal(session.signInFailed, false);
   } finally {
-    store.cleanup();
+    await atrium.close();
+  }
+});
+
+test('atrium down is JukeboxUnavailable, backing off from 2 seconds', async () => {
+  let now = 1_000_000_000_000;
+  const session = new AtriumSession(options('http://127.0.0.1:9', { now: () => now }));
+  await assert.rejects(session.cookie(), JukeboxUnavailable);
+  await assert.rejects(session.cookie(), /waiting 2 s/);
+  now += 2_000;
+  await assert.rejects(session.cookie(), /trying again in 4 s/);
+});
+
+test('the client sends the cookie, and a 401 logs in again once and retries', async () => {
+  let logins = 0;
+  const atrium = await fakeAtrium((req, res) => {
+    if (req.url === '/auth/login') {
+      logins += 1;
+      return json(res, 200, {}, { 'set-cookie': sessionCookie(`s${logins}`) });
+    }
+    // The first session has expired at atrium; the second is fine.
+    if (req.headers.cookie === 'atrium_session=s1') return json(res, 401, { error: 'unauthorized', reason: 'expired' });
+    json(res, 200, { status: 'ok' });
+  });
+  try {
+    const session = new AtriumSession(options(atrium.url));
+    const client = new AtriumClient({ atriumUrl: atrium.url }, session);
+    assert.deepEqual(await client.json('/health'), { status: 'ok' });
+    assert.deepEqual(atrium.calls, ['POST /auth/login', 'GET /health', 'POST /auth/login', 'GET /health']);
+    assert.deepEqual(atrium.cookies, [undefined, 'atrium_session=s1', undefined, 'atrium_session=s2']);
+    // And it stays on the new session.
+    await client.json('/health');
+    assert.equal(logins, 2);
+  } finally {
+    await atrium.close();
+  }
+});
+
+test('two 401s in a row stop at Unavailable: one re-login per request, not a loop', async () => {
+  let logins = 0;
+  const atrium = await fakeAtrium((req, res) => {
+    if (req.url === '/auth/login') {
+      logins += 1;
+      return json(res, 200, {}, { 'set-cookie': sessionCookie(`s${logins}`) });
+    }
+    json(res, 401, { error: 'unauthorized' });
+  });
+  try {
+    const client = new AtriumClient({ atriumUrl: atrium.url }, new AtriumSession(options(atrium.url)));
+    await assert.rejects(client.json('/health'), JukeboxUnavailable);
+    assert.equal(logins, 2);
+  } finally {
+    await atrium.close();
+  }
+});
+
+test('a late 401 for an old cookie does not drop the newer session', async () => {
+  let logins = 0;
+  const atrium = await fakeAtrium((req, res) => {
+    if (req.url === '/auth/login') {
+      logins += 1;
+      return json(res, 200, {}, { 'set-cookie': sessionCookie(`s${logins}`) });
+    }
+    if (req.headers.cookie === 'atrium_session=s1') return json(res, 401, { error: 'unauthorized' });
+    json(res, 200, { ok: true });
+  });
+  try {
+    const client = new AtriumClient({ atriumUrl: atrium.url }, new AtriumSession(options(atrium.url)));
+    await client.json('/a'); // s1 -> 401 -> s2
+    const session = client.session;
+    session.invalidate('atrium_session=s1'); // a straggler that still holds s1
+    assert.equal(await session.cookie(), 'atrium_session=s2');
+    assert.equal(logins, 2);
+  } finally {
+    await atrium.close();
+  }
+});
+
+test('a renewed Set-Cookie on any response replaces the kept session', async () => {
+  const atrium = await fakeAtrium((req, res) => {
+    if (req.url === '/auth/login') return json(res, 200, {}, { 'set-cookie': sessionCookie('old') });
+    if (req.url === '/renews') return json(res, 200, {}, { 'set-cookie': sessionCookie('renewed') });
+    json(res, 200, {});
+  });
+  try {
+    const client = new AtriumClient({ atriumUrl: atrium.url }, new AtriumSession(options(atrium.url)));
+    await client.json('/plain');
+    await client.json('/renews');
+    await client.json('/plain');
+    assert.deepEqual(atrium.cookies.slice(1), ['atrium_session=old', 'atrium_session=old', 'atrium_session=renewed']);
+    assert.deepEqual(atrium.calls.filter((c) => c.includes('login')).length, 1);
+  } finally {
+    await atrium.close();
+  }
+});
+
+test('atrium down under the client is JukeboxUnavailable, not a crash', async () => {
+  const client = new AtriumClient({ atriumUrl: 'http://127.0.0.1:9' }, new AtriumSession(options('http://127.0.0.1:9')));
+  await assert.rejects(client.json('/health'), JukeboxUnavailable);
+});
+
+test('logout posts the cookie and forgets it', async () => {
+  const atrium = await fakeAtrium((req, res) => {
+    if (req.url === '/auth/login') return json(res, 200, {}, { 'set-cookie': sessionCookie('s1') });
+    res.statusCode = 204;
+    res.end();
+  });
+  try {
+    const session = new AtriumSession(options(atrium.url));
+    await session.cookie();
+    await session.logout();
+    assert.deepEqual(atrium.calls, ['POST /auth/login', 'POST /auth/logout']);
+    assert.equal(atrium.cookies[1], 'atrium_session=s1');
+    await session.logout();
+    assert.equal(atrium.calls.length, 2, 'nothing to log out of');
+  } finally {
+    await atrium.close();
+  }
+});
+
+test('the spent jukebox-session.json is removed, and a missing one is fine', async () => {
+  const dir = mkdtempSync(join(tmpdir(), 'jukebox-spent-'));
+  try {
+    const file = join(dir, 'jukebox-session.json');
+    writeFileSync(file, '{"refreshToken":"spent"}');
+    await clearSpentSessionFile(file);
+    assert.equal(existsSync(file), false);
+    await clearSpentSessionFile(file);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
   }
 });
