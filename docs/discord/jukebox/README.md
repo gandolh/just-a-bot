@@ -4,7 +4,7 @@ The bot plays music from **atrium**, the owner's media app, in a Discord voice
 channel. The songs are atrium's music library, and atrium keeps the state:
 what is playing, the queue, shuffle and repeat. There are two remotes for the
 same player: `/jukebox` here, and the Jukebox page in atrium
-(`https://gandolh.ro/atrium/jukebox`), where anyone signed in can also upload
+(`/atrium/jukebox`), where anyone signed in can also upload
 and delete songs. Anyone in the server may use `/jukebox`. The bot never posts
 on its own; ask it with `/jukebox nowplaying`.
 
@@ -32,7 +32,7 @@ leaves if nobody comes back within 10 minutes. Someone who returns presses play.
 ## Setup
 
 1. **A Ward account for the bot.** In Ward's console
-   (`https://gandolh.ro/ward/`, as superuser), create an account such as
+   (`/ward/`, as superuser), create an account such as
    `discord-bot` with a long generated password, and grant it `atrium` with the
    role `jukebox` and nothing else. That role limits the account to the Jukebox
    and the song files: it cannot see the rest of the library, notes or
@@ -42,8 +42,8 @@ leaves if nobody comes back within 10 minutes. Someone who returns presses play.
 2. **Four variables** in `bots/discord/.env`, all four or none:
 
    ```
-   JUKEBOX_ATRIUM_URL=https://gandolh.ro/atrium-api
-   JUKEBOX_WARD_URL=https://gandolh.ro/ward-api
+   JUKEBOX_ATRIUM_URL=https://example.com/atrium-api
+   JUKEBOX_WARD_URL=https://example.com/ward-api
    JUKEBOX_WARD_USERNAME=discord-bot
    JUKEBOX_WARD_PASSWORD=...
    ```

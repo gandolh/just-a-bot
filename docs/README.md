@@ -44,5 +44,5 @@ The split mirrors the source tree. Anything Discord-specific lives under `discor
 
 ## Going deeper
 
-- Docs site: <https://gandolh.ro/just-a-bot/docs/> renders these pages under "Manual" and the corpus wiki beside them. It is built from [`docs-site/`](../docs-site/) with `npm run docs -w @bots/docs-site`.
+- Docs site: `/just-a-bot/docs/` renders these pages under "Manual" and the corpus wiki beside them. It is built from [`docs-site/`](../docs-site/) with `npm run docs -w @bots/docs-site`.
 - Project wiki: [corpus/index.md](../corpus/index.md), with decisions, status, the glossary and the work log.

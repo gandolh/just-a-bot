@@ -79,8 +79,8 @@ Bot conventions that apply:
 ## What to do
 
 1. **Env.** Add `JUKEBOX_ATRIUM_URL` (for example
-   `https://gandolh.ro/atrium-api`), `JUKEBOX_WARD_URL` (for example
-   `https://gandolh.ro/ward-api`), `JUKEBOX_WARD_USERNAME` and
+   `https://example.com/atrium-api`), `JUKEBOX_WARD_URL` (for example
+   `https://example.com/ward-api`), `JUKEBOX_WARD_USERNAME` and
    `JUKEBOX_WARD_PASSWORD`. All four are optional but all-or-none, enforced
    with a zod refinement whose error names the missing ones.
    `isJukeboxConfigured()` in `config.ts` is true only when all four are set.
@@ -142,7 +142,7 @@ Bot conventions that apply:
   `isJukeboxConfigured()` is false.
 - **Production reachability**, an owner step once atrium brief 80 is deployed:
   run the check inside the built container with the production `.env`.
-  Health 200 proves the container reaches `gandolh.ro`. Record the result in
+  Health 200 proves the container reaches the production site. Record the result in
   the outcome.
 - No credentials appear in any committed file.
 
@@ -191,7 +191,7 @@ server, with `discord-bot-dev` in `bots/discord/.env`:
 
 **Owed by the owner:** once atrium brief 80 is deployed and the production
 `discord-bot` account exists, run the check inside the built container with the
-production `.env` and record that `/health` answers 200 from `gandolh.ro`.
+production `.env` and record that `/health` answers 200 from the production site.
 
 The check shares `data/jukebox-session.json` with the bot. Run it with the bot
 stopped; otherwise the two rotate one refresh token and Ward revokes it, and the

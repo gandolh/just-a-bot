@@ -112,7 +112,7 @@ Full setup, the optional `/ask` and Jukebox variables, and where state is kept a
 ## Docs
 
 - [docs/](docs/README.md): setup, architecture, a guide per feature, and the images used here
-- Docs site: <https://gandolh.ro/just-a-bot/docs/>, the same guides plus the wiki, built from `docs-site/`
+- Docs site: `/just-a-bot/docs/`, the same guides plus the wiki, built from `docs-site/`
 - Project wiki: [corpus/](corpus/index.md) for decisions, status and the work log
 
 ## License

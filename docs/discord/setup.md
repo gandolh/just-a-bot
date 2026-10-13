@@ -24,8 +24,8 @@ a partial set stops the bot at boot and names what is missing. With none set,
 the Jukebox reports "not configured" and the rest of the bot runs as usual.
 
 ```
-JUKEBOX_ATRIUM_URL=https://gandolh.ro/atrium-api   # atrium's API root
-JUKEBOX_WARD_URL=https://gandolh.ro/ward-api       # Ward's API root
+JUKEBOX_ATRIUM_URL=https://example.com/atrium-api   # atrium's API root
+JUKEBOX_WARD_URL=https://example.com/ward-api       # Ward's API root
 JUKEBOX_WARD_USERNAME=discord-bot                  # the bot's own Ward account
 JUKEBOX_WARD_PASSWORD=...                          # its password, only in .env
 ```
