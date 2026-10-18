@@ -920,3 +920,7 @@ Owner steps, in order:
 3. Deploy atrium, then the bot. Deploying the bot before step 2 stops it at
    boot (the partial-set rule names what is missing).
 4. Remove the bot's old `atrium` grant at Ward.
+
+## [2026-10-18] todo | Brief 28 filed: the docs site moves from Starlight to Docusaurus
+
+The owner's call (2026-10-18), one brief in every repo with a docs site. [28](briefs/todo/28-docs-site-on-docusaurus.md) keeps the URLs (except `/manual/readme/` → `/manual/`) and drops the do-nothing theme toggle. Building the manual through Docusaurus found 42 links that are dead on the live site (renamed READMEs, links into `corpus/`); the brief gives the manual pass the corpus pass's link resolution. The generated manual stops being committed. The deploy waits on vps-deploy brief 11.

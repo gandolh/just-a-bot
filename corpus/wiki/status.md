@@ -156,6 +156,10 @@ Activity experiment (`DISCORD_CLIENT_SECRET`, `SESSION_HMAC_KEY`,
 `ENGINE_AUTH_TOKEN`) need rotating or the app deleting in the developer portal.
 The local `.env` is gone, which does not invalidate them.
 
+**Filed 2026-10-18:** [28](../briefs/todo/28-docs-site-on-docusaurus.md) moves
+`docs-site/` from Starlight to Docusaurus. It also fixes the 42 manual links
+that are dead on the live site and stops committing the generated manual.
+
 ## Corpus
 
 Updated to corpus-flow 0.29.0 (2026-08-27): `summary:`/`updated:` frontmatter on
