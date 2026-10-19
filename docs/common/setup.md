@@ -14,7 +14,7 @@ commands, required intents — is in [../discord/setup.md](../discord/setup.md).
 npm install
 ```
 
-One install at the repo root covers all three workspaces, including the Astro
+One install at the repo root covers all three workspaces, including the Docusaurus
 toolchain the documentation site builds with. The bot has **no build step**:
 `tsx` runs the TypeScript directly. Only the docs site builds:
 
@@ -43,7 +43,7 @@ Discord is still verified by running the bot.
 | `bots/data/`           | persisted JSON state, gitignored                               |
 | `corpus/`              | project knowledge: decisions, status, work lifecycle           |
 | `docs/`                | these docs — per-feature operating manuals                     |
-| `docs-site/`           | the Astro/Starlight site that renders `docs/` and `corpus/`    |
+| `docs-site/`           | the Docusaurus site that renders `docs/` and `corpus/`         |
 
 ## Environment
 

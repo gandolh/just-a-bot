@@ -37,7 +37,7 @@ separate step), and `tsx` lives in root **devDependencies** — so
 move `tsx` to a real dependency rather than reintroducing a build.
 Scope, restated 2026-10-02: this decision is about **the bot**, and the bot
 still never builds. `bots/dice-activity`, which built, is gone as of 2026-08-27. <!-- stale-ok -->
-The one build in the repo since 2026-09-07 is `docs-site`'s `astro build`, a
+The one build in the repo since 2026-09-07 is `docs-site`'s `docusaurus build`, a
 static documentation site that the bot neither imports nor needs at runtime.
 
 ## A container in production, pm2 locally (revisited 2026-10-04)

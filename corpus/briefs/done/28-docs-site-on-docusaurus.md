@@ -145,3 +145,38 @@ links today; Docusaurus refuses them. They fall into three kinds:
 
 Deploying. The owner deploys after vps-deploy brief 11 flips the `just-a-bot`
 docs stack.
+
+## Outcome (2026-10-19)
+
+Done, not deployed. Docusaurus 3.10.2, React 19, TypeScript 6.0 in the docs
+package.
+
+- `npm run docs -w @bots/docs-site` exits 0 with both `throw` settings and no
+  sync warnings. The manual pass and the corpus pass share one resolver: every
+  link is resolved against its source file and rewritten from the rendered
+  page's position, through one map of source path → output path for both trees.
+  So the wiki could also link into the manual, though no corpus page does today.
+- Route parity holds: the 33 baseline routes, minus `/manual/readme/`, plus
+  `/manual/`, `/search/`, `/wiki/decisions-removals/` and `/wiki/jukebox/`
+  (36 in all). The baseline was built from the current `docs/` before any change.
+- `manual/common/architecture/` links its `../discord/` to `/manual/discord/`,
+  the Discord section's page.
+- No generated page is tracked; `dist/index.html` references
+  `/just-a-bot/docs/assets/`, and nothing in `dist/` mentions `_astro`.
+- Root `npm run typecheck` (which now includes the docs package's `tsc`) and
+  `npm test` pass; `npm run corpus:lint` passes.
+- Browser, `dist/` served at `/just-a-bot/docs/` by `python3 -m http.server`:
+  landing, `manual/common/architecture/` and `wiki/decisions/` render dark
+  (`#101317` ground, Archivo and JetBrains Mono load); no colour-mode toggle;
+  the diagram iframe and `/reference/` load; search for "jukebox" returns the
+  manual and wiki Jukebox pages.
+
+Notes:
+- `@docusaurus/tsconfig` 3.10 still sets `baseUrl`, which TypeScript 6
+  deprecates, so the docs `tsconfig.json` sets `ignoreDeprecations: "6.0"`,
+  as the other migrated repos do.
+- `url` in `docusaurus.config.ts` is the placeholder `https://example.org`: it
+  only feeds the sitemap and og tags, and the docs never name the production
+  host. The owner can set the real origin.
+- There is no favicon (Starlight shipped a default; `/favicon.ico` 404s). Cosmetic.
+- Deploy waits on vps-deploy brief 11.

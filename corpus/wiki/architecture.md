@@ -11,7 +11,7 @@ Defined in the root [package.json](../../package.json): `shared`,
 `bots/discord` and `docs-site`. The bot is the first two. `shared/` holds the
 logger, `loadEnv` and the reminder parse/store, and stays its own workspace so
 the "no `discord.js` here" rule is enforced by the package boundary rather than
-by review. `docs-site/` is a build-time Astro/Starlight site that renders
+by review. `docs-site/` is a build-time Docusaurus site that renders
 `docs/` and `corpus/` at `/just-a-bot/docs`. It is not part of the runtime.
 
 ```
@@ -22,14 +22,14 @@ just-a-bot/
       data/              bot-local JSON state (gitignored)
     data/                shared JSON state, gitignored — birthdays, reminders,
                          timezones, wallets, quotes, confessions, rpg/, worlds/
-  docs-site/             @bots/docs-site — the docs site (astro build), not runtime
+  docs-site/             @bots/docs-site — the docs site (docusaurus build), not runtime
   infrastructure/        Dockerfile + compose for the estate's container deploy
   ecosystem.config.cjs   pm2 process definitions
   tsconfig.base.json     shared TS config
 ```
 
 - **The bot never builds** — `tsx src/index.ts` runs TypeScript directly, in dev
-  and in production. The one build in the repo is `docs-site`'s `astro build`,
+  and in production. The one build in the repo is `docs-site`'s `docusaurus build`,
   a static site with no bearing on the bot. (`dice-activity`, which also built,
   was removed 2026-08-27.)
 - Run scripts live in the root package.json (`discord:dev`, `discord:start`,

@@ -1,6 +1,6 @@
 ---
 summary: Dated snapshot of where the project stands right now — a single Discord bot whose music (the Jukebox, playing atrium's library) is built in briefs 25-27 but not yet heard in Discord or deployed, /dicetable removed, and 21 audit briefs (04-24) queued from two passes, in rank order.
-updated: 2026-10-09
+updated: 2026-10-19
 ---
 
 # Status — 2026-10-02
@@ -53,9 +53,10 @@ stays mechanically enforced.
   Re-benchmarked after the trim: `impact` exact, transitive and 13.5× cheaper;
   `explore` only 1.6× (ruled out); 12 duplicate names still conflate, so never
   rename off it. See [code-graph.md](code-graph.md).
-- **Documentation site** (2026-09-07): `docs-site/` renders `docs/` and `corpus/`
-  as a Starlight site at `/just-a-bot/docs` (`npm run docs -w @bots/docs-site`).
-  Its `manual/` copies are committed and must be re-synced after a `docs/` edit.
+- **Documentation site** (2026-09-07; Docusaurus since 2026-10-19, brief 28):
+  `docs-site/` renders `docs/` and `corpus/` as a Docusaurus site at
+  `/just-a-bot/docs` (`npm run docs -w @bots/docs-site`). The rendered manual and
+  wiki are generated on every build and gitignored; nothing needs re-syncing by hand.
 - **Container image** (2026-09-06): `infrastructure/` holds the Dockerfile and
   compose file the estate deploys. **Production is the container** (decisions.md,
   revisited 2026-10-04). Its state moves to two bind mounts outside the rsync
@@ -156,9 +157,11 @@ Activity experiment (`DISCORD_CLIENT_SECRET`, `SESSION_HMAC_KEY`,
 `ENGINE_AUTH_TOKEN`) need rotating or the app deleting in the developer portal.
 The local `.env` is gone, which does not invalidate them.
 
-**Filed 2026-10-18:** [28](../briefs/todo/28-docs-site-on-docusaurus.md) moves
-`docs-site/` from Starlight to Docusaurus. It also fixes the 42 manual links
-that are dead on the live site and stops committing the generated manual.
+**Done 2026-10-19:** [28](../briefs/done/28-docs-site-on-docusaurus.md) moved
+`docs-site/` from Starlight to Docusaurus, built and checked locally, not
+deployed. The 42 manual links that are dead on the live site now resolve, and
+the generated manual is no longer committed. The deploy waits on vps-deploy
+brief 11 (asset check `_astro/` → `assets/`); the owner deploys after it.
 
 ## Corpus
 

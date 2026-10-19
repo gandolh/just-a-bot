@@ -36,7 +36,7 @@ that will be relitigated.
 
 - **The bot has no build step.** `tsx src/index.ts` runs TypeScript directly in
   dev *and* in production. The only build in the repo is `docs-site`'s
-  `astro build` (`npm run docs -w @bots/docs-site`), a static docs site. Relative imports carry explicit `.ts` suffixes
+  `docusaurus build` (`npm run docs -w @bots/docs-site`), a static docs site. Relative imports carry explicit `.ts` suffixes
   (`from './play.ts'`) — `tsconfig.base.json` sets `allowImportingTsExtensions`
   + `noEmit`.
 - **Verify with `npm run typecheck` and `npm test`.** Typecheck is `tsc --noEmit`

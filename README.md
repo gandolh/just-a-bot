@@ -105,7 +105,7 @@ Full setup, the optional `/ask` and Jukebox variables, and where state is kept a
 | `bots/discord/` | The bot: `src/index.ts`, `commands/`, and one folder per feature |
 | `shared/` | `@bots/shared`: logger, env loading, reminder parsing and storage. No discord.js |
 | `docs/` | The operating manual, one guide per feature |
-| `docs-site/` | The Starlight site that renders `docs/` and `corpus/` |
+| `docs-site/` | The Docusaurus site that renders `docs/` and `corpus/` |
 | `corpus/` | The project wiki: decisions, status, and the briefs behind each change |
 | `infrastructure/` | Dockerfile and compose file for the production container |
 
