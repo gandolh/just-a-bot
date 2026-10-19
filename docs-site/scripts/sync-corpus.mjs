@@ -225,11 +225,11 @@ async function render(page, known, warnings) {
   const banner =
     page.kind === 'wiki'
       ? [
-          `:::note[Rendered from \`${page.src}\`${updated}]`,
+          `:::note[Rendered from ${page.src}${updated}]`,
           'This page is generated from the project corpus and rewritten on every docs build. Edit the source in `corpus/`, not here.',
           ':::',
         ]
-      : [`:::note[Rendered from \`${page.src}\`]`, 'Generated on every docs build. Edit the source in `docs/`, not here.', ':::']
+      : [`:::note[Rendered from ${page.src}]`, 'Generated on every docs build. Edit the source in `docs/`, not here.', ':::']
 
   const front = [
     '---',
