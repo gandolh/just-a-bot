@@ -1,6 +1,6 @@
 ---
 summary: Dated snapshot of where the project stands right now — a single Discord bot whose music (the Jukebox, playing atrium's library) is built in briefs 25-27 but not yet heard in Discord or deployed, /dicetable removed, and 21 audit briefs (04-24) queued from two passes, in rank order.
-updated: 2026-10-19
+updated: 2026-10-21
 ---
 
 # Status — 2026-10-02
@@ -162,6 +162,22 @@ The local `.env` is gone, which does not invalidate them.
 deployed. The 42 manual links that are dead on the live site now resolve, and
 the generated manual is no longer committed. The deploy waits on vps-deploy
 brief 11 (asset check `_astro/` → `assets/`); the owner deploys after it.
+
+**Filed 2026-10-21: briefs 29-39**, every Now and Next item of the 2026-10-20 improvement
+sweep (the Jukebox, the 2026-10-02 fixes as new code, and member abuse). 29-33 are Jukebox bugs to
+fix before its first run; 33 is a check to make on that run. The sweep's watch list is not briefed.
+
+- [29](../briefs/todo/29-jukebox-failed-join-teardown.md) (Now): Jukebox: tear down a voice join that times out
+- [30](../briefs/todo/30-jukebox-advance-once-per-error.md) (Now): Jukebox: one playback error advances once
+- [31](../briefs/todo/31-jukebox-queue-reply-length.md) (Now): Jukebox: keep `/jukebox queue` under Discord's 2000 characters
+- [32](../briefs/todo/32-jukebox-remember-buffer-failures.md) (Now): Jukebox: remember a song that failed to buffer
+- [33](../briefs/todo/33-jukebox-slow-path-replies.md) (Now): Jukebox: make sure slow replies stay visible (first-run check)
+- [34](../briefs/todo/34-shutdown-drains-every-store.md) (Now): Shutdown drains every store, even when one RPG world fails
+- [35](../briefs/todo/35-quote-private-thread-check.md) (Now): `/quote add`: refuse messages from private threads the member is not in
+- [36](../briefs/todo/36-rpg-names-no-pings.md) (Now): RPG: character names must not ping members
+- [37](../briefs/todo/37-confess-cooldown-race.md) (Now): `/confess`: set the cooldown before the first await
+- [38](../briefs/todo/38-rpg-proposals-and-pruning.md) (Next): RPG: one pending proposal per pair, and prune finished duels and trades
+- [39](../briefs/todo/39-ask-limits.md) (Next): `/ask`: limit the model, the rate and the length
 
 ## Corpus
 

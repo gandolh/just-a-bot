@@ -928,3 +928,12 @@ The owner's call (2026-10-18), one brief in every repo with a docs site. [28](br
 ## [2026-10-19] done | Brief 28: the docs site moves from Starlight to Docusaurus
 
 [28](briefs/done/28-docs-site-on-docusaurus.md). `docs-site/` builds with Docusaurus 3.10 at the same base and the same URLs, plus `/search/` and the two wiki pages the old hand-kept list left out (`decisions-removals`, `jukebox`); `/manual/readme/` is now `/manual/`. Dark only, with no toggle. The manual pass now resolves each link against its source file in `docs/` and rewrites it from the rendered page's position, so the 42 links that are dead on the live Starlight site resolve: renamed READMEs follow the rename, links into the rendered wiki stay on the site, and the rest go to GitHub. The generated manual and wiki are gitignored. Checked in a browser under the base path. Not deployed: the owner deploys after vps-deploy brief 11 switches the stack's asset check to `assets/`.
+
+## [2026-10-21] todo | Briefs 29-39 filed from the 2026-10-20 improvement sweep
+
+The owner asked for every Now and Next item of the 2026-10-20 sweep as a brief. The September
+audits' briefs (04-24) were all built, so the sweep covered what came after: the Jukebox (briefs
+25-27 and the atrium sign-in rework), the 2026-10-02 fixes as new code, and abuse by members.
+Checks: typecheck clean, 62/62 tests; the npm advisories are all in the docs site's toolchain and
+none reaches the bot's image. 16 raw findings, none dropped, filed as 11 briefs, one finding each.
+Listed in [status.md](wiki/status.md).
