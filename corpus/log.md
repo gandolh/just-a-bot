@@ -937,3 +937,17 @@ audits' briefs (04-24) were all built, so the sweep covered what came after: the
 Checks: typecheck clean, 62/62 tests; the npm advisories are all in the docs site's toolchain and
 none reaches the bot's image. 16 raw findings, none dropped, filed as 11 briefs, one finding each.
 Listed in [status.md](wiki/status.md).
+
+## [2026-10-28] resume | Brief run paused before brief 29
+
+The 2026-10-28 run was stopped while still reading, so briefs 29-39 are all still in `briefs/todo/`
+and no code changed. The baseline is typecheck clean, 62/62 bot tests. Plan for 29 and 30, worked out from the code:
+- 29: export `DiscordSpeaker` with an injectable `joinVoiceChannel` and ready timeout, so a test can pass
+  an EventEmitter fake connection to the real `entersState`. On a failed ready, clear `this.connection`,
+  `stop()`, `destroy()` and rethrow. In `GuildPlayer.run('join')`'s catch, do what `disconnected` does
+  (`alone.reset()`, state idle) before the report. In `commands/jukebox.ts`, refuse with "I can't join
+  that channel." unless the member's channel is `GuildVoice` and `joinable && speakable` (discord.js
+  getters, so a full channel is covered too).
+- 30: capture `playId` when the speaker event fires and pass it to `finished()`. Also keep an
+  `endedPlayId`, because a `{play: null}` or `stale` answer leaves `playId` unchanged and the guard
+  alone would advance twice. Retries (attempt > 0) bypass it.
