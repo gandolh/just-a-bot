@@ -951,3 +951,9 @@ and no code changed. The baseline is typecheck clean, 62/62 bot tests. Plan for 
 - 30: capture `playId` when the speaker event fires and pass it to `finished()`. Also keep an
   `endedPlayId`, because a `{play: null}` or `stale` answer leaves `playId` unchanged and the guard
   alone would advance twice. Retries (attempt > 0) bypass it.
+
+## [2026-10-31] maintenance | README checked against the code; lint accepts gitignored runtime paths
+
+A README refresh pass with the readme-docs standard. The README already met it and still matches the code: all 26 commands in the table are the files in `bots/discord/src/commands/`, the one bot change since the images were made (2026-10-13, the Jukebox signs in to atrium's own accounts) is described, and every relative link resolves. `npm ci`, `npm test` (62/62) and `npm run typecheck` pass. The bot was not started, since that needs a Discord test application. The images are a diagram and a card rendered outside Discord, and neither screen changed, so none was made again.
+
+`corpus/lint.sh` failed on a fresh clone because `bots/data` and `bots/discord/.env` are gitignored runtime paths that only exist on a machine that ran the bot. The stale-path check now skips a path git ignores. [status.md](wiki/status.md) had a summary from 2026-10-21 that still called briefs 04-24 queued; it now says they are done and 29-39 wait.

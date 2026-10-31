@@ -154,7 +154,11 @@ check_stale_paths() {
       first="${tok%%/*}"
       [[ -n "$first" && -e "$ROOT/$first" ]] || continue
       n=$((n + 1))
-      [[ -e "$ROOT/${tok%/}" ]] || err "$rel — stale path \`$tok\` (no longer in the repo)"
+      [[ -e "$ROOT/${tok%/}" ]] && continue
+      # A gitignored runtime path (state dirs, .env) is absent from a fresh clone, not stale.
+      git -C "$ROOT" check-ignore -q "${tok%/}" 2>/dev/null && continue
+      git -C "$ROOT" check-ignore -q "${tok%/}/" 2>/dev/null && continue
+      err "$rel — stale path \`$tok\` (no longer in the repo)"
     done < <(grep -v 'stale-ok' "$f" | grep -oE '`[A-Za-z0-9._/-]+`' | tr -d '`')
   done < <(find "$CORPUS" -maxdepth 1 -name '*.md' ! -name 'log.md'; find "$CORPUS/wiki" -name '*.md')
 }

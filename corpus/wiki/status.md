@@ -1,11 +1,11 @@
 ---
-summary: Dated snapshot of where the project stands right now — a single Discord bot whose music (the Jukebox, playing atrium's library) is built in briefs 25-27 but not yet heard in Discord or deployed, /dicetable removed, and 21 audit briefs (04-24) queued from two passes, in rank order.
-updated: 2026-10-21
+summary: Dated snapshot (2026-10-31) of where the project stands — one Discord bot, deployed as a container on 2026-10-07; the Jukebox built in briefs 25-27 but not yet heard in Discord or deployed; the audit briefs 04-24 all done; briefs 29-39 from the 2026-10-20 sweep queued, the run paused before 29 on 2026-10-28.
+updated: 2026-10-31
 ---
 
-# Status — 2026-10-02
+# Status — 2026-10-31
 
-Where things stand right now.
+Where things stand right now. Checked on 2026-10-31: typecheck clean, 62/62 tests, and no code change since 2026-10-23.
 
 ## Music
 
