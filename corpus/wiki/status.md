@@ -122,7 +122,7 @@ Next (a bigger slice):
 - [19](../briefs/done/19-node-test-suite.md): a zero-dependency `node:test`
   suite for the pure game logic.
 
-Second pass (it read `../vps-deploy`, which the first didn't):
+Second pass (it read `vps-deploy`, which the first didn't):
 
 - [20](../briefs/done/20-estate-state-protection.md): the estate deploy treats
   the bot as stateless. Its rsync overwrites `bots/data` on every deploy, and

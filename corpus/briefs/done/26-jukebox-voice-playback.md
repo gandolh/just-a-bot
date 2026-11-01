@@ -188,7 +188,7 @@ Two status rules changed, no shape did: [jukebox.md](../../wiki/jukebox.md#atriu
 - **Restart the bot:** atrium shows the Player idle with its Queue intact.
 - **SIGTERM** leaves voice cleanly inside the shutdown window.
 - **Not verified in production** until the owner deploys:
-  `node cli.ts just-a-bot deploy` from `~/projects/vps-deploy`. Say so in the
+  `node cli.ts just-a-bot deploy` from `vps-deploy`. Say so in the
   outcome.
 
 ## Outcome (2026-10-09)

@@ -139,7 +139,7 @@ Bot facts, checked 2026-10-08:
 - The docs page exists, its index row exists, and the generated docs-site page
   is up to date.
 - **Not verified in production** until the owner deploys:
-  `node cli.ts just-a-bot deploy` from `~/projects/vps-deploy`. That also
+  `node cli.ts just-a-bot deploy` from `vps-deploy`. That also
   registers the commands. Say so in the outcome.
 
 ## Outcome (2026-10-09)
@@ -179,5 +179,5 @@ the real link (stand-in speaker), signed in as `discord-bot-dev`:
 
 **Owed by the owner:** `npm run discord:register` and the checks in Discord, on
 a dev application or after the production deploy (`node cli.ts just-a-bot
-deploy` from `~/projects/vps-deploy`, which registers the commands). The full
+deploy` from `vps-deploy`, which registers the commands). The full
 list is in [jukebox.md](../../wiki/jukebox.md). Not verified in production.

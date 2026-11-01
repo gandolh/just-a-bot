@@ -452,7 +452,7 @@ deps/DX on sonnet) returned 49 findings, plus 4 leads from recon. Six items
 survived as new work: five briefs and an addendum to 17. A second addendum, to
 07, carries the estate evidence behind brief 20.
 
-**What the first pass couldn't see.** It never read `../vps-deploy`. That repo
+**What the first pass couldn't see.** It never read `vps-deploy`. That repo
 deploys this bot as a container only since `8bec566` (2026-09-06). Its cutover
 script calls the bot "stateless" and took no backup. Its rsync excludes
 `bots/*/data` but not `bots/data`. A simulation with the exact flags deleted a
@@ -746,7 +746,7 @@ Asked how to get the live server's state, the owner chose to run the checks them
 
 ## [2026-10-04] decision | Production is the container; the bot's state moves out of the mirror (briefs 07 and 20, repo side)
 
-The pm2 entry in decisions.md is revisited: production runs the container through the estate's deploy, `docker compose logs` replaces `pm2 logs` there, and pm2 stays for local runs. Repo side of brief 07: compose bind-mounts `bots/data` and `bots/discord/data` (env-overridable), and `.dockerignore` keeps `bots/data` out of the image (checked: a fresh image has no `/app/bots/data`). Brief 20's side is in `../vps-deploy` (`4acca94`): state under `/srv/just-a-bot/state`, `bots/data` excluded from the rsync, and the cutover script backs both old directories up. An rsync simulation with the exact flags keeps every server-only file. **Not deployed.** The owner runs brief 20's steps 1 and 4 on the VPS and picks which copy of each state file survives.
+The pm2 entry in decisions.md is revisited: production runs the container through the estate's deploy, `docker compose logs` replaces `pm2 logs` there, and pm2 stays for local runs. Repo side of brief 07: compose bind-mounts `bots/data` and `bots/discord/data` (env-overridable), and `.dockerignore` keeps `bots/data` out of the image (checked: a fresh image has no `/app/bots/data`). Brief 20's side is in `vps-deploy` (`4acca94`): state under `/srv/just-a-bot/state`, `bots/data` excluded from the rsync, and the cutover script backs both old directories up. An rsync simulation with the exact flags keeps every server-only file. **Not deployed.** The owner runs brief 20's steps 1 and 4 on the VPS and picks which copy of each state file survives.
 
 ## [2026-10-06] done | Hangman docs drop `/hangman give-up`
 

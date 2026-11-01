@@ -2,7 +2,7 @@
 
 > **Progress 2026-10-04.** Done: steps 1 (answered by brief 20's addendum and the owner: the container is production), 2, 3, 5, 6, 7. Checked: `docker compose config` shows both mounts; a fresh image has no `/app/bots/data`. **Left, on the box, by the owner:** step 4, which is brief 20's step 4, and the `/coins` recreate check after the deploy.
 >
-> **2026-10-07: the owner chose to purge all state and start fresh**, so nothing is reconciled. A read-only check that day found less than feared: no pm2 process, no pm2-era `/srv/just-a-bot/bots/discord/data` on the host, and no `/app/bots/discord/data` inside the running container (`infrastructure-just-a-bot-1`, up 4 weeks). The only state anywhere is `bots/data/{reminders,birthdays}.json` (12 KB), on the host and in the container. A dry run of `node cli.ts just-a-bot server` shows the expected plan: empty `state/shared` and `state/discord`, `--exclude=bots/data --exclude=/state`, rebuild, `up -d`. **Left for the owner** (the agent's deploy was blocked as a production action): run that deploy from `../vps-deploy`, then `ssh hetzner-svc 'rm -rf /srv/just-a-bot/bots/data'`, then `/coins add 1`, deploy again, and check the balance survived.
+> **2026-10-07: the owner chose to purge all state and start fresh**, so nothing is reconciled. A read-only check that day found less than feared: no pm2 process, no pm2-era `/srv/just-a-bot/bots/discord/data` on the host, and no `/app/bots/discord/data` inside the running container (`infrastructure-just-a-bot-1`, up 4 weeks). The only state anywhere is `bots/data/{reminders,birthdays}.json` (12 KB), on the host and in the container. A dry run of `node cli.ts just-a-bot server` shows the expected plan: empty `state/shared` and `state/discord`, `--exclude=bots/data --exclude=/state`, rebuild, `up -d`. **Left for the owner** (the agent's deploy was blocked as a production action): run that deploy from `vps-deploy`, then `ssh hetzner-svc 'rm -rf /srv/just-a-bot/bots/data'`, then `/coins add 1`, deploy again, and check the balance survived.
 
 ## Context
 
@@ -40,7 +40,7 @@ image.
 The estate repo answers step 1 and makes steps 3 and 4 unsafe as written. The
 evidence is in brief [20](20-estate-state-protection.md).
 
-- **Step 1.** `../vps-deploy/stacks/just-a-bot.ts` has deployed this bot only as
+- **Step 1.** `vps-deploy/stacks/just-a-bot.ts` has deployed this bot only as
   a container since `8bec566` (2026-09-06). Brief 20's step 1 checks whether the
   switch has actually run on the box.
 - **Step 3.** Keep the compose defaults for local use, but they're wrong on the

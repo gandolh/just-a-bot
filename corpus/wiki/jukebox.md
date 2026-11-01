@@ -104,5 +104,5 @@ discord:register` and `npm run discord:dev` against the local atrium:
 - Every `/jukebox` subcommand, a song added from Discord showing on atrium's
   page with the Discord name, and `/help` listing it under Music.
 - Production: deploy with `node cli.ts just-a-bot deploy` from
-  `~/projects/vps-deploy` once atrium has briefs 80 to 82 and the `discord-bot`
+  `vps-deploy` once atrium has briefs 80 to 82 and the `discord-bot`
   account exists.

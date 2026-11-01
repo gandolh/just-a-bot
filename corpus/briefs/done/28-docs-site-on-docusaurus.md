@@ -8,7 +8,7 @@ Starlight to Docusaurus. `docs-site/` (`@bots/docs-site`, served at
 
 The recipe is written and verified. The `corpus-docs-site` skill
 (personal-skills v0.31.0, source in
-`~/projects/my-personal-skills/skills/corpus-docs-site/`) now scaffolds
+`my-personal-skills/skills/corpus-docs-site`) now scaffolds
 Docusaurus 3.10, and `references/migrating-from-starlight.md` beside it holds
 the file, config and content maps plus ten gotchas, each hit during a real
 port. **Read that guide first.** The files this brief tells you to copy are in

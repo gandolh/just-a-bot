@@ -1,10 +1,10 @@
 # Task 20 — Estate deploy: keep the bot's state out of the rsync mirror, and choose which copy survives
 
-> **Progress 2026-10-04.** Done in `../vps-deploy` (`4acca94`): steps 2 and 3. The dry run prints `--exclude=bots/data` and `--exclude=/state`. The rsync simulation with the exact flags keeps a server-only `bots/data` file, the server's `reminders.json`, `state/`, and the pm2-era `bots/discord/data`. **Left, by the owner on the VPS** (decided 2026-10-04): step 1 (read-only), step 4 (back up, stage both copies, pick per file), then step 5's deploy and the acceptance checks.
+> **Progress 2026-10-04.** Done in `vps-deploy` (`4acca94`): steps 2 and 3. The dry run prints `--exclude=bots/data` and `--exclude=/state`. The rsync simulation with the exact flags keeps a server-only `bots/data` file, the server's `reminders.json`, `state/`, and the pm2-era `bots/discord/data`. **Left, by the owner on the VPS** (decided 2026-10-04): step 1 (read-only), step 4 (back up, stage both copies, pick per file), then step 5's deploy and the acceptance checks.
 >
 > **2026-10-07:** step 1 is answered. The owner confirmed the pm2-to-container cutover ran for all four services, so the bot is live as a container. Steps 4 and 5 are still the owner's.
 >
-> **2026-10-07: the owner chose to purge all state and start fresh**, so nothing is reconciled. A read-only check that day found less than feared: no pm2 process, no pm2-era `/srv/just-a-bot/bots/discord/data` on the host, and no `/app/bots/discord/data` inside the running container (`infrastructure-just-a-bot-1`, up 4 weeks). The only state anywhere is `bots/data/{reminders,birthdays}.json` (12 KB), on the host and in the container. A dry run of `node cli.ts just-a-bot server` shows the expected plan: empty `state/shared` and `state/discord`, `--exclude=bots/data --exclude=/state`, rebuild, `up -d`. **Left for the owner** (the agent's deploy was blocked as a production action): run that deploy from `../vps-deploy`, then `ssh hetzner-svc 'rm -rf /srv/just-a-bot/bots/data'`, then `/coins add 1`, deploy again, and check the balance survived.
+> **2026-10-07: the owner chose to purge all state and start fresh**, so nothing is reconciled. A read-only check that day found less than feared: no pm2 process, no pm2-era `/srv/just-a-bot/bots/discord/data` on the host, and no `/app/bots/discord/data` inside the running container (`infrastructure-just-a-bot-1`, up 4 weeks). The only state anywhere is `bots/data/{reminders,birthdays}.json` (12 KB), on the host and in the container. A dry run of `node cli.ts just-a-bot server` shows the expected plan: empty `state/shared` and `state/discord`, `--exclude=bots/data --exclude=/state`, rebuild, `up -d`. **Left for the owner** (the agent's deploy was blocked as a production action): run that deploy from `vps-deploy`, then `ssh hetzner-svc 'rm -rf /srv/just-a-bot/bots/data'`, then `/coins add 1`, deploy again, and check the balance survived.
 
 ## Context
 
@@ -12,7 +12,7 @@ Source: the second 2026-09-26 improvements pass, recorded in [log.md](../../log.
 Rank 1 of the second pass. **Brief [07](07-container-state-volumes.md) must not
 deploy until this one lands.** Run the two together.
 
-This brief edits the sibling repo `../vps-deploy`, the estate's deploy tool. It
+This brief edits the sibling repo `vps-deploy`, the estate's deploy tool. It
 is filed here because the data at risk belongs to this bot.
 
 Brief 07 found that the container has no data volume. The estate repo explains
@@ -20,9 +20,9 @@ why nobody noticed, and it holds two traps that 07 doesn't cover.
 
 **1. The estate treats this bot as stateless.** The pm2-to-container cutover
 script lists just-a-bot with `backup: []` and the note "stateless — its config
-is the .env the deploy pushes" (`../vps-deploy/scripts/switch-to-containers.ts:98-104`).
-`../vps-deploy/docs/cutover-to-containers.md:90` says the same. The stack passes
-no `state` to `ContainerService` (`../vps-deploy/stacks/just-a-bot.ts:88-116`).
+is the .env the deploy pushes" (`vps-deploy/scripts/switch-to-containers.ts:98-104`).
+`vps-deploy/docs/cutover-to-containers.md:90` says the same. The stack passes
+no `state` to `ContainerService` (`vps-deploy/stacks/just-a-bot.ts:88-116`).
 Stacks with state do, for example `stacks/newspapper.ts:58` and `:80-85`. The
 header of `lib/constructs/container-service.ts:18-21` says state must be
 bind-mounted from outside the mirrored tree.
@@ -76,9 +76,9 @@ rsync mirror, so the image carries whatever trap 2 pushed.
 
 ## Files you OWN
 
-- `../vps-deploy/stacks/just-a-bot.ts`
-- `../vps-deploy/scripts/switch-to-containers.ts`, the just-a-bot target entry only
-- `../vps-deploy/docs/cutover-to-containers.md`, the "stateless" claim about
+- `vps-deploy/stacks/just-a-bot.ts`
+- `vps-deploy/scripts/switch-to-containers.ts`, the just-a-bot target entry only
+- `vps-deploy/docs/cutover-to-containers.md`, the "stateless" claim about
   just-a-bot only
 - `corpus/log.md` (append)
 
@@ -86,8 +86,8 @@ rsync mirror, so the image carries whatever trap 2 pushed.
 
 - `infrastructure/docker-compose.yml` and `.dockerignore`. Brief 07 owns them.
   Its env-overridable mounts are what this brief points at.
-- Any other stack or construct in `../vps-deploy`.
-- The uncommitted work already sitting in `../vps-deploy` on 2026-09-26
+- Any other stack or construct in `vps-deploy`.
+- The uncommitted work already sitting in `vps-deploy` on 2026-09-26
   (`README.md`, `app.ts`, `lib/estate.ts` and others). It isn't yours. Don't
   commit, stash or revert it, and when the user asks for a commit, stage only
   your own files.
@@ -105,7 +105,7 @@ rsync mirror, so the image carries whatever trap 2 pushed.
    ```
 
    `hetzner-svc` is the services account and `hetzner` the admin account
-   (`../vps-deploy/lib/estate.ts:99-110`). The `DOCKER_HOST` prefix is the one
+   (`vps-deploy/lib/estate.ts:99-110`). The `DOCKER_HOST` prefix is the one
    the deploy itself uses (`container-service.ts`, `dockerEnv()`). Put the output
    in the log entry.
 
@@ -145,7 +145,7 @@ rsync mirror, so the image carries whatever trap 2 pushed.
      the services account. Rootless Docker maps container root to that account,
      so the bot can write there.
 
-5. **Deploy with both briefs in.** From `../vps-deploy`, run
+5. **Deploy with both briefs in.** From `vps-deploy`, run
    `node cli.ts just-a-bot server` only once this brief and brief 07 have both
    landed.
 
@@ -154,7 +154,7 @@ rsync mirror, so the image carries whatever trap 2 pushed.
 
 ## Acceptance
 
-- `node cli.ts just-a-bot server --dry-run` from `../vps-deploy` prints the rsync
+- `node cli.ts just-a-bot server --dry-run` from `vps-deploy` prints the rsync
   command with `--exclude=bots/data` and `--exclude=/state`.
 - Rerun the rsync simulation with the new excludes. Build a scratch `local/` and
   `server/` tree, and use the flags from `container-service.ts:208-222`. A
