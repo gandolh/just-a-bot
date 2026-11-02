@@ -9,6 +9,7 @@ import {
 } from './atrium/errors.ts';
 import {
   choiceLabel,
+  clip,
   elapsedSeconds,
   errorReply,
   matchTracks,
@@ -112,6 +113,27 @@ test('the queue lists ten entries with who added them, and counts the rest', () 
   assert.doesNotMatch(text, /Song 10\b/);
   assert.match(text, /…and 3 more$/);
   assert.match(queueText(player(), 0), /The queue is empty/);
+});
+
+test('ten long entries still fit in one Discord message', () => {
+  const long = (c: string) => c.repeat(300);
+  const queue = Array.from({ length: 10 }, (_, i) => ({
+    id: i,
+    track: track(String(i), long('t'), long('a'), long('b')),
+    addedBy: { kind: 'discord' as const, name: long('n') },
+  }));
+  const text = queueText(player({ track: track('x', long('T'), long('A'), long('B')), queue }), 1_000_000);
+  assert.ok(text.length <= 2000, `${text.length} characters`);
+  assert.match(text, /\*\*t{59}…\*\* — a{39}… · b{39}… \(added by n{31}…\)/);
+  assert.match(text, /…and \d+ more$/, 'the entries left out are counted');
+  const listed = text.split('\n').filter((line) => /^\d+\. /.test(line)).length;
+  assert.equal(listed + Number(text.match(/…and (\d+) more$/)![1]), 10);
+});
+
+test('clip cuts with an ellipsis and never splits an emoji', () => {
+  assert.equal(clip('short', 10), 'short');
+  assert.equal(clip('abcdefghij', 5), 'abcd…');
+  assert.equal(clip('🎵🎵🎵', 2), '🎵…');
 });
 
 test('each failure gets its reply', () => {

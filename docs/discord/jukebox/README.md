@@ -21,7 +21,7 @@ on its own; ask it with `/jukebox nowplaying`.
 | `/jukebox shuffle on:<true/false>` | Shuffle the playlist (the queue always plays in order). |
 | `/jukebox repeat mode:<off/one song/the playlist>` | Repeat nothing, the current song, or the whole playlist. |
 | `/jukebox nowplaying` | Title, artist, album, and elapsed over total time. If atrium stopped the player after five songs in a row would not play, it says so. Only you see it. |
-| `/jukebox queue` | What is playing and the first 10 queued songs, with who added each. Only you see it. |
+| `/jukebox queue` | What is playing and the first 10 queued songs, with who added each. Long titles, artists, albums and names are cut short, and when ten lines would still pass Discord's 2000-character limit it lists fewer and counts the rest. Only you see it. |
 
 Controls answer publicly ("Skipped.", "Added *Song* to the queue."). Lookups and
 every error answer only you.

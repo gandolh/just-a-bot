@@ -33,6 +33,16 @@ export const MAX_CHOICES = 25;
 const MAX_CHOICE_NAME = 100;
 /** How many Queue entries `/jukebox queue` lists. */
 export const QUEUE_SHOWN = 10;
+/** Discord refuses a message over 2000 characters; stay under it with room for the "…and N more" line. */
+export const REPLY_BUDGET = 1900;
+/** How long each field of a reply's song line may be. ID3 tags from classical or soundtrack albums run to hundreds. */
+const MAX_FIELD = { title: 60, artist: 40, album: 40, name: 32, failure: 200 } as const;
+
+/** Cut to `max` characters with an ellipsis. Counts code points, so an emoji is never split. */
+export function clip(text: string, max: number): string {
+  const chars = [...text];
+  return chars.length <= max ? text : `${chars.slice(0, max - 1).join('')}…`;
+}
 
 /** "Title · Artist", or the title alone, cut to Discord's 100 characters. */
 export function choiceLabel(track: Track): string {
@@ -82,32 +92,47 @@ export function elapsedSeconds(player: PlayerView, now: number): number {
 }
 
 function trackLine(track: Track): string {
-  const by = [track.artist, track.album].filter(Boolean).join(' · ');
-  return by ? `**${track.title}** — ${by}` : `**${track.title}**`;
+  const title = clip(track.title, MAX_FIELD.title);
+  const by = [track.artist && clip(track.artist, MAX_FIELD.artist), track.album && clip(track.album, MAX_FIELD.album)]
+    .filter(Boolean)
+    .join(' · ');
+  return by ? `**${title}** — ${by}` : `**${title}**`;
 }
 
 export function nowPlayingText(player: PlayerView, now: number): string {
   if (!player.online) return 'The player is offline.';
   if (!player.track || player.state === 'idle') {
-    return player.failure ? `Nothing is playing. Playback stopped: ${player.failure}` : 'Nothing is playing.';
+    return player.failure
+      ? `Nothing is playing. Playback stopped: ${clip(player.failure, MAX_FIELD.failure)}`
+      : 'Nothing is playing.';
   }
   const time = `${formatTime(elapsedSeconds(player, now))} / ${formatTime(player.track.durationSeconds)}`;
   const paused = player.state === 'paused' ? ' (paused)' : '';
   return `${trackLine(player.track)}\n\`${time}\`${paused}`;
 }
 
+/**
+ * What is playing and the first `QUEUE_SHOWN` Queue entries. Lines stop
+ * before the reply would pass `REPLY_BUDGET`, and the rest are counted.
+ */
 export function queueText(player: PlayerView, now: number): string {
   const lines = [`Now: ${nowPlayingText(player, now).replace('\n', ' ')}`];
   if (player.queue.length === 0) {
     lines.push('The queue is empty. The playlist carries on after this song.');
-  } else {
-    lines.push('', 'Up next:');
-    player.queue.slice(0, QUEUE_SHOWN).forEach((entry, index) => {
-      lines.push(`${index + 1}. ${trackLine(entry.track)} (added by ${entry.addedBy.name})`);
-    });
-    const rest = player.queue.length - QUEUE_SHOWN;
-    if (rest > 0) lines.push(`…and ${rest} more`);
+    return lines.join('\n');
   }
+  lines.push('', 'Up next:');
+  let length = lines.join('\n').length;
+  let listed = 0;
+  for (const entry of player.queue.slice(0, QUEUE_SHOWN)) {
+    const line = `${listed + 1}. ${trackLine(entry.track)} (added by ${clip(entry.addedBy.name, MAX_FIELD.name)})`;
+    if (length + 1 + line.length > REPLY_BUDGET) break;
+    lines.push(line);
+    length += 1 + line.length;
+    listed += 1;
+  }
+  const rest = player.queue.length - listed;
+  if (rest > 0) lines.push(`…and ${rest} more`);
   return lines.join('\n');
 }
 
