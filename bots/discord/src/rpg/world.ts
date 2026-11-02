@@ -241,12 +241,27 @@ const DEBOUNCE_MS = 2500;
 const dirty = new Set<string>();
 const flushTimers = new Map<string, NodeJS.Timeout>();
 
+type WorldWriter = (file: string, json: string) => Promise<void>;
+let writeWorld: WorldWriter = writeJsonFile;
+
+/** Swap how worlds reach disk, for a test that needs a write to fail. Returns the undo. */
+export function setWorldWriterForTests(writer: WorldWriter): () => void {
+  const previous = writeWorld;
+  writeWorld = writer;
+  return () => {
+    writeWorld = previous;
+  };
+}
+
 function pathFor(guildId: string): string {
   return resolve(dataDir, `${guildId}.json`);
 }
 
 // Serialize the current cached world for a guild to disk. `writeJsonFile`
 // chains writes per file, so concurrent flushes for one guild never interleave.
+// The flag is cleared when the snapshot is taken, so a change made while the
+// write runs marks the world again; a write that fails marks it again too, so
+// the next flush (the shutdown's included) retries it.
 function flush(guildId: string): Promise<void> {
   const world = cache.get(guildId);
   if (!world) return Promise.resolve();
@@ -254,7 +269,10 @@ function flush(guildId: string): Promise<void> {
   const timer = flushTimers.get(guildId);
   if (timer) { clearTimeout(timer); flushTimers.delete(guildId); }
 
-  return writeJsonFile(pathFor(guildId), JSON.stringify(world));
+  return writeWorld(pathFor(guildId), JSON.stringify(world)).catch((err: unknown) => {
+    dirty.add(guildId);
+    throw err;
+  });
 }
 
 // Mark a guild's world dirty and schedule a debounced flush. Exported so the
@@ -279,9 +297,16 @@ function scheduleFlush(guildId: string): void {
 }
 
 // Flush every dirty world now. `index.ts`'s shutdown awaits this, so the last
-// debounce window isn't lost.
+// debounce window isn't lost. Every world gets its write, whatever the others
+// do; the failures are reported together.
 export async function flushAllWorlds(): Promise<void> {
-  await Promise.all([...dirty].map((g) => flush(g)));
+  const guilds = [...dirty];
+  const results = await Promise.allSettled(guilds.map((g) => flush(g)));
+  const failed = guilds.filter((_, i) => results[i].status === 'rejected');
+  if (failed.length > 0) {
+    const reasons = results.flatMap((r) => (r.status === 'rejected' ? [r.reason] : []));
+    throw new AggregateError(reasons, `RPG world flush failed for ${failed.join(', ')}`);
+  }
 }
 
 // Force an immediate flush for one guild — used when an action that started as

@@ -19,6 +19,7 @@ import { handleMafiaButton } from './commands/mafia.ts';
 import { handleConnectFourButton } from './commands/connect-four.ts';
 import { rearmMafiaTimers } from './mafia/phases.ts';
 import { startJukeboxLink, type JukeboxLink } from './jukebox/link.ts';
+import { drainStores } from './drain.ts';
 import { discordHost } from './jukebox/speaker.ts';
 
 const log = logger.scoped('discord');
@@ -240,10 +241,9 @@ const shutdown = async (signal: string) => {
   clearInterval(reminderTimer);
   clearInterval(crierTimer);
   const flushed = Promise.all([
-    (async () => {
-      await flushAllWorlds();
-      await flushPendingWrites();
-    })().catch((err) => log.error('Flushing state on shutdown failed', err)),
+    // The worlds' writes are queued synchronously when this starts, so the
+    // pending-writes drain waits for them too.
+    drainStores({ 'RPG worlds': flushAllWorlds, 'pending writes': flushPendingWrites }),
     // Leave voice and tell atrium, inside the same window.
     jukebox?.stop().catch((err) => log.error('Stopping the Jukebox failed', err)),
   ]);
