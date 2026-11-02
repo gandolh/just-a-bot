@@ -48,8 +48,9 @@ Eleven briefs from the 2026-10-20 improvement sweep, in build order:
 01-05 fix the Jukebox before its first run (05 is a check to make on that
 run), 06-09 are Now items and 10-11 Next items. The 2026-11-02 run builds
 them in order: 01 (a voice join that never gets ready is dropped), 02 (one
-playback error advances once), 03 (`/jukebox queue` under 2000 characters)
-and 04 (a song that failed to buffer is not refetched every 10 s) are done.
+playback error advances once), 03 (`/jukebox queue` under 2000 characters),
+04 (a song that failed to buffer is not refetched every 10 s) and 05 (a slow
+public answer stays visible; live check owed) are done.
 
 ## Next (owner)
 

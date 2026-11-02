@@ -113,7 +113,11 @@ memory, so it can run beside the bot.
 `/jukebox` (`commands/jukebox.ts`) is the second remote; atrium's
 page is the first. Every subcommand calls atrium and changes nothing locally.
 Each call gets 2.5 s; a reply pending at 1.5 s is deferred ephemerally, so
-errors stay ephemeral and controls still answer publicly. Reply text and the
+errors stay ephemeral and controls still answer publicly. On that slow path
+the placeholder is filled in with `editReply` before the public `followUp`
+(2026-11-02): Discord fills a still-loading deferred reply with the first
+follow-up and keeps it ephemeral, and the placeholder's deletion then took
+the answer with it. Reply text and the
 autocomplete filter are in `jukebox/format.ts`. `play` (when it joins) and
 `join` first check the member's channel with discord.js's `joinable` and
 `speakable` and refuse a stage channel, since atrium's page only offers

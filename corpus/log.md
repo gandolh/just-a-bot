@@ -1011,3 +1011,12 @@ point), and the queue list stops before 1900 characters with "…and N more". Te
 `TrackBuffer` remembers ids whose prefetch failed and `planBuffer` leaves them out until they leave
 the next two or 5 minutes pass, so a corrupt upload or a missing ffmpeg is fetched, converted and
 logged once instead of every 10 s. Typecheck clean, 72/72 bot tests.
+
+## [2026-11-02] done | Brief 05: a slow public answer stays visible
+
+Discord's interaction docs settle the brief's premise: the first follow-up after a deferred reply
+fills that reply in and keeps its ephemeral flag, so the slow path's public answer landed in the
+ephemeral placeholder and was deleted with it. `answer()` now fills the placeholder with `editReply`
+before the public `followUp`, and deletes it only once the follow-up is posted. That keeps who
+sees what as before, which neither of the brief's two options did. Typecheck clean, 75/75 bot
+tests. The live check from a second account is the owner's.
