@@ -81,8 +81,9 @@ The checks still owed are at the end.
 - **`/quote add` only saves what the invoker can read.** The channel must give
   them `ViewChannel` and `ReadMessageHistory`; a missing channel, a DM, an
   uncached member and a refusal all get the same reply, so the check never
-  confirms a hidden channel exists. Private threads are not covered yet (open
-  brief 07).
+  confirms a hidden channel exists. A private thread also needs the member in
+  it or Manage Threads (2026-11-02), since discord.js gives a thread its
+  parent's permissions.
 - **Dates must exist.** `/birthday` refuses a day past the month's length
   (February allows 29); `/remindme`'s ISO form refuses 2026-02-30 instead of
   rolling it into March.

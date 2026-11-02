@@ -1027,3 +1027,10 @@ Shutdown runs the RPG worlds' flush and `flushPendingWrites()` through `drainSto
 both and logs each failure, so one world failing on the bind mount no longer abandons the other
 stores' queued writes. A world whose write fails is marked dirty again; the flag is still cleared at
 snapshot time, so a change made during the write is not lost. Typecheck clean, 77/77 bot tests.
+
+## [2026-11-02] done | Brief 07: `/quote add` checks private-thread membership
+
+discord.js gives a thread its parent's permissions, so a link into a mod-only private thread under a
+public channel passed the check and the quote went public. `canQuoteFrom()` now also requires,
+for a private thread, that the member is in it (asked of Discord, not the cache) or has Manage
+Threads. Same single refusal. Typecheck clean, 81/81 bot tests.
