@@ -126,9 +126,11 @@ channels with Connect and Speak and the Discord path had no such filter.
 ## Owed: hearing it in Discord
 
 Not run yet. The deploy pushes the local `bots/discord/.env` when there is one,
-so production's token must never be used for a local run (none is on this
-machine since 2026-11-01). With a dev application, a dev guild, `npm run
-discord:register` and `npm run discord:dev` against the local atrium:
+so production's token must never be used for a local run. The local copy is
+production's (restored by the owner on 2026-11-02), so a local run needs the
+dev application's values passed on the command line, which beat dotenv. With
+a dev application, a dev guild, `npm run discord:register` and `npm run
+discord:dev` against the local atrium:
 - Join puts the bot in the channel; a cold start is audible within 2 s; a
   buffered next Track starts with no gap over 1 s.
 - Pause, resume, stop, next and previous are heard; a Track that ends advances.

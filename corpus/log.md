@@ -1047,3 +1047,16 @@ tests. The RPG manual still describes the old slash subcommands: filed as a todo
 Concurrent submissions from one member all passed the cooldown check, since it was set only after
 the store, the fetch and the post. `submitConfession()` now sets it before any await and gives it
 back when nothing was posted. Typecheck clean, 86/86 bot tests.
+
+## [2026-11-02] done | Brief 10: one RPG proposal per pair, and pruning
+
+Duel and trade proposals from the Nearby screen wait 15 s per member and are refused while one
+between the same pair is pending (duels) or open (trades). Finished duels and closed trades are
+pruned when a world loads and when a new one starts; unfinished ones after a day. Duel swing logs
+are no longer stored. Typecheck clean, 93/93 bot tests.
+
+## [2026-11-02] maintenance | The local `.env` is production's again
+
+The owner put production's `bots/discord/.env` back on 2026-11-02, after a day without one.
+status.md and jukebox.md said there was none; they now say the local copy is production's and must
+not be edited, replaced, or loaded by a local run of the bot or a script.

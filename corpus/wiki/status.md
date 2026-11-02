@@ -52,8 +52,9 @@ playback error advances once), 03 (`/jukebox queue` under 2000 characters),
 04 (a song that failed to buffer is not refetched every 10 s), 05 (a slow
 public answer stays visible; live check owed), 06 (shutdown drains every
 store when an RPG world fails), 07 (`/quote add` refuses private threads
-the member is not in), 08 (RPG names cannot ping) and 09 (the `/confess`
-cooldown is taken before the first await) are done.
+the member is not in), 08 (RPG names cannot ping), 09 (the `/confess`
+cooldown is taken before the first await) and 10 (one RPG proposal per pair,
+finished duels and trades pruned) are done.
 
 ## Next (owner)
 
@@ -75,8 +76,12 @@ cooldown is taken before the first await) are done.
 
 ## Known issues
 
-- No local `bots/discord/.env` since 2026-11-01; production's lives only on
-  the VPS. Never create one with dev values: the deploy would push it.
+- The local `bots/discord/.env` is production's: the owner restored it on
+  2026-11-02 after a day without one, and the deploy pushes it as it is.
+  Never edit it or replace it with dev values, and never run the bot,
+  `discord:register` or any script that calls `loadEnv()` with it in place:
+  they would use the production token, atrium and Ollama. Unit tests that
+  import `env.ts` read it but make no network calls.
 - `docusaurus.config.ts` has the placeholder `url` `https://example.org` (it
   only feeds the sitemap and og tags), and the site has no favicon.
 - `/help`'s Social group is near Discord's 1024-character field limit; the
