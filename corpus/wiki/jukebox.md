@@ -28,7 +28,11 @@ comes from atrium"). Code: `bots/discord/src/jukebox/`.
   `join` waits for the connection. Applies a `play` only if its `playId` is newer
   (the first after boot always). When a Track ends it asks `advance`; if atrium
   is down it retries with backoff, outside the command chain, and drops the
-  retry once a newer play, a stop or a leave arrives.
+  retry once a newer play, a stop or a leave arrives. It asks once per play,
+  for the play the speaker was sounding when the event fired (2026-11-02): a
+  broken file gives the voice library's `error` and then Idle, and two
+  advances skipped the next song and, the second saying `ended`, reset atrium's
+  failure count.
 - **`buffer.ts`**: per guild in `$TMPDIR/jukebox/<guildId>/`. ffmpeg converts
   each MP3 to Ogg Opus once (`-c:a libopus -b:a 96k -ar 48000 -ac 2 -f ogg`),
   fed through stdin so the session cookie never reaches its command line. Keeps

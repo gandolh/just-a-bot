@@ -988,3 +988,13 @@ report waits 5 s for the `advance`, controls that start a song answer 409 `NOT_I
 voice channel, and five failed songs in a row stop a Player with a `failure`. jukebox.md now says
 so, and `NOT_IN_VOICE` gets its own reply. Typecheck clean, 64/64 bot tests. Owner check on the
 first live run: the refusal from a channel without Speak.
+
+## [2026-11-02] done | Brief 02: one playback error advances once
+
+The player records the play whose stream the speaker has, the `ended` and `error` events capture it
+when they fire, and `finished()` asks atrium once per play. Before, a broken file's `error` and Idle
+both advanced, so it skipped the song after it, and the second advance said `ended`, which reset
+atrium's five-song failure budget. The once-per-play memory is needed besides the playId check,
+because `{play: null}` and `stale` leave the playId unchanged; keying on the sounding play rather
+than `this.playId` covers the old song ending while the next one opens. `PlayerView` gains atrium's
+`failure`, shown by `/jukebox nowplaying` and `queue`. Typecheck clean, 68/68 bot tests.
