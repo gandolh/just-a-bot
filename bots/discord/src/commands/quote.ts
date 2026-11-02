@@ -4,7 +4,9 @@ import {
   ButtonBuilder,
   ButtonInteraction,
   ButtonStyle,
+  ChannelType,
   ChatInputCommandInteraction,
+  type Channel,
   ContextMenuCommandBuilder,
   EmbedBuilder,
   MessageContextMenuCommandInteraction,
@@ -107,6 +109,30 @@ export const saveQuoteMenu: ContextMenuCommand = {
   },
 };
 
+/**
+ * Whether a member may quote from a channel. The bot can read channels the
+ * member can't, and saved quotes are posted publicly by /quote random, search
+ * and by, so the *member's* access is checked before anything is fetched:
+ * otherwise /quote add copies a mod-only message into a public channel.
+ *
+ * The channel must give them ViewChannel and ReadMessageHistory. For a thread,
+ * discord.js answers with the parent's permissions, which say nothing about who
+ * is in a private thread, so a private thread also needs the member in it
+ * (asked of Discord, not the cache) or Manage Threads on the parent. A member
+ * not in cache gets null permissions and is refused: fail closed.
+ */
+export async function canQuoteFrom(channel: Channel, userId: string): Promise<boolean> {
+  if (channel.isDMBased() || !channel.isTextBased()) return false;
+  const perms = channel.permissionsFor(userId);
+  if (!perms?.has([PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.ReadMessageHistory])) return false;
+  if (channel.type !== ChannelType.PrivateThread) return true;
+  if (perms.has(PermissionsBitField.Flags.ManageThreads)) return true;
+  return channel.members.fetch({ member: userId, force: true }).then(
+    () => true,
+    () => false,
+  );
+}
+
 async function handleAdd(interaction: ChatInputCommandInteraction): Promise<void> {
   const link = interaction.options.getString('link', true);
   const match = MESSAGE_LINK_RE.exec(link);
@@ -122,20 +148,10 @@ async function handleAdd(interaction: ChatInputCommandInteraction): Promise<void
 
   await interaction.deferReply({ ephemeral: true });
 
-  // The bot can read channels the invoker can't, and saved quotes are posted
-  // publicly by /quote random, search and by. So check the *invoker's* access
-  // before fetching anything: otherwise /quote add copies a mod-only message
-  // into a public channel. One reply for "no such channel" and "can't read it",
-  // so the refusal doesn't confirm that a hidden channel exists. For a thread,
-  // permissionsFor covers the parent's permissions. A member not in cache gets
-  // null and is refused: fail closed.
+  // One reply for "no such channel" and "can't read it", so the refusal
+  // doesn't confirm that a hidden channel exists.
   const channel = await interaction.client.channels.fetch(channelId).catch(() => null);
-  const perms = channel && !channel.isDMBased() ? channel.permissionsFor(interaction.user.id) : null;
-  if (
-    !channel ||
-    !channel.isTextBased() ||
-    !perms?.has([PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.ReadMessageHistory])
-  ) {
+  if (!channel || !channel.isTextBased() || !(await canQuoteFrom(channel, interaction.user.id))) {
     await interaction.editReply("You can't quote from a channel you can't read.");
     return;
   }
