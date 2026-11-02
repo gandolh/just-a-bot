@@ -49,8 +49,9 @@ Eleven briefs from the 2026-10-20 improvement sweep, in build order:
 run), 06-09 are Now items and 10-11 Next items. The 2026-11-02 run builds
 them in order: 01 (a voice join that never gets ready is dropped), 02 (one
 playback error advances once), 03 (`/jukebox queue` under 2000 characters),
-04 (a song that failed to buffer is not refetched every 10 s) and 05 (a slow
-public answer stays visible; live check owed) are done.
+04 (a song that failed to buffer is not refetched every 10 s), 05 (a slow
+public answer stays visible; live check owed) and 06 (shutdown drains every
+store when an RPG world fails) are done.
 
 ## Next (owner)
 

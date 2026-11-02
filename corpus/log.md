@@ -1020,3 +1020,10 @@ ephemeral placeholder and was deleted with it. `answer()` now fills the placehol
 before the public `followUp`, and deletes it only once the follow-up is posted. That keeps who
 sees what as before, which neither of the brief's two options did. Typecheck clean, 75/75 bot
 tests. The live check from a second account is the owner's.
+
+## [2026-11-02] done | Brief 06: shutdown drains every store
+
+Shutdown runs the RPG worlds' flush and `flushPendingWrites()` through `drainStores()`, which settles
+both and logs each failure, so one world failing on the bind mount no longer abandons the other
+stores' queued writes. A world whose write fails is marked dirty again; the flag is still cleared at
+snapshot time, so a change made during the write is not lost. Typecheck clean, 77/77 bot tests.

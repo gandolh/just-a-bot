@@ -61,12 +61,14 @@ The checks still owed are at the end.
 - **One chain per path**, so a failed write rejects for its own caller only
   and later writes still land. The old chain stopped all writes after one
   failure.
-- **Shutdown flushes.** `index.ts` clears the timers, awaits the RPG worlds and
-  `flushPendingWrites()` (bounded at 3 s), then exits; `ecosystem.config.cjs`
-  gives pm2 `kill_timeout: 5000`.
+- **Shutdown flushes.** `index.ts` clears the timers, then `drainStores()`
+  runs the RPG worlds' flush and `flushPendingWrites()` side by side to the
+  end (bounded at 3 s), logging each failure, then exits;
+  `ecosystem.config.cjs` gives pm2 `kill_timeout: 5000`. Since 2026-11-02 a
+  world that fails to write stays dirty and the other stores still drain;
+  before, one failed world skipped every queued write behind it.
 - Checked by `kill -9` at random points on a 1.4 MB write loop, 20 times: the
-  file always parsed. Shutdown still stops at the first RPG world that fails to
-  flush (open brief 06).
+  file always parsed.
 
 ## Commands
 
