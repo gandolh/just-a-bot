@@ -41,25 +41,43 @@ comes from atrium"). Code: `bots/discord/src/jukebox/`.
   `DiscordSpeaker` wraps `@discordjs/voice` (self-deafened, `StreamType.OggOpus`,
   no Opus encoder needed); `discordHost(client)` routes voice-state and channel
   events. The link and player see only the interface, which is how they were
-  run against atrium without Discord.
+  run against atrium without Discord. A join not ready within 20 s is
+  destroyed and the player reports no voice channel (2026-11-02); before
+  that, the half-open connection still read as connected and a play went to a
+  player nobody heard.
 
 ## Atrium's rules
 
-Atrium's status rules as built (atrium's Jukebox page, 2026-10-09; atrium's
-`jukebox.md` has the why):
+Atrium's status rules, read from atrium's `jukebox.service.ts` on 2026-11-02
+(built 2026-10-09, changed 2026-10-27; atrium's `jukebox.md` has the why):
 - A poll **without `after`** tells atrium the bot restarted: every playing or
   paused Player goes idle, its Queue kept. So the cursor is taken once, at
   ready, and a reconnect keeps the one it has.
 - A status report carries state and position only for the **current
   `playId`**, and only while atrium has not stopped that play. A report about an
   older play changes just voice and liveness.
-- **No voice channel on the current `playId`** means lost voice: atrium idles
-  the Player. A `play` that arrives with no voice connection is reported idle
-  with that `playId`, which is how it ends.
+- **An idle report for the current play waits for the `advance`.** It only
+  stamps the play; with no `advance` within 5 s the Player goes idle the next
+  time anything reads it.
+- **Lost voice takes two reports.** No voice channel on the current play in
+  two reports running idles the Player; one is taken for a voice reconnect.
+  A `play` that arrives with no voice connection is reported idle with that
+  `playId`, and the play ends by one of these two rules.
+- **A control that starts a song needs a voice channel**: `play`, `resume`,
+  `next`, `previous` and `playTrack` answer 409 `NOT_IN_VOICE` while the Player
+  has none. `join` sets the channel at once, so `/jukebox play` joins and then
+  plays without waiting for the bot.
+- **Five failed songs in a row stop the Player.** Each `advance` with
+  `reason: error` counts, an `ended` one resets the count, and the fifth goes
+  idle with the Player's `failure` text, which the next play clears.
 - `advance` with an old `playId` answers `stale` (a newer `play` is coming); on
   a Player already idle it answers `{play: null}`.
 - The long-poll's maximum `wait` is 20 s, held through atrium's dev proxy and
   container on 2026-10-08.
+
+`types.ts` and `format.ts`'s `PlayerView` restate atrium's shapes by hand.
+Atrium's `packages/shared/src/jukebox.ts` is the source; check it, not this
+page, when they might have drifted.
 
 ## Triage
 
@@ -88,7 +106,10 @@ memory, so it can run beside the bot.
 page is the first. Every subcommand calls atrium and changes nothing locally.
 Each call gets 2.5 s; a reply pending at 1.5 s is deferred ephemerally, so
 errors stay ephemeral and controls still answer publicly. Reply text and the
-autocomplete filter are in `jukebox/format.ts`.
+autocomplete filter are in `jukebox/format.ts`. `play` (when it joins) and
+`join` first check the member's channel with discord.js's `joinable` and
+`speakable` and refuse a stage channel, since atrium's page only offers
+channels with Connect and Speak and the Discord path had no such filter.
 
 ## Owed: hearing it in Discord
 

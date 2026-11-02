@@ -46,9 +46,8 @@ container. Brief numbering restarted at 01 on 2026-11-02 (see
 
 Eleven briefs from the 2026-10-20 improvement sweep, in build order:
 01-05 fix the Jukebox before its first run (05 is a check to make on that
-run), 06-09 are Now items and 10-11 Next items. A run on 2026-10-28 stopped
-while reading; its plan for 01 and 02 is the log's 2026-10-28 resume entry,
-which still calls them 29 and 30.
+run), 06-09 are Now items and 10-11 Next items. The 2026-11-02 run builds
+them in order: 01 (a voice join that never gets ready is dropped) is done.
 
 ## Next (owner)
 

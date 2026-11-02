@@ -976,3 +976,15 @@ production state per file is marked as overtaken by the 2026-10-07 purge. Other 
 work or its date instead of a number, cross-repo references too (atrium's and Ward's briefs).
 Code comments and four test titles no longer cite brief numbers; the printed warning about the
 old `JUKEBOX_WARD_*` names is unchanged.
+
+## [2026-11-02] done | Brief 01: a voice join that never gets ready is dropped
+
+`DiscordSpeaker.join()` destroys a connection that is not Ready within 20 s, after letting go of
+it so the Destroyed listener stays quiet, and the player treats the failed join like a disconnect:
+idle, and a report with no voice channel. `/jukebox play` and `join` refuse a channel where the bot
+cannot connect or speak, or that is full. Reading atrium's source showed just-a-bot's restatement
+of atrium's rules was a fortnight behind: since 2026-10-27 lost voice takes two reports, an idle
+report waits 5 s for the `advance`, controls that start a song answer 409 `NOT_IN_VOICE` without a
+voice channel, and five failed songs in a row stop a Player with a `failure`. jukebox.md now says
+so, and `NOT_IN_VOICE` gets its own reply. Typecheck clean, 64/64 bot tests. Owner check on the
+first live run: the refusal from a channel without Speak.
