@@ -127,9 +127,8 @@ async function handleCreate(
     }
     const guildId = interaction.guildId;
     const userId = interaction.user.id;
-    const rawName = interaction.fields.getTextInputValue('name')?.trim();
+    const rawName = interaction.fields.getTextInputValue('name')?.trim() ?? '';
     const rawGlyph = interaction.fields.getTextInputValue('glyph')?.trim();
-    const name = rawName || interaction.user.username;
     const glyph = rawGlyph?.match(/\p{Extended_Pictographic}/u)?.[0] ?? null;
 
     const world = await updateWorld(guildId, (w) => {
@@ -138,7 +137,8 @@ async function handleCreate(
         w.chars[userId].away = false;
         return;
       }
-      w.chars[userId] = makeCharacter(w, userId, name, glyph);
+      // The name is cleaned of mention syntax; an empty one falls back to the Discord username.
+      w.chars[userId] = makeCharacter(w, userId, rawName, glyph, interaction.user.username);
     }, { urgent: true });
 
     const char = world.chars[userId];
@@ -382,10 +382,12 @@ async function postDuelProposal(
   challenger: Character,
   defender: Character,
 ): Promise<void> {
-  const sent = await interaction.followUp({
-    content: `⚔️ ${challenger.glyph} **${challenger.name}** challenges ${defender.glyph} **${defender.name}** to a duel!`,
-    ephemeral: false,
-  });
+  // Names are cleaned, but game text pings nobody by accident: the defender is
+  // the one user named for a ping. The mention is in the first post, because
+  // Discord does not notify for a mention added by an edit.
+  const content = `⚔️ ${challenger.glyph} **${challenger.name}** challenges ${defender.glyph} **${defender.name}** to a duel!\n<@${defenderId}> — do you accept? (expires in 60s)`;
+  const allowedMentions = { users: [defenderId] };
+  const sent = await interaction.followUp({ content, ephemeral: false, allowedMentions });
 
   let duelId = '';
   await updateWorld(guildId, (w) => {
@@ -396,10 +398,7 @@ async function postDuelProposal(
     new ButtonBuilder().setCustomId(`rpg:duel:accept:${duelId}`).setLabel('Accept').setStyle(ButtonStyle.Success),
     new ButtonBuilder().setCustomId(`rpg:duel:decline:${duelId}`).setLabel('Decline').setStyle(ButtonStyle.Danger),
   );
-  await sent.edit({
-    content: `⚔️ ${challenger.glyph} **${challenger.name}** challenges ${defender.glyph} **${defender.name}** to a duel!\n<@${defenderId}> — do you accept? (expires in 60s)`,
-    components: [row],
-  });
+  await sent.edit({ content, components: [row], allowedMentions });
 }
 
 async function postTradeProposal(

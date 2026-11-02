@@ -231,6 +231,28 @@ export const MOB_KINDS: Record<string, MobKind> = {
   },
 };
 
+/** The longest character name; the creation modal enforces it too. */
+export const MAX_CHARACTER_NAME = 24;
+const FALLBACK_NAME = 'Adventurer';
+
+/**
+ * A character name with nothing in it that Discord would turn into a ping or
+ * a link: user, role and channel mentions, @everyone and @here, and backticks
+ * (which could open a code span around the rest of a crier line). The name is
+ * posted in town-crier lines and duel proposals, so `<@id>` as a name would
+ * ping that member every time. Returns '' when nothing is left.
+ */
+export function cleanCharacterName(raw: string): string {
+  const cleaned = raw
+    .replace(/<(?:@[!&]?|#)\d+>/g, '')
+    .replace(/@(?:everyone|here)/gi, '')
+    .replace(/`/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+  // By code point, so an emoji is never cut in half.
+  return [...cleaned].slice(0, MAX_CHARACTER_NAME).join('').trim();
+}
+
 const cache = new Map<string, World>();
 
 // Debounced persistence. The in-memory cache is always authoritative, so reads
@@ -334,6 +356,8 @@ export async function loadWorld(guildId: string): Promise<World | null> {
       c.downUntil ??= 0;
       c.locationId ??= 'plaza';
       if (c.encounter === undefined) c.encounter = null;
+      // Names from before names were cleaned at creation.
+      c.name = cleanCharacterName(c.name ?? '') || FALLBACK_NAME;
     }
     cache.set(guildId, world);
     return world;

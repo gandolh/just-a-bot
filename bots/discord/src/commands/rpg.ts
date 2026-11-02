@@ -10,6 +10,7 @@ import type { Command } from './types.ts';
 import {
   Character,
   World,
+  cleanCharacterName,
   getOrCreateWorld,
   updateWorld,
 } from '../rpg/world.ts';
@@ -33,10 +34,11 @@ export function makeCharacter(
   userId: string,
   name: string,
   glyph: string | null,
+  fallbackName = '',
 ): Character {
   const fresh: Character = {
     userId,
-    name,
+    name: cleanCharacterName(name) || cleanCharacterName(fallbackName) || 'Adventurer',
     glyph: glyph ?? pickGlyph(world),
     locationId: STARTING_LOCATION,
     encounter: null,
