@@ -28,6 +28,7 @@ import {
   executeTrade,
 } from '../rpg/trade.ts';
 import type { Character, Trade } from '../rpg/world.ts';
+import { claimProposalSlot, proposalConflict } from '../rpg/proposals.ts';
 import {
   Screen,
   applyBagSelection,
@@ -333,6 +334,12 @@ async function handleSocialInitiation(
   guildId: string,
   userId: string,
 ): Promise<void> {
+  // Taken before the first await, so a burst of presses posts once.
+  const slot = claimProposalSlot(`${guildId}:${userId}`);
+  if (!slot.ok) {
+    await interaction.reply({ content: `Wait ${slot.waitSeconds} s before proposing again.`, ephemeral: true });
+    return;
+  }
   const world = await getOrCreateWorld(guildId);
   const self = world.chars[userId];
   const target = world.chars[targetId];
@@ -351,11 +358,19 @@ async function handleSocialInitiation(
   };
 
   if (!self || !target) {
+    slot.release();
     await refreshNearby('That adventurer is no longer here.');
     return;
   }
   if (!nearbyPlayers(world, self).some((p) => p.userId === targetId)) {
+    slot.release();
     await refreshNearby(`${target.glyph} ${target.name} moved out of reach.`);
+    return;
+  }
+  const conflict = proposalConflict(world, kind, userId, targetId);
+  if (conflict) {
+    slot.release();
+    await refreshNearby(conflict);
     return;
   }
 

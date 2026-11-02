@@ -6,7 +6,7 @@ import type { Character, World } from './world.ts';
 const char = (userId: string, inventory: string[], coins: number) =>
   ({ userId, name: userId, inventory, coins }) as unknown as Character;
 const world = (a: [string[], number], b: [string[], number]) =>
-  ({ chars: { A: char('A', ...a), B: char('B', ...b) }, trades: {}, nextId: 1 }) as unknown as World;
+  ({ chars: { A: char('A', ...a), B: char('B', ...b) }, duels: {}, trades: {}, nextId: 1 }) as unknown as World;
 const count = (w: World, item: string) =>
   ['A', 'B'].reduce((n, id) => n + w.chars[id]!.inventory.filter((i) => i === item).length, 0);
 const coins = (w: World) => w.chars.A!.coins + w.chars.B!.coins;

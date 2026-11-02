@@ -1,4 +1,13 @@
-import { Trade, TradeOffer, World, nextId } from './world.ts';
+import { Trade, TradeOffer, World, nextId, pruneDuelsAndTrades } from './world.ts';
+
+/** An open trade between these two, either way round. */
+export function openTradeBetween(world: World, a: string, b: string): Trade | null {
+  return (
+    Object.values(world.trades).find(
+      (trade) => trade.state === 'open' && ((trade.aId === a && trade.bId === b) || (trade.aId === b && trade.bId === a)),
+    ) ?? null
+  );
+}
 
 export function startTrade(
   world: World,
@@ -7,6 +16,7 @@ export function startTrade(
   messageId: string,
   channelId: string,
 ): Trade {
+  pruneDuelsAndTrades(world);
   const id = nextId(world, 'trade');
   const trade: Trade = {
     id,
@@ -19,6 +29,7 @@ export function startTrade(
     state: 'open',
     messageId,
     channelId,
+    createdAt: new Date().toISOString(),
   };
   world.trades[id] = trade;
   return trade;

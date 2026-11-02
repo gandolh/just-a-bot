@@ -124,6 +124,8 @@ export interface Trade {
   state: 'open' | 'completed' | 'cancelled';
   messageId: string;
   channelId: string;
+  /** Set on load for trades saved before it existed, so an abandoned one ages out. */
+  createdAt?: string;
 }
 
 export interface World {
@@ -346,6 +348,7 @@ export async function loadWorld(guildId: string): Promise<World | null> {
     // Backward-compat defaults for fields added after initial release.
     world.duels ??= {};
     world.trades ??= {};
+    pruneDuelsAndTrades(world);
     world.crierChannelId ??= null;
     world.crierQueue ??= [];
     world.tick ??= 0;
@@ -517,6 +520,28 @@ export function lootAt(world: World, row: number, col: number): Loot | null {
 
 export function cheby(a: [number, number], b: [number, number]): number {
   return Math.max(Math.abs(a[0] - b[0]), Math.abs(a[1] - b[1]));
+}
+
+/** How long a duel or trade that never finished is kept. */
+export const SOCIAL_RECORD_TTL_MS = 24 * 60 * 60_000;
+
+/**
+ * Drop the duels and trades that are over, and any that never finished within
+ * a day. A finished duel or a closed trade goes at once: nothing reads it again,
+ * and every urgent press re-serialises and fsyncs the whole world, so a
+ * world that kept them grew with every proposal. A pending duel is kept
+ * after its 60 s expiry, up to a day, so a late press on its buttons still says
+ * it expired. Runs when a world loads and when a duel or trade starts.
+ */
+export function pruneDuelsAndTrades(world: World, now = Date.now()): void {
+  const old = (iso: string | undefined) => iso !== undefined && now - Date.parse(iso) > SOCIAL_RECORD_TTL_MS;
+  for (const [id, duel] of Object.entries(world.duels)) {
+    if (duel.state === 'finished' || old(duel.createdAt)) delete world.duels[id];
+  }
+  for (const [id, trade] of Object.entries(world.trades)) {
+    trade.createdAt ??= new Date(now).toISOString();
+    if (trade.state !== 'open' || old(trade.createdAt)) delete world.trades[id];
+  }
 }
 
 export function nextId(world: World, prefix: string): string {

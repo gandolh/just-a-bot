@@ -1,6 +1,18 @@
-import { Duel, World, effectiveStats, nextId, levelFor } from './world.ts';
+import { Duel, World, effectiveStats, nextId, levelFor, pruneDuelsAndTrades } from './world.ts';
 
 const DUEL_EXPIRY_MS = 60_000;
+
+/** A duel between these two, either way round, still waiting for an answer. */
+export function pendingDuelBetween(world: World, a: string, b: string): Duel | null {
+  return (
+    Object.values(world.duels).find(
+      (duel) =>
+        duel.state === 'pending' &&
+        !isDuelExpired(duel) &&
+        ((duel.challengerId === a && duel.defenderId === b) || (duel.challengerId === b && duel.defenderId === a)),
+    ) ?? null
+  );
+}
 
 export function startDuel(
   world: World,
@@ -9,6 +21,7 @@ export function startDuel(
   messageId: string,
   channelId: string,
 ): Duel {
+  pruneDuelsAndTrades(world);
   const id = nextId(world, 'duel');
   const now = new Date();
   const duel: Duel = {
@@ -77,6 +90,11 @@ export function runDuel(world: World, duelId: string): DuelRunResult | null {
     return null;
   }
 
+  // The swing log goes back to the caller and is not stored: the duel is over
+  // once this returns, and the world is written whole on every urgent press.
+  const log: string[] = [];
+  duel.log = [];
+
   // Snapshot HP so the real chars aren't permanently damaged.
   let aHp = a.maxHp;
   let bHp = b.maxHp;
@@ -89,11 +107,11 @@ export function runDuel(world: World, duelId: string): DuelRunResult | null {
     const aSwing = resolveSwing(aEff.atk, bEff.def);
     if (aSwing.hit) {
       bHp -= aSwing.damage;
-      duel.log.push(
+      log.push(
         `${a.glyph} **${a.name}** hits ${b.glyph} **${b.name}** for **${aSwing.damage}**${aSwing.crit ? ' 💥 crit!' : ''} (${Math.max(0, bHp)} HP left)`,
       );
     } else {
-      duel.log.push(`${a.glyph} **${a.name}** swings at ${b.glyph} **${b.name}** — miss.`);
+      log.push(`${a.glyph} **${a.name}** swings at ${b.glyph} **${b.name}** — miss.`);
     }
     if (bHp <= 0) break;
 
@@ -101,11 +119,11 @@ export function runDuel(world: World, duelId: string): DuelRunResult | null {
     const bSwing = resolveSwing(bEff.atk, aEff.def);
     if (bSwing.hit) {
       aHp -= bSwing.damage;
-      duel.log.push(
+      log.push(
         `${b.glyph} **${b.name}** hits ${a.glyph} **${a.name}** for **${bSwing.damage}**${bSwing.crit ? ' 💥 crit!' : ''} (${Math.max(0, aHp)} HP left)`,
       );
     } else {
-      duel.log.push(`${b.glyph} **${b.name}** swings at ${a.glyph} **${a.name}** — miss.`);
+      log.push(`${b.glyph} **${b.name}** swings at ${a.glyph} **${a.name}** — miss.`);
     }
   }
 
@@ -126,7 +144,7 @@ export function runDuel(world: World, duelId: string): DuelRunResult | null {
     winner.atk += 1 * gained;
     winner.def += 1 * gained;
     winner.hp = winner.maxHp;
-    duel.log.push(`✨ **Level up!** ${winner.name} is now level ${winner.level}.`);
+    log.push(`✨ **Level up!** ${winner.name} is now level ${winner.level}.`);
   }
 
   duel.state = 'finished';
@@ -134,6 +152,6 @@ export function runDuel(world: World, duelId: string): DuelRunResult | null {
     winnerId: winner.userId,
     loserId: loser.userId,
     xpAwarded: xp,
-    log: duel.log,
+    log,
   };
 }
