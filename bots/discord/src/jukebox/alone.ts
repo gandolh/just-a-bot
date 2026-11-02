@@ -1,5 +1,5 @@
 /**
- * The empty-channel rule (brief 26). When nobody but bots is left in the
+ * The empty-channel rule. When nobody but bots is left in the
  * bot's voice channel, pause, and leave if still alone ten minutes later. If
  * someone comes back first, cancel the leave and stay paused: they press play.
  *

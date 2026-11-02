@@ -1,6 +1,6 @@
 ---
 summary: What just-a-bot is: a personal, feature-rich Discord bot in an npm-workspaces repo (bot, shared library, docs site); the orientation page and the map of what lives where.
-updated: 2026-10-09
+updated: 2026-11-02
 ---
 
 # Overview
@@ -22,13 +22,15 @@ it holds code with no Discord dependency, and the boundary enforces that.
 - **Structure:** npm workspaces — `shared/` (the `@bots/shared` package),
   `bots/discord`, and `docs-site/` (the build-time documentation site, not a
   runtime). See [architecture.md](architecture.md).
-- **Process management:** pm2 via `ecosystem.config.cjs`.
+- **Process management:** a container in production (since 2026-09-06), pm2
+  via `ecosystem.config.cjs` locally.
 
 The Discord bot is organized as one feature directory per capability under
 `bots/discord/src/` (e.g. `rpg/`, `mafia/`, `trivia/`, `ollama/`), with a thin
 slash-command handler per feature in `commands/`.
 
-No subsystem has its own wiki page yet. Most features are **not** catalogued here; pages get added as work touches
-them. In the meantime their operating manuals live in
+Only the Jukebox has its own page ([jukebox.md](jukebox.md)); the 2026-10-02
+fixes across features are in [audit-fixes.md](audit-fixes.md). Most features
+are **not** catalogued here; pages get added as work touches them. In the meantime their operating manuals live in
 [`docs/`](../../docs/README.md) — one directory per feature. `docs/` is the
 *how*, this wiki is the *why*, and `docs/` ranks last when they disagree.

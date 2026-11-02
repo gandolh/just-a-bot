@@ -21,7 +21,7 @@ RUN npm ci
 
 FROM node:24-alpine AS prod
 LABEL org.opencontainers.image.title="just-a-bot"
-# The Jukebox (brief 26) converts each MP3 from atrium to Ogg Opus with the
+# The Jukebox converts each MP3 from atrium to Ogg Opus with the
 # ffmpeg binary. Nothing else in the bot needs it.
 RUN apk add --no-cache ffmpeg
 WORKDIR /app

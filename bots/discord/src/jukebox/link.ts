@@ -12,12 +12,12 @@ import type { BotCommand, JukeboxPlay, Track } from './types.ts';
 const log = logger.scoped('jukebox');
 
 /**
- * The link to atrium (brief 26). The bot binds no port, so it holds one
+ * The link to atrium. The bot binds no port, so it holds one
  * long-poll open on `GET /jukebox/bot/commands` and does what the commands say.
  * Atrium owns every Player (D57 there); the bot reports what it is doing and
  * asks atrium what plays next.
  *
- * Atrium's rules this follows (brief 26's note from atrium brief 82):
+ * Atrium's rules this follows (atrium's note of 2026-10-09):
  * - The cursor is taken **once**, at start. A poll without `after` is how
  *   atrium learns the bot restarted, and it idles every Player, so a reconnect
  *   keeps the cursor it has.
@@ -25,7 +25,7 @@ const log = logger.scoped('jukebox');
  *   voice connection.
  */
 
-/** Atrium's longest `wait` (its brief 81 outcome: 20 s held through Vite and the container). */
+/** Atrium's longest `wait` (20 s held through Vite and the container, measured 2026-10-08). */
 const POLL_WAIT_S = 20;
 const POLL_TIMEOUT_MS = (POLL_WAIT_S + 10) * 1000;
 const BACKOFF_FIRST_MS = 1_000;

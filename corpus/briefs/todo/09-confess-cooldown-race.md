@@ -1,4 +1,4 @@
-# Task 37: `/confess`: set the cooldown before the first await
+# Task 09: `/confess`: set the cooldown before the first await
 
 ## Context
 

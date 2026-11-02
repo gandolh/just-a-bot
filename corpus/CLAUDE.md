@@ -52,8 +52,8 @@ A corpus exists to make an agent **cheaper**, not just better-informed.
 2. Needing more than three is a **signal**: a page is straddling topics and must
    split, or its `summary:` isn't sharp enough. Fix the cause; don't read on.
 3. Never read `briefs/` or `todos/` wholesale. [wiki/status.md](wiki/status.md)
-   holds each brief's state in one line — open a brief only for the spec that
-   directed specific work.
+   holds a dated line per area and what is open — open a brief only for the
+   spec that directs specific work.
 4. Prefer a page's `summary:` line over opening the page. That is what it's for.
 
 ## The wiki spine
@@ -90,12 +90,19 @@ commit, open decisions).
 ## Rules (load-bearing)
 
 - **Brief numbers are stable** — never renumber when a brief moves dirs.
+  Briefs run in number order; `wiki/status.md` doesn't list them.
+- **Numbering restarted at 01 on 2026-11-02.** The twenty-six briefs before
+  that were folded into the wiki and deleted; the last commit holding them is
+  `aad247f` ([log.md](log.md), "Briefs reset").
+- **Code comments don't cite brief numbers** ("brief 26", "(briefs 25 and
+  29)"), this repo's, atrium's or Ward's. Say what the code does and why; the
+  history belongs in `log.md`.
 - **Briefs in `done`/`superseded` are immutable** — new work = new brief. An
   outcome note is appended at move time only.
 - **Every wiki page carries `summary:` + `updated:` frontmatter**, and
   `index.md`'s catalog is **generated** from it — `bash corpus/lint.sh --index`.
   Never hand-maintain the catalog; never let `index.md` duplicate a list another
-  page owns (the brief catalog belongs to `status.md`).
+  page owns.
   Write `summary:` for an agent deciding whether to open the page, not as a title.
 - **The retrieval budget above is enforced**, not aspirational.
 - **The LLM owns `wiki/`** — rewrite pages freely as understanding improves;

@@ -197,7 +197,7 @@ Settled:
 - **Blocked ≠ open.** The two music-blocked questions moved out of
   [open-questions.md](wiki/open-questions.md) into the todo that would unblock
   them, and that page now states the rule.
-- **`/dicetable` deleted, not shelved** — [brief 02](briefs/done/02-remove-dicetable.md).
+- **`/dicetable` deleted, not shelved** — brief 02.
   The Activity was added and disabled in the same commit (`0de2132`, 2026-06-03)
   and never ran on the VPS; shelving would preserve code for a revival nobody
   plans. Activities return as a new build, if at all. Takes
@@ -243,7 +243,7 @@ first try; no escalations, no re-dispatches.
 env vars, the shared dice wire protocol, `docs/discord/dicetable/`, the leftover
 `bots/dice-activity/` (including its gitignored `.env`), and `ws` + `@types/ws` as
 direct dependencies. 24 files, 100 insertions, 721 deletions. Full outcome note on
-the [brief](briefs/done/02-remove-dicetable.md).
+the brief.
 
 **Review gate — two scoped finders (sonnet), and the second earned its keep:**
 
@@ -518,7 +518,7 @@ module-level `unhandledRejection` handler logs instead of crashing, and the
 handler. The MessageCreate listener now only routes Wordle and Hangman thread
 messages.
 
-Full outcome on [the brief](briefs/done/04-crash-guard-event-listeners.md).
+Full outcome on the brief.
 
 ## [2026-10-02] done | Brief 05: user text can no longer ping @everyone or roles
 
@@ -527,7 +527,7 @@ default, as specified. It covers every sink the brief lists: reminders, `/ask`,
 the RPG duel proposal and the town crier. `give.ts`'s per-message override is
 untouched.
 
-Full outcome on [the brief](briefs/done/05-default-allowed-mentions.md).
+Full outcome on the brief.
 
 ## [2026-10-02] done | Brief 06: the Connect Four timer is per turn
 
@@ -539,7 +539,7 @@ reply move in solo mode) unless the game finished. `finalize` is unchanged.
 `Match.timeoutHandle` became optional, since there is no timer before the first
 board.
 
-Full outcome on [the brief](briefs/done/06-connect-four-per-turn-timer.md).
+Full outcome on the brief.
 
 ## [2026-10-02] done | Brief 08: executeTrade counts copies (hardening; the UI could not reach the dupe)
 
@@ -548,14 +548,14 @@ side and fails with the existing `${name} no longer has ${item}.` when an
 inventory holds fewer copies than offered. `moveItems` gives the receiver a copy
 only when the giver's splice removed one. Coins are untouched.
 
-Full outcome on [the brief](briefs/done/08-rpg-trade-item-dupe.md).
+Full outcome on the brief.
 
 ## [2026-10-02] done | Brief 09: /clock prints each zone's own UTC offset
 
 `formatLocalTime`'s offset block is replaced by `getUtcOffsetMinutes(tz)`, with
 the formatting unchanged.
 
-Full outcome on [the brief](briefs/done/09-clock-utc-offset.md).
+Full outcome on the brief.
 
 ## [2026-10-02] done | Brief 10: discord.js 14.27.0, a pinned renderer, a clean audit
 
@@ -567,7 +567,7 @@ list no breaking changes or deprecations touching reply options
 (`ephemeral`/`flags`), `withResponse`, `deferReply`, `followUp`, `editReply` or
 `allowedMentions`. The one relevant fix makes `update()`'s options optional.
 
-Full outcome on [the brief](briefs/done/10-bump-discordjs-and-audit.md).
+Full outcome on the brief.
 
 ## [2026-10-02] done | Brief 11: the docs pages that contradicted the code are fixed
 
@@ -582,7 +582,7 @@ shipped text-only and drops the two dead `docs/todo/` links.
 `docs/common/setup.md` lists three workspaces, the docs build command and a
 `docs-site/` layout row.
 
-Full outcome on [the brief](briefs/done/11-docs-drift.md).
+Full outcome on the brief.
 
 ## [2026-10-02] done | Brief 12: corpus and CLAUDE.md drift removed
 
@@ -600,7 +600,7 @@ All five items fixed:
 - `status.md` is dated 2026-10-02, and its Tooling section gains the docs site
   and the container image, pointing at briefs 07 and 20 for the deploy path.
 
-Full outcome on [the brief](briefs/done/12-corpus-drift.md).
+Full outcome on the brief.
 
 ## [2026-10-02] done | Brief 13: an older RPG controller can't act mid-fight
 
@@ -610,7 +610,7 @@ Full outcome on [the brief](briefs/done/12-corpus-drift.md).
 Attack, flee, or drink a potion." and returns from the mutate callback. `rpg/*.ts`
 and the duel and trade handlers are untouched.
 
-Full outcome on [the brief](briefs/done/13-rpg-block-actions-in-combat.md).
+Full outcome on the brief.
 
 ## [2026-10-02] done | Brief 14: the trivia fetch times out into the fallback bank
 
@@ -618,14 +618,14 @@ The OpenTDB fetch now passes `signal: AbortSignal.timeout(5_000)`. The abort
 rejects into the existing catch, which returns `fromFallback(...)`. Nothing else
 changed.
 
-Full outcome on [the brief](briefs/done/14-trivia-fetch-timeout.md).
+Full outcome on the brief.
 
 ## [2026-10-02] done | Brief 16: "jalapeño" is now a winnable hangman word
 
 `'jalapeño'` is now `'jalapeno'`. The acceptance grep prints nothing: every
 hangman word matches `^[a-z]+$`. Brief 19 hasn't landed, so the guard test is
 
-Full outcome on [the brief](briefs/done/16-hangman-jalapeno.md).
+Full outcome on the brief.
 
 ## [2026-10-02] done | Brief 15: long reminders are delivered truncated; the list stays usable (register needed in prod)
 
@@ -635,7 +635,7 @@ message is at most 2000 characters, covering reminders stored before the cap.
 `handleList` clips each text to 80 characters, stops adding lines before 1900,
 and appends "…and N more" when it cut the list.
 
-Full outcome on [the brief](briefs/done/15-reminder-text-length.md).
+Full outcome on the brief.
 
 ## [2026-10-02] done | Brief 17: Mafia phases resolve once, timers belong to their game, restarts re-arm
 
@@ -643,7 +643,7 @@ All four parts done, with a scratch harness around a stubbed client (exactly
 `users.fetch().send` and `channels.fetch()` → `isSendable`/`send`) on throwaway
 `harness-*` guild files, deleted afterwards.
 
-Full outcome on [the brief](briefs/done/17-mafia-phase-timers.md).
+Full outcome on the brief.
 
 ## [2026-10-02] done | Brief 18: atomic JSON writes, a recovering write chain, a flushed shutdown
 
@@ -654,7 +654,7 @@ provides `writeJsonFile(file, json)` and `flushPendingWrites()`.
   settles, so a failed write rejects only for its own caller.
 - A registry of in-flight chains backs the flush.
 
-Full outcome on [the brief](briefs/done/18-crash-safe-json-persistence.md).
+Full outcome on the brief.
 
 ## [2026-10-02] done | Brief 19: a node:test suite for the pure game logic
 
@@ -675,7 +675,7 @@ are no new dependencies. 24 tests, about 0.7 s for the whole run.
 - **Hangman:** every word matches `^[a-z]+$`.
 - **Beyond the targets:** `reminderMessage` truncation (brief 15).
 
-Full outcome on [the brief](briefs/done/19-node-test-suite.md).
+Full outcome on the brief.
 
 ## [2026-10-02] done | Brief 21: /help is built from the registered commands
 
@@ -689,7 +689,7 @@ groups:
 - AI and images (`ask`, `img`), Leaderboards (`top`) and Misc
 - Other, a catch-all for anything unmapped
 
-Full outcome on [the brief](briefs/done/21-help-from-registry.md).
+Full outcome on the brief.
 
 ## [2026-10-02] done | Brief 22: /c4 vs /c42 documented correctly; Wordle and tic-tac-toe pages
 
@@ -705,7 +705,7 @@ targets and accepted guesses, in-memory state) and tic-tac-toe (optional
 highlighted winning line, no timeout so an abandoned game lives until a
 restart). Both are in the feature index.
 
-Full outcome on [the brief](briefs/done/22-docs-games-pages.md).
+Full outcome on the brief.
 
 ## [2026-10-02] done | Brief 23: /quote add only saves messages the invoker can read
 
@@ -718,7 +718,7 @@ it fails closed) and missing permissions all get the same ephemeral reply,
 a hidden channel exists. The store and display commands are untouched, and
 quotes saved earlier stay.
 
-Full outcome on [the brief](briefs/done/23-quote-add-channel-permission.md).
+Full outcome on the brief.
 
 ## [2026-10-02] done | Brief 24: /birthday and /remindme refuse impossible dates
 
@@ -727,7 +727,7 @@ allowing 29. The ISO branch of `parseAbsolute` builds the `Date` and returns
 `null` unless its UTC year, month and day equal the parsed ones, so the user
 gets the existing "Could not parse that time" reply.
 
-Full outcome on [the brief](briefs/done/24-reject-impossible-dates.md).
+Full outcome on the brief.
 
 ## [2026-10-02] status | 19 of the 21 audit briefs done; 07 and 20 wait on the owner
 
@@ -923,11 +923,11 @@ Owner steps, in order:
 
 ## [2026-10-18] todo | Brief 28 filed: the docs site moves from Starlight to Docusaurus
 
-The owner's call (2026-10-18), one brief in every repo with a docs site. [28](briefs/done/28-docs-site-on-docusaurus.md) keeps the URLs (except `/manual/readme/` → `/manual/`) and drops the do-nothing theme toggle. Building the manual through Docusaurus found 42 links that are dead on the live site (renamed READMEs, links into `corpus/`); the brief gives the manual pass the corpus pass's link resolution. The generated manual stops being committed. The deploy waits on vps-deploy brief 11.
+The owner's call (2026-10-18), one brief in every repo with a docs site. 28 keeps the URLs (except `/manual/readme/` → `/manual/`) and drops the do-nothing theme toggle. Building the manual through Docusaurus found 42 links that are dead on the live site (renamed READMEs, links into `corpus/`); the brief gives the manual pass the corpus pass's link resolution. The generated manual stops being committed. The deploy waits on vps-deploy brief 11.
 
 ## [2026-10-19] done | Brief 28: the docs site moves from Starlight to Docusaurus
 
-[28](briefs/done/28-docs-site-on-docusaurus.md). `docs-site/` builds with Docusaurus 3.10 at the same base and the same URLs, plus `/search/` and the two wiki pages the old hand-kept list left out (`decisions-removals`, `jukebox`); `/manual/readme/` is now `/manual/`. Dark only, with no toggle. The manual pass now resolves each link against its source file in `docs/` and rewrites it from the rendered page's position, so the 42 links that are dead on the live Starlight site resolve: renamed READMEs follow the rename, links into the rendered wiki stay on the site, and the rest go to GitHub. The generated manual and wiki are gitignored. Checked in a browser under the base path. Not deployed: the owner deploys after vps-deploy brief 11 switches the stack's asset check to `assets/`.
+28. `docs-site/` builds with Docusaurus 3.10 at the same base and the same URLs, plus `/search/` and the two wiki pages the old hand-kept list left out (`decisions-removals`, `jukebox`); `/manual/readme/` is now `/manual/`. Dark only, with no toggle. The manual pass now resolves each link against its source file in `docs/` and rewrites it from the rendered page's position, so the 42 links that are dead on the live Starlight site resolve: renamed READMEs follow the rename, links into the rendered wiki stay on the site, and the rest go to GitHub. The generated manual and wiki are gitignored. Checked in a browser under the base path. Not deployed: the owner deploys after vps-deploy brief 11 switches the stack's asset check to `assets/`.
 
 ## [2026-10-21] todo | Briefs 29-39 filed from the 2026-10-20 improvement sweep
 
@@ -957,3 +957,22 @@ and no code changed. The baseline is typecheck clean, 62/62 bot tests. Plan for 
 A README refresh pass with the readme-docs standard. The README already met it and still matches the code: all 26 commands in the table are the files in `bots/discord/src/commands/`, the one bot change since the images were made (2026-10-13, the Jukebox signs in to atrium's own accounts) is described, and every relative link resolves. `npm ci`, `npm test` (62/62) and `npm run typecheck` pass. The bot was not started, since that needs a Discord test application. The images are a diagram and a card rendered outside Discord, and neither screen changed, so none was made again.
 
 `corpus/lint.sh` failed on a fresh clone because `bots/data` and `bots/discord/.env` are gitignored runtime paths that only exist on a machine that ran the bot. The stale-path check now skips a path git ignores. [status.md](wiki/status.md) had a summary from 2026-10-21 that still called briefs 04-24 queued; it now says they are done and 29-39 wait.
+
+## [2026-11-02] maintenance | Briefs reset
+
+Part of an estate-wide reset. The twenty-six briefs in `briefs/done/` (02, 04-28) are folded into
+the wiki and deleted; brief numbering restarts at 01. The last commit that held them is `aad247f`:
+read one with `git show aad247f:corpus/briefs/done/18-crash-safe-json-persistence.md`. Brief
+numbers in the entries above refer to that set. The eleven unbuilt briefs 29-39 from the
+2026-10-20 sweep stay as specs, renumbered 01-11 in the same order, so the 2026-10-28 resume
+entry's 29 and 30 are now 01 and 02.
+
+The audit fixes (old 04-24) were listed only in status.md's queued-work catalog; they now have
+[audit-fixes.md](wiki/audit-fixes.md), with the calls that are easy to undo (no
+`uncaughtException` handler, per-phase Mafia claims, the pid in the temp-file name) and the
+Discord checks still owed. jukebox.md gains the Ward sign-in that preceded atrium's own accounts.
+status.md is a dated per-area snapshot with the owner's next steps; the decision about picking
+production state per file is marked as overtaken by the 2026-10-07 purge. Other pages name the
+work or its date instead of a number, cross-repo references too (atrium's and Ward's briefs).
+Code comments and four test titles no longer cite brief numbers; the printed warning about the
+old `JUKEBOX_WARD_*` names is unchanged.

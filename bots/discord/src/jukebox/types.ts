@@ -1,6 +1,6 @@
 /**
- * Atrium's Jukebox contract, as the bot uses it. Restated from atrium brief 81
- * (`packages/shared/src/jukebox.ts` in atrium); the two repos share no package,
+ * Atrium's Jukebox contract, as the bot uses it. Restated from atrium's
+ * `packages/shared/src/jukebox.ts`; the two repos share no package,
  * so a change there needs a matching change here.
  */
 

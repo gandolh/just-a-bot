@@ -1,7 +1,7 @@
 # just-a-bot
 
 Hobby **Discord bot** — npm workspaces `shared` and `bots/discord`, plus a `docs-site` workspace,
-TypeScript run directly via `tsx`, pm2 on a small shared VPS.
+TypeScript run directly via `tsx`, a container on a small shared VPS (pm2 locally).
 
 ## Read this first
 

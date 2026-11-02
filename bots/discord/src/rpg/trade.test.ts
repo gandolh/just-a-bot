@@ -28,7 +28,7 @@ test('a successful trade conserves every item and the coin total', () => {
   assert.equal(w.chars.A!.coins, 45);
 });
 
-test('an offer of more copies than the inventory still holds fails and changes nothing (brief 08)', () => {
+test('an offer of more copies than the inventory still holds fails and changes nothing', () => {
   const w = world([['sword', 'sword'], 0], [[], 0]);
   const t = startTrade(w, 'A', 'B', 'msg', 'chan');
   t.aOffer.items = ['sword', 'sword'];

@@ -8,7 +8,7 @@ import {
 import type { Track } from './types.ts';
 
 /**
- * Pure helpers for `/jukebox` (brief 27): autocomplete matching and reply
+ * Pure helpers for `/jukebox`: autocomplete matching and reply
  * text. No discord.js here, so they are tested on their own.
  */
 

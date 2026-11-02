@@ -1,4 +1,4 @@
-# Task 35: `/quote add`: refuse messages from private threads the member is not in
+# Task 07: `/quote add`: refuse messages from private threads the member is not in
 
 ## Context
 

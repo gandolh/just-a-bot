@@ -38,7 +38,7 @@ test('the ISO form is read as UTC, with and without a time', () => {
   assert.equal(parseAbsolute('June 1st'), null);
 });
 
-test('dates that are not on the calendar are rejected, not rolled forward (brief 24)', () => {
+test('dates that are not on the calendar are rejected, not rolled forward', () => {
   assert.equal(parseWhen('2026-02-30'), null);
   assert.equal(parseWhen('2026-04-31 10:00'), null);
   assert.equal(parseWhen('2026-13-01'), null);

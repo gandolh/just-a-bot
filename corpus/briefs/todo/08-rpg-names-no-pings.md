@@ -1,4 +1,4 @@
-# Task 36: RPG: character names must not ping members
+# Task 08: RPG: character names must not ping members
 
 ## Context
 

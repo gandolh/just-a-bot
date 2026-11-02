@@ -1,6 +1,6 @@
 ---
 summary: The project's vocabulary — what command, feature dir, sibling command and shelved mean here, plus the Jukebox terms (jukebox, player, track, playlist, queue, bot account) borrowed from atrium, and which synonyms to stop using.
-updated: 2026-10-08
+updated: 2026-11-02
 ---
 
 # Glossary
@@ -75,6 +75,6 @@ only list anyone reorders or clears. `/jukebox play` adds to it.
 _Avoid_: up next, playlist
 
 **Bot account**:
-The local atrium user this bot logs in as (not a Ward account since brief 29).
+The local atrium user this bot logs in as (not a Ward account since 2026-10-13).
 It has the role `jukebox`, which atrium enforces as an allowlist.
 _Avoid_: bot user, bot profile, service account, Ward account

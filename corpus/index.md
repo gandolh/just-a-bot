@@ -20,22 +20,24 @@ to read on. Conventions: [CLAUDE.md](CLAUDE.md).
 <!-- BEGIN GENERATED CATALOG — bash corpus/lint.sh --index -->
 
 - [wiki/architecture.md](wiki/architecture.md) — How the repo and the Discord bot are put together: the three workspaces (two runtime, one docs build), the no-build tsx runtime, one-feature-dir-per-capability layout, and the commands→features→shared dependency direction.
+- [wiki/audit-fixes.md](wiki/audit-fixes.md) — What the two 2026-09-26 improvement audits found and how each finding was fixed on 2026-10-02 to 2026-10-07 — crash guard, mention default, timers, trades, atomic JSON writes, the test suite, /help from the registry, quote permissions, date checks, the container's state mounts — with the non-obvious calls and the Discord checks still owed.
 - [wiki/code-graph.md](wiki/code-graph.md) — The code-graph layer — what the benchmark measured on this Discord-only repo (impact is exact, transitive and 13.5x cheaper; explore saves only 1.6x; 9 duplicate names conflate) and therefore what it may and may not be trusted for.
 - [wiki/decisions-removals.md](wiki/decisions-removals.md) — Features deleted outright rather than shelved — /dicetable (2026-08-27), /dnd and /post (2026-10-06) — with the reasons and the owner's follow-ons.
 - [wiki/decisions.md](wiki/decisions.md) — Locked tech/design calls with their rejected alternatives and reasons — read before proposing pnpm, a build step, or an ORM-style rewrite.
 - [wiki/glossary.md](wiki/glossary.md) — The project's vocabulary — what command, feature dir, sibling command and shelved mean here, plus the Jukebox terms (jukebox, player, track, playlist, queue, bot account) borrowed from atrium, and which synonyms to stop using.
-- [wiki/jukebox.md](wiki/jukebox.md) — How the bot's Jukebox works (briefs 25-27) — the local atrium sign-in, the long-poll link to atrium, the per-guild player and disk buffer, the Speaker seam, atrium's status rules the bot must follow, triage log lines, and the live Discord checks still owed. Atrium's side is atrium's corpus/wiki/jukebox.md.
+- [wiki/jukebox.md](wiki/jukebox.md) — How the bot's Jukebox works (built 2026-10-09, signing in to atrium's own accounts since 2026-10-13) — the local atrium sign-in, the long-poll link to atrium, the per-guild player and disk buffer, the Speaker seam, atrium's status rules the bot must follow, triage log lines, and the live Discord checks still owed. Atrium's side is atrium's corpus/wiki/jukebox.md.
 - [wiki/open-questions.md](wiki/open-questions.md) — The genuinely unresolved threads only — none open as of 2026-10-07.
 - [wiki/overview.md](wiki/overview.md) — What just-a-bot is: a personal, feature-rich Discord bot in an npm-workspaces repo (bot, shared library, docs site); the orientation page and the map of what lives where.
-- [wiki/status.md](wiki/status.md) — Dated snapshot (2026-10-31) of where the project stands — one Discord bot, deployed as a container on 2026-10-07; the Jukebox built in briefs 25-27 but not yet heard in Discord or deployed; the audit briefs 04-24 all done; briefs 29-39 from the 2026-10-20 sweep queued, the run paused before 29 on 2026-10-28.
+- [wiki/status.md](wiki/status.md) — Dated snapshot (2026-11-02) of just-a-bot, per area — the Discord-only bot, deployed as a container with its state outside the mirror (2026-10-07); the 2026-09-26 audit fixes (2026-10-02); the Jukebox built (2026-10-09, atrium's own login 2026-10-13) but not heard in Discord or deployed; the docs site on Docusaurus (2026-10-19, not deployed); eleven open briefs from the 2026-10-20 sweep; what is left for the owner.
 
 <!-- END GENERATED CATALOG -->
 
 ## Work
 
-- [wiki/status.md](wiki/status.md) — the brief/area catalog and current state
-  (this page does **not** duplicate it)
+- [wiki/status.md](wiki/status.md) — dated state per area, open briefs and the
+  owner's next steps
 - [todos/](todos/) — captured ideas, pre-spec
-- [briefs/todo/](briefs/todo/) — numbered specs ready to build
+- [briefs/todo/](briefs/todo/) — numbered specs ready to build, run in number
+  order (numbering restarted at 01 on 2026-11-02)
 - [briefs/done/](briefs/done/) — completed, immutable
 - [briefs/superseded/](briefs/superseded/) — undone or replaced, kept for history

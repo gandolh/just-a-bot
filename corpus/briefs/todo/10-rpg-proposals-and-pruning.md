@@ -1,4 +1,4 @@
-# Task 38: RPG: one pending proposal per pair, and prune finished duels and trades
+# Task 10: RPG: one pending proposal per pair, and prune finished duels and trades
 
 ## Context
 

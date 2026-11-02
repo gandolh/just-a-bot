@@ -1,6 +1,6 @@
 ---
-summary: How the bot's Jukebox works (briefs 25-27) — the local atrium sign-in, the long-poll link to atrium, the per-guild player and disk buffer, the Speaker seam, atrium's status rules the bot must follow, triage log lines, and the live Discord checks still owed. Atrium's side is atrium's corpus/wiki/jukebox.md.
-updated: 2026-10-13
+summary: How the bot's Jukebox works (built 2026-10-09, signing in to atrium's own accounts since 2026-10-13) — the local atrium sign-in, the long-poll link to atrium, the per-guild player and disk buffer, the Speaker seam, atrium's status rules the bot must follow, triage log lines, and the live Discord checks still owed. Atrium's side is atrium's corpus/wiki/jukebox.md.
+updated: 2026-11-02
 ---
 
 # Jukebox (bot side)
@@ -12,7 +12,7 @@ comes from atrium"). Code: `bots/discord/src/jukebox/`.
 
 ## Pieces
 
-- **`atrium/`** (briefs 25, 29): logs in to atrium as the Bot account with
+- **`atrium/`**: logs in to atrium as the Bot account with
   `POST /auth/login` and calls it with the `atrium_session` cookie, kept in
   memory only. A 401 logs in again once (single-flight) and retries; a renewed
   `Set-Cookie` replaces the kept one; a refused password is tried once only
@@ -45,8 +45,8 @@ comes from atrium"). Code: `bots/discord/src/jukebox/`.
 
 ## Atrium's rules
 
-Atrium's status rules as built (atrium brief 82; atrium's `jukebox.md` has the
-why):
+Atrium's status rules as built (atrium's Jukebox page, 2026-10-09; atrium's
+`jukebox.md` has the why):
 - A poll **without `after`** tells atrium the bot restarted: every playing or
   paused Player goes idle, its Queue kept. So the cursor is taken once, at
   ready, and a reconnect keeps the one it has.
@@ -84,7 +84,7 @@ memory, so it can run beside the bot.
 
 ## The command
 
-`/jukebox` (brief 27, `commands/jukebox.ts`) is the second remote; atrium's
+`/jukebox` (`commands/jukebox.ts`) is the second remote; atrium's
 page is the first. Every subcommand calls atrium and changes nothing locally.
 Each call gets 2.5 s; a reply pending at 1.5 s is deferred ephemerally, so
 errors stay ephemeral and controls still answer publicly. Reply text and the
@@ -92,8 +92,9 @@ autocomplete filter are in `jukebox/format.ts`.
 
 ## Owed: hearing it in Discord
 
-Not run yet: this machine's `bots/discord/.env` is the one the deploy pushes,
-so its token is production's. With a dev application, a dev guild, `npm run
+Not run yet. The deploy pushes the local `bots/discord/.env` when there is one,
+so production's token must never be used for a local run (none is on this
+machine since 2026-11-01). With a dev application, a dev guild, `npm run
 discord:register` and `npm run discord:dev` against the local atrium:
 - Join puts the bot in the channel; a cold start is audible within 2 s; a
   buffered next Track starts with no gap over 1 s.
@@ -104,5 +105,19 @@ discord:register` and `npm run discord:dev` against the local atrium:
 - Every `/jukebox` subcommand, a song added from Discord showing on atrium's
   page with the Discord name, and `/help` listing it under Music.
 - Production: deploy with `node cli.ts just-a-bot deploy` from
-  `vps-deploy` once atrium has briefs 80 to 82 and the `discord-bot`
-  account exists.
+  `vps-deploy` once atrium's Jukebox and its own accounts are deployed and
+  its `jukebox` user is seeded (the owner's steps are in the 2026-10-13 log
+  entry). The deploy registers the slash commands.
+
+## Before 2026-10-13: the Ward sign-in
+
+From 2026-10-09 the Bot account was a Ward account (`discord-bot`), with a
+password login and Ward's rotating refresh token saved in
+`data/jukebox-session.json`. Atrium stopped reading Ward's cookie on
+2026-10-13, so the bot moved to atrium's own login; the spent file is deleted
+at boot. Two Ward facts seen live on 2026-10-08, in case anything signs in to
+Ward this way again: `accessTokenExpiresAt` comes as epoch **seconds** and
+`refreshTokenExpiresAt` as an ISO string, and a rotated refresh token used
+twice (two processes sharing the file) gets the session revoked. The
+not-before time after a 429 or a network failure survives in today's
+`session.ts`.

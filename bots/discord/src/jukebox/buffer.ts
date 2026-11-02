@@ -10,7 +10,7 @@ import { logger } from '@bots/shared';
 const log = logger.scoped('jukebox');
 
 /**
- * The per-guild disk buffer (brief 26). Each Track is converted once, MP3 to
+ * The per-guild disk buffer. Each Track is converted once, MP3 to
  * Ogg Opus, so the voice library can send it without FFmpeg or an Opus
  * encoder at playback. The current Track and the next two are kept on disk,
  * never in RAM, and never more than three files per guild. A Track not yet

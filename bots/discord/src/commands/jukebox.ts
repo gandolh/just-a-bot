@@ -19,10 +19,10 @@ import {
 import type { Track } from '../jukebox/types.ts';
 
 /**
- * `/jukebox` (brief 27): the Discord remote for atrium's Jukebox. Atrium's
+ * `/jukebox`: the Discord remote for atrium's Jukebox. Atrium's
  * page is the other remote for the same Player. Every subcommand goes through
- * atrium, which sends the matching command down the bot's long-poll (brief
- * 26); nothing changes here locally. Anyone in the guild may use it, and the
+ * atrium, which sends the matching command down the bot's long-poll;
+ * nothing changes here locally. Anyone in the guild may use it, and the
  * bot never posts on its own.
  */
 

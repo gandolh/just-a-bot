@@ -17,7 +17,7 @@ import { logger } from '@bots/shared';
 const log = logger.scoped('jukebox');
 
 /**
- * The voice side of the Jukebox, one per guild (brief 26). The link and the
+ * The voice side of the Jukebox, one per guild. The link and the
  * player only know this interface, so they run unchanged against a stand-in
  * when there is no Discord to talk to; `DiscordSpeaker` below is the real one.
  */

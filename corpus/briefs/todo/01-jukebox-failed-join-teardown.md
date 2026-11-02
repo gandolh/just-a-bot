@@ -1,4 +1,4 @@
-# Task 29: Jukebox: tear down a voice join that times out
+# Task 01: Jukebox: tear down a voice join that times out
 
 ## Context
 

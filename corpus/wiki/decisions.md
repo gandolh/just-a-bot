@@ -1,6 +1,6 @@
 ---
 summary: Locked tech/design calls with their rejected alternatives and reasons — read before proposing pnpm, a build step, or an ORM-style rewrite.
-updated: 2026-10-08
+updated: 2026-11-02
 ---
 
 # Decisions (locked)
@@ -42,7 +42,7 @@ static documentation site that the bot neither imports nor needs at runtime.
 
 ## A container in production, pm2 locally (revisited 2026-10-04)
 
-_pre-2026-06-26, revisited 2026-10-04 (brief 07)_ — Production runs the bot as
+_pre-2026-06-26, revisited 2026-10-04 (the state-volume move, [audit-fixes.md](audit-fixes.md))_ — Production runs the bot as
 a container through the estate's deploy (`vps-deploy` `stacks/just-a-bot.ts`,
 container-only since 2026-09-06; the image is from `53a5cbb`). Its state is two
 bind mounts outside the rsync mirror. `docker compose logs` replaces `pm2 logs`
@@ -75,8 +75,7 @@ starting point for a rebuild. The new design shares nothing with them.
 
 ## Music comes from atrium, signed in as the bot's own atrium user
 
-_2026-10-08_, grilled with the owner; sign-in revised 2026-10-13 (wzd_auth
-brief 29). This is the in-house design the entry above was waiting for. The bot
+_2026-10-08_, grilled with the owner; sign-in revised 2026-10-13. This is the in-house design the entry above was waiting for. The bot
 plays only Tracks from atrium's music library, and it has no other music source.
 It reaches atrium as its own local user, logging in with a password from `.env`
 the way a person does (`POST /auth/login`). That user has the role
@@ -94,7 +93,7 @@ one new login, a refused password is tried once until a restart.
 Rejected: audio files on the bot's own disk (a second library to keep in step);
 a key only atrium and the bot share (atrium would authenticate a stranger); a
 profile in the owner's account (it hands the bot the owner's session); a Ward
-account (atrium dropped Ward's cookie, its brief 22); a cookie on disk.
+account (atrium dropped Ward's cookie on 2026-10-13, its D58); a cookie on disk.
 Reason: atrium already has the library, the covers, the metadata, the upload
 page and HTTP range streaming. The bot only has to play. A separate user is the
 one way to make "the bot can only use its own profile" a rule, because atrium
@@ -197,8 +196,7 @@ reverted. Cost accepted: command-list clutter and two surfaces to maintain.
 
 ## Production state: the owner reads the server and picks each file
 
-_2026-10-04, owner_ — Before briefs 07 and 20 deploy, the owner runs the
-read-only checks on the VPS (brief 20 step 1) and the side-by-side copy
-(step 4), then chooses the pm2-era or container copy per file. Rejected: the
-agent holding SSH to the box, even read-only. Repo-side changes can land first,
-but no deploy runs until the chosen files are in place.
+_2026-10-04, owner_ — Before the state move deploys, the owner checks the VPS
+and picks the pm2-era or container copy per file. Rejected: the agent holding
+SSH to the box, even read-only. Overtaken on 2026-10-07: the owner purged the
+state instead and the bot started fresh ([audit-fixes.md](audit-fixes.md)).

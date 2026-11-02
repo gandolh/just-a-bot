@@ -1,4 +1,4 @@
-# Task 33: Jukebox: make sure slow replies stay visible (first-run check)
+# Task 05: Jukebox: make sure slow replies stay visible (first-run check)
 
 ## Context
 

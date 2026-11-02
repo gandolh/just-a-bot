@@ -21,7 +21,7 @@ export interface AtriumInit extends Omit<RequestInit, 'signal' | 'body'> {
 }
 
 /**
- * Atrium, called as the Bot account (briefs 25 and 29). Every request carries
+ * Atrium, called as the Bot account. Every request carries
  * the `atrium_session` cookie; a 401 gets one new login and one retry. A
  * renewed cookie in any response replaces the old one. Each
  * failure becomes one of the errors in `errors.ts`, so callers decide by type:

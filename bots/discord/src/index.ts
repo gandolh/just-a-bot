@@ -36,7 +36,7 @@ const client = new Client({
     GatewayIntentBits.GuildMessages,
     GatewayIntentBits.MessageContent,
     GatewayIntentBits.DirectMessages,
-    // The Jukebox (brief 26): joining voice, and seeing who is in the channel.
+    // The Jukebox: joining voice, and seeing who is in the channel.
     GatewayIntentBits.GuildVoiceStates,
   ],
   partials: [Partials.Channel],

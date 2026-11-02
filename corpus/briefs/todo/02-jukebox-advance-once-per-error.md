@@ -1,4 +1,4 @@
-# Task 30: Jukebox: one playback error advances once
+# Task 02: Jukebox: one playback error advances once
 
 ## Context
 

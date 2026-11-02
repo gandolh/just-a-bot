@@ -24,7 +24,7 @@ export interface PlayerApi {
 }
 
 /**
- * One guild's speaker, steered by atrium (brief 26). It keeps no Player state
+ * One guild's speaker, steered by atrium. It keeps no Player state
  * of its own beyond what it is doing right now: which play, which Track, and
  * whether it is playing. Commands run one at a time, in order, so a `play`
  * that follows a `join` waits for the voice connection.

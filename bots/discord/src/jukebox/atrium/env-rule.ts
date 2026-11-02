@@ -1,6 +1,5 @@
 /**
- * The Jukebox's three variables are optional, but all or none (briefs 25 and
- * 29): two of three is a half-finished setup, and failing fast on boot names
+ * The Jukebox's three variables are optional, but all or none: two of three is a half-finished setup, and failing fast on boot names
  * what is missing instead of leaving the bot to discover it at the first
  * `/jukebox`.
  *
@@ -17,7 +16,7 @@ export function missingJukeboxVars(vars: Partial<Record<JukeboxEnvVar, string | 
   return missing.length === JUKEBOX_ENV_VARS.length ? [] : missing;
 }
 
-/** Variables from before brief 29, when the account was Ward's. Nothing reads them now. */
+/** Variables from before 2026-10-13, when the account was Ward's. Nothing reads them now. */
 export const STALE_JUKEBOX_VARS = ['JUKEBOX_WARD_URL', 'JUKEBOX_WARD_USERNAME', 'JUKEBOX_WARD_PASSWORD'] as const;
 
 /**

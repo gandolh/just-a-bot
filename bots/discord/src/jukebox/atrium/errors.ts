@@ -1,6 +1,6 @@
 /**
  * What can go wrong talking to atrium, sorted by what the caller should do
- * about it (brief 25). Brief 27 turns each into a reply in Discord.
+ * about it. `/jukebox` turns each into a reply in Discord.
  */
 
 /** The three `JUKEBOX_*` variables are unset. Not an error in the bot: the Jukebox is off. */

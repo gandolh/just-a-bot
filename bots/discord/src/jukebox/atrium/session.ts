@@ -7,7 +7,7 @@ import { JukeboxSignInFailed, JukeboxUnavailable } from './errors.ts';
 const log = logger.scoped('jukebox');
 
 /**
- * The Bot account's session on atrium, without a browser (brief 29).
+ * The Bot account's session on atrium, without a browser.
  *
  * Atrium has its own accounts. The bot logs in with `POST /auth/login` and
  * atrium answers with one cookie, `atrium_session` (14 days idle, sliding, and
@@ -29,7 +29,7 @@ const log = logger.scoped('jukebox');
  */
 
 const here = fileURLToPath(new URL('.', import.meta.url));
-/** Ward's refresh token, saved by briefs 25-28. Spent since brief 29: the session is atrium's own and lives in memory. */
+/** Ward's refresh token, saved until 2026-10-13. Spent since then: the session is atrium's own and lives in memory. */
 const SPENT_SESSION_FILE = resolve(here, '../../../data/jukebox-session.json');
 
 /** Delete the spent `jukebox-session.json`, if an older run left one. Best effort; never throws. */

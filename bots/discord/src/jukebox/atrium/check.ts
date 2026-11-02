@@ -3,7 +3,7 @@ import { AtriumClient, JukeboxForbidden } from './client.ts';
 import { AtriumSession } from './session.ts';
 
 /**
- * `npm run discord:jukebox-check` (briefs 25 and 29): prove the Bot account can
+ * `npm run discord:jukebox-check`: prove the Bot account can
  * reach atrium, without starting the bot. It logs in, calls `GET /health`, then
  * forgets the session and calls `GET /health` again to see the client log in
  * afresh, and finally calls `GET /library`. That last one must be refused with

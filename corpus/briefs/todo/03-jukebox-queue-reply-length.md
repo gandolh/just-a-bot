@@ -1,4 +1,4 @@
-# Task 31: Jukebox: keep `/jukebox queue` under Discord's 2000 characters
+# Task 03: Jukebox: keep `/jukebox queue` under Discord's 2000 characters
 
 ## Context
 

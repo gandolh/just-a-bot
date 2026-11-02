@@ -1,4 +1,4 @@
-# Task 34: Shutdown drains every store, even when one RPG world fails
+# Task 06: Shutdown drains every store, even when one RPG world fails
 
 ## Context
 
