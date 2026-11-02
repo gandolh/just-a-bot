@@ -34,6 +34,10 @@ Alice sees ephemeral: "Posted. ID: #1"
 
 A 60-second per-user cooldown (in-memory only, not persisted) prevents rapid
 re-submission. The user sees how many seconds remain if they try too early.
+The cooldown starts when a submission is accepted, before anything is posted,
+so several submissions sent at once post only one. A submission that is
+refused (no channel set, the channel gone or not writable) gives the cooldown
+back.
 
 ## Persistence
 

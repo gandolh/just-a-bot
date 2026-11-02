@@ -55,7 +55,7 @@ export const confess: Command = {
     }
     const sub = interaction.options.getSubcommand();
     if (sub === 'set-channel') return handleSetChannel(interaction);
-    if (sub === 'submit') return handleSubmit(interaction);
+    if (sub === 'submit') return void (await submitConfession(interaction));
   },
 };
 
@@ -87,10 +87,25 @@ async function handleSetChannel(interaction: ChatInputCommandInteraction): Promi
   });
 }
 
-async function handleSubmit(interaction: ChatInputCommandInteraction): Promise<void> {
-  const userId = interaction.user.id;
+/** The confession store, swappable so a test needs no data directory. */
+export interface ConfessionStoreApi {
+  loadStore: typeof loadStore;
+  addConfession: typeof addConfession;
+}
 
-  const lastAt = cooldowns.get(`${interaction.guildId!}:${userId}`) ?? 0;
+/**
+ * `/confess submit`. The cooldown is taken before the first await: taken after
+ * the post, as it used to be, every one of several submissions fired at once
+ * (a double Enter, a script) passed the check and posted, and in an anonymous
+ * channel moderators cannot tell who is flooding it. A submission that does
+ * not post gives the cooldown back, so a refusal costs nothing.
+ */
+export async function submitConfession(
+  interaction: ChatInputCommandInteraction,
+  store: ConfessionStoreApi = { loadStore, addConfession },
+): Promise<void> {
+  const key = `${interaction.guildId!}:${interaction.user.id}`;
+  const lastAt = cooldowns.get(key) ?? 0;
   const remaining = Math.ceil((lastAt + COOLDOWN_MS - Date.now()) / 1000);
   if (remaining > 0) {
     await interaction.reply({
@@ -99,14 +114,25 @@ async function handleSubmit(interaction: ChatInputCommandInteraction): Promise<v
     });
     return;
   }
+  const stamp = Date.now();
+  cooldowns.set(key, stamp);
+  let posted = false;
+  try {
+    posted = await postConfession(interaction, store);
+  } finally {
+    if (!posted && cooldowns.get(key) === stamp) cooldowns.delete(key);
+  }
+}
 
-  const store = await loadStore(interaction.guildId!);
+/** Validate and post one confession. True once it is in the channel. */
+async function postConfession(interaction: ChatInputCommandInteraction, api: ConfessionStoreApi): Promise<boolean> {
+  const store = await api.loadStore(interaction.guildId!);
   if (!store.channelId) {
     await interaction.reply({
       content: 'An admin needs to run `/confess set-channel` first.',
       ephemeral: true,
     });
-    return;
+    return false;
   }
 
   const text = interaction.options.getString('text', true);
@@ -115,7 +141,7 @@ async function handleSubmit(interaction: ChatInputCommandInteraction): Promise<v
       content: `Your confession is too long (${text.length} / ${MAX_LENGTH} chars).`,
       ephemeral: true,
     });
-    return;
+    return false;
   }
 
   let fetchError: unknown;
@@ -135,7 +161,7 @@ async function handleSubmit(interaction: ChatInputCommandInteraction): Promise<v
         ? "I can't access the confession channel. Give me **View Channel** and **Send Messages** permission there, then try again."
         : 'The configured confession channel no longer exists. Ask an admin to run `/confess set-channel` again.';
     await interaction.reply({ content, ephemeral: true });
-    return;
+    return false;
   }
 
   if (!targetChannel.isTextBased() || !('send' in targetChannel)) {
@@ -143,12 +169,11 @@ async function handleSubmit(interaction: ChatInputCommandInteraction): Promise<v
       content: 'The configured confession channel is not a text channel. Ask an admin to run `/confess set-channel` again.',
       ephemeral: true,
     });
-    return;
+    return false;
   }
 
-  // Record the confession first so it gets a stable ID, but only commit the
-  // cooldown after the post actually succeeds.
-  const entry = await addConfession(interaction.guildId!, text);
+  // Record the confession first so it gets a stable ID.
+  const entry = await api.addConfession(interaction.guildId!, text);
 
   const embed = new EmbedBuilder()
     .setTitle(`Anonymous Confession #${entry.id}`)
@@ -163,13 +188,12 @@ async function handleSubmit(interaction: ChatInputCommandInteraction): Promise<v
       content: "I couldn't post to the confession channel — check that I have **Send Messages** permission there.",
       ephemeral: true,
     });
-    return;
+    return false;
   }
-
-  cooldowns.set(`${interaction.guildId!}:${userId}`, Date.now());
 
   await interaction.reply({
     content: `Posted. ID: #${entry.id}`,
     ephemeral: true,
   });
+  return true;
 }
