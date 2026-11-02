@@ -1034,3 +1034,10 @@ discord.js gives a thread its parent's permissions, so a link into a mod-only pr
 public channel passed the check and the quote went public. `canQuoteFrom()` now also requires,
 for a private thread, that the member is in it (asked of Discord, not the cache) or has Manage
 Threads. Same single refusal. Typecheck clean, 81/81 bot tests.
+
+## [2026-11-02] done | Brief 08: RPG names cannot ping
+
+Character names lose mention syntax, @everyone, @here and backticks at creation and when a world
+loads; crier posts parse no mentions, and a duel proposal pings only the defender, now in its first
+post, since Discord does not notify for a mention added by an edit. Typecheck clean, 84/84 bot
+tests. The RPG manual still describes the old slash subcommands: filed as a todo.

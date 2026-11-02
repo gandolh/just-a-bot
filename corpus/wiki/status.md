@@ -51,8 +51,8 @@ them in order: 01 (a voice join that never gets ready is dropped), 02 (one
 playback error advances once), 03 (`/jukebox queue` under 2000 characters),
 04 (a song that failed to buffer is not refetched every 10 s), 05 (a slow
 public answer stays visible; live check owed), 06 (shutdown drains every
-store when an RPG world fails) and 07 (`/quote add` refuses private threads
-the member is not in) are done.
+store when an RPG world fails), 07 (`/quote add` refuses private threads
+the member is not in) and 08 (RPG names cannot ping) are done.
 
 ## Next (owner)
 

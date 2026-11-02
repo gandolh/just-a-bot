@@ -28,7 +28,9 @@ The checks still owed are at the end.
   `allowedMentions: { parse: ['users'], repliedUser: true }` covers every place
   user text is echoed (reminders, `/ask`, RPG duel proposals, the town crier),
   so no stored text can ping `@everyone` or a role. `/give` keeps its own
-  per-message override. RPG character names still ping members (open brief 08).
+  per-message override. Users were still pingable through RPG character
+  names until 2026-11-02: names are now cleaned of mention syntax, crier posts
+  parse no mentions, and a duel proposal pings only the defender.
 
 ## Games
 
