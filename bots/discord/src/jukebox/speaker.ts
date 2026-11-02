@@ -67,17 +67,28 @@ export interface JukeboxHost {
 const READY_TIMEOUT_MS = 20_000;
 const RECONNECT_GRACE_MS = 5_000;
 
-class DiscordSpeaker implements Speaker {
+/** What a test may swap: the voice library's join, and how long a join may take to get ready. */
+export interface DiscordSpeakerOptions {
+  join?: typeof joinVoiceChannel;
+  readyTimeoutMs?: number;
+}
+
+export class DiscordSpeaker implements Speaker {
   private connection: VoiceConnection | null = null;
   private resource: AudioResource | null = null;
   private stopping = false;
   private handlers: SpeakerHandlers = {};
   private readonly player = createAudioPlayer({ behaviors: { noSubscriber: NoSubscriberBehavior.Pause } });
+  private readonly joinChannel: typeof joinVoiceChannel;
+  private readonly readyTimeoutMs: number;
 
   constructor(
     private readonly client: Client,
     readonly guildId: string,
+    options: DiscordSpeakerOptions = {},
   ) {
+    this.joinChannel = options.join ?? joinVoiceChannel;
+    this.readyTimeoutMs = options.readyTimeoutMs ?? READY_TIMEOUT_MS;
     this.player.on(AudioPlayerStatus.Idle, () => {
       const deliberate = this.stopping;
       this.stopping = false;
@@ -121,7 +132,7 @@ class DiscordSpeaker implements Speaker {
   async join(channelId: string): Promise<void> {
     const guild = this.guild();
     if (!guild) throw new Error(`the bot is not in guild ${this.guildId}`);
-    const connection = joinVoiceChannel({
+    const connection = this.joinChannel({
       channelId,
       guildId: guild.id,
       adapterCreator: guild.voiceAdapterCreator,
@@ -149,7 +160,20 @@ class DiscordSpeaker implements Speaker {
         }
       });
     }
-    await entersState(connection, VoiceConnectionStatus.Ready, READY_TIMEOUT_MS);
+    try {
+      await entersState(connection, VoiceConnectionStatus.Ready, this.readyTimeoutMs);
+    } catch {
+      // Never ready: no Connect or Speak, a full channel, or Discord's voice
+      // down. A half-open connection would still read as connected, and a play
+      // would go to a player nobody hears. Let go of it before destroying it,
+      // so the Destroyed listener stays quiet: the caller reports the failure.
+      if (this.connection === connection) {
+        this.connection = null;
+        this.stop();
+      }
+      if (connection.state.status !== VoiceConnectionStatus.Destroyed) connection.destroy();
+      throw new Error(`the voice connection was not ready within ${this.readyTimeoutMs / 1000} s`);
+    }
     this.membersChanged();
   }
 

@@ -1,5 +1,6 @@
 import {
   AutocompleteInteraction,
+  ChannelType,
   ChatInputCommandInteraction,
   GuildMember,
   SlashCommandBuilder,
@@ -105,12 +106,22 @@ function settings(guildId: string, body: { shuffle?: boolean; repeat?: string })
   });
 }
 
-/** The invoker's current voice channel in this guild, if any. */
-function invokerChannel(interaction: ChatInputCommandInteraction): { id: string; name: string } | null {
+/**
+ * The invoker's current voice channel in this guild, if any, and whether the
+ * bot can play there: a voice channel (not a stage) where it has Connect and
+ * Speak and that is not full. `joinable` and `speakable` are discord.js's own
+ * checks; atrium's page lists only channels with Connect and Speak.
+ */
+function invokerChannel(interaction: ChatInputCommandInteraction): { id: string; name: string; usable: boolean } | null {
   const member = interaction.member;
   const channel = member instanceof GuildMember ? member.voice.channel : null;
-  return channel ? { id: channel.id, name: channel.name } : null;
+  if (!channel) return null;
+  const usable = channel.type === ChannelType.GuildVoice && channel.joinable && channel.speakable;
+  return { id: channel.id, name: channel.name, usable };
 }
+
+const cantJoin = (name: string) =>
+  `I can't join **${name}**. I need Connect and Speak there, and room in the channel.`;
 
 function invokerName(interaction: ChatInputCommandInteraction): string {
   const member = interaction.member;
@@ -180,6 +191,7 @@ export const jukebox: Command = {
           if (!player.voiceChannel) {
             const channel = invokerChannel(interaction);
             if (!channel) return tell('Join a voice channel first, or use `/jukebox join`.');
+            if (!channel.usable) return tell(cantJoin(channel.name));
             player = await control(guildId, { action: 'join', channelId: channel.id });
           }
           const next = interaction.options.getBoolean('next') ?? false;
@@ -209,6 +221,7 @@ export const jukebox: Command = {
         case 'join': {
           const channel = invokerChannel(interaction);
           if (!channel) return tell('Join a voice channel first.');
+          if (!channel.usable) return tell(cantJoin(channel.name));
           await control(guildId, { action: 'join', channelId: channel.id });
           return say(`Joining **${channel.name}**.`);
         }

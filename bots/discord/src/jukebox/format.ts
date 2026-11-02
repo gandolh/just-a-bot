@@ -123,6 +123,7 @@ export function errorReply(err: unknown): string {
   if (err instanceof JukeboxRequestError) {
     if (err.code === 'PLAYER_OFFLINE' || err.code === 'PLAYER_NOT_FOUND') return 'The player is offline.';
     if (err.code === 'NOT_A_TRACK') return "That isn't a song in the library. Pick one from the list.";
+    if (err.code === 'NOT_IN_VOICE') return "I'm not in a voice channel. Use `/jukebox join` from yours first.";
     return `Atrium refused that (${err.code ?? err.status}).`;
   }
   return 'Something went wrong talking to atrium.';

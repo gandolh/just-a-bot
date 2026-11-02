@@ -113,4 +113,5 @@ test('each failure gets its reply', () => {
   assert.equal(errorReply(new JukeboxUnavailable('x')), 'Atrium is unreachable right now.');
   assert.equal(errorReply(new JukeboxRequestError(409, 'PLAYER_OFFLINE')), 'The player is offline.');
   assert.equal(errorReply(new JukeboxRequestError(400, 'NOT_A_TRACK')), "That isn't a song in the library. Pick one from the list.");
+  assert.equal(errorReply(new JukeboxRequestError(409, 'NOT_IN_VOICE')), "I'm not in a voice channel. Use `/jukebox join` from yours first.");
 });

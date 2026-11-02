@@ -41,7 +41,7 @@ export class GuildPlayer {
   constructor(
     readonly guildId: string,
     private readonly speaker: Speaker,
-    private readonly buffer: TrackBuffer,
+    private readonly buffer: Pick<TrackBuffer, 'update' | 'open' | 'clear'>,
     private readonly api: PlayerApi,
   ) {
     this.alone = new AloneWatch({
@@ -57,10 +57,8 @@ export class GuildPlayer {
       listeners: (humans) => this.alone.update(humans),
       channels: () => this.api.report(this.guildId),
       disconnected: () => {
-        // Kicked, or the channel went away. Atrium hears "no voice on the
-        // current play" and sets the Player idle.
-        this.alone.reset();
-        this.state = 'idle';
+        // Kicked, or the channel went away.
+        this.lostVoice();
         this.api.report(this.guildId);
       },
     });
@@ -104,7 +102,10 @@ export class GuildPlayer {
         try {
           await this.speaker.join(command.channelId);
         } catch (err) {
+          // The speaker let go of the connection, so the report below has no
+          // voice channel and atrium's page says so.
           log.warn(`joining voice in ${this.guildId} failed: ${(err as Error).message}`);
+          this.lostVoice();
         }
         break;
       case 'leave':
@@ -136,6 +137,15 @@ export class GuildPlayer {
         return; // Nothing atrium needs to hear.
     }
     this.api.report(this.guildId);
+  }
+
+  /**
+   * No voice connection any more. The reports that follow say idle with no
+   * voice channel, and atrium ends the current play from them.
+   */
+  private lostVoice(): void {
+    this.alone.reset();
+    this.state = 'idle';
   }
 
   private idle(): void {

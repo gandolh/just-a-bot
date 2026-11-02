@@ -102,6 +102,13 @@ All log lines carry the `[jukebox]` scope.
 - **"The player is offline."** Atrium has not heard from the bot for 30
   seconds: the bot is down, or its link stopped (see the two lines above).
 - **The bot doesn't join.** It needs the Connect and Speak permissions in that
-  channel; only channels where it has both are offered on atrium's page. The
-  log says `joining voice in <guild> failed: …`. Every song it starts logs
+  channel, and room in it; only channels where it has both permissions are
+  offered on atrium's page. From Discord, `/jukebox join` and `/jukebox play`
+  check first and answer "I can't join **channel**" instead. A join that is
+  still not ready after 20 seconds is dropped: the log says `joining voice in
+  <guild> failed: the voice connection was not ready within 20 s`, and atrium's
+  page shows "Not in a voice channel". Every song it starts logs
   `playing "<title>" in <guild> (live|buffered)`.
+- **"I'm not in a voice channel."** Skip, previous and resume need the bot in
+  a voice channel (atrium answers `NOT_IN_VOICE`). Use `/jukebox join` first;
+  `/jukebox play` joins by itself.
