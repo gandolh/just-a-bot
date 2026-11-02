@@ -1,13 +1,13 @@
 ---
-summary: Dated snapshot (2026-11-02) of just-a-bot, per area — the Discord-only bot, deployed as a container with its state outside the mirror (2026-10-07); the 2026-09-26 audit fixes (2026-10-02); the Jukebox built (2026-10-09, atrium's own login 2026-10-13) but not heard in Discord or deployed; the docs site on Docusaurus (2026-10-19, not deployed); eleven open briefs from the 2026-10-20 sweep; what is left for the owner.
+summary: Dated snapshot (2026-11-02) of just-a-bot, per area — the Discord-only bot, deployed as a container with its state outside the mirror (2026-10-07); the 2026-09-26 audit fixes (2026-10-02); the Jukebox built (2026-10-09, atrium's own login 2026-10-13) but not heard in Discord or deployed; the docs site on Docusaurus (2026-10-19, not deployed); the eleven briefs of the 2026-10-20 sweep built on 2026-11-02, not deployed; what is left for the owner.
 updated: 2026-11-02
 ---
 
 # Status — 2026-11-02
 
-`origin/main` is at `523dfe9`; the local commits after it (`aad247f` and the
-briefs reset) are not pushed. Typecheck is clean and `npm test` passes 67
-tests (62 in the bot, 5 in `shared`). Production runs the 2026-10-07
+`origin/main` is at `523dfe9`; the local commits after it (`aad247f`, the
+briefs reset and the 2026-11-02 brief run) are not pushed. Typecheck is clean
+and `npm test` passes 104 tests (99 in the bot, 5 in `shared`). Production runs the 2026-10-07
 container. Brief numbering restarted at 01 on 2026-11-02 (see
 [`../log.md`](../log.md), "Briefs reset").
 
@@ -44,17 +44,13 @@ container. Brief numbering restarted at 01 on 2026-11-02 (see
 
 ## Open briefs
 
-Eleven briefs from the 2026-10-20 improvement sweep, in build order:
-01-05 fix the Jukebox before its first run (05 is a check to make on that
-run), 06-09 are Now items and 10-11 Next items. The 2026-11-02 run builds
-them in order: 01 (a voice join that never gets ready is dropped), 02 (one
-playback error advances once), 03 (`/jukebox queue` under 2000 characters),
-04 (a song that failed to buffer is not refetched every 10 s), 05 (a slow
-public answer stays visible; live check owed), 06 (shutdown drains every
-store when an RPG world fails), 07 (`/quote add` refuses private threads
-the member is not in), 08 (RPG names cannot ping), 09 (the `/confess`
-cooldown is taken before the first await) and 10 (one RPG proposal per pair,
-finished duels and trades pruned) are done.
+None. The eleven briefs from the 2026-10-20 improvement sweep were built on
+2026-11-02, one commit each plus a corpus commit (see [`../log.md`](../log.md)):
+01-05 the Jukebox's failure paths, checked against atrium's source, 06-09 the
+Now items (shutdown drain, private-thread quotes, RPG names, the `/confess`
+race), 10-11 the Next items (RPG proposals and pruning, `/ask` limits). None of
+it is deployed or run in Discord. One todo is open: the RPG manual describes
+slash subcommands the command no longer has.
 
 ## Next (owner)
 
@@ -69,6 +65,14 @@ finished duels and trades pruned) are done.
 - **Deploy the docs site** from `vps-deploy`.
 - **The 2026-10-02 fixes in Discord**: the list at the end of
   [audit-fixes.md](audit-fixes.md).
+- **The 2026-11-02 briefs in Discord** (each brief's outcome has its check):
+  `/jukebox play` from a channel without Speak is refused (01); a song atrium
+  cannot serve is skipped once, not twice (02); a slow `/jukebox skip` stays
+  visible to a second account (05); `/quote add` into a private thread you are
+  not in is refused (07); a duel challenge notifies the defender once (08, 10);
+  `/ask` refuses a second question in flight (11).
+- **Decide `/ask`'s models**: production offers only `OLLAMA_MODEL` until
+  `OLLAMA_MODELS` is set in its `.env`.
 - **Rotate the Activity secrets**: `DISCORD_CLIENT_SECRET`,
   `SESSION_HMAC_KEY` and `ENGINE_AUTH_TOKEN` from the 2026-08 experiment, or
   delete that app in the developer portal. Deleting the local `.env` did not

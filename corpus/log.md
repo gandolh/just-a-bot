@@ -1060,3 +1060,12 @@ are no longer stored. Typecheck clean, 93/93 bot tests.
 The owner put production's `bots/discord/.env` back on 2026-11-02, after a day without one.
 status.md and jukebox.md said there was none; they now say the local copy is production's and must
 not be edited, replaced, or loaded by a local run of the bot or a script.
+
+## [2026-11-02] done | Brief 11: `/ask` limits the model, the rate and the length
+
+The model option offers `OLLAMA_MODEL` plus the new optional `OLLAMA_MODELS` as choices and refuses
+anything else; each member gets one question in flight and 30 s between questions; an answer takes
+at most three messages and says when it was cut. Ollama errors are still public (outside the
+brief's steps). Typecheck clean, 99/99 bot tests. That empties `briefs/todo/`: all eleven briefs
+of the 2026-10-20 sweep are built, none deployed or run in Discord; the owner's checks are in
+status.md.
