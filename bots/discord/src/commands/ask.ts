@@ -1,25 +1,19 @@
 import { SlashCommandBuilder } from 'discord.js';
 import type { Command } from './types.ts';
 import { chat, OllamaError } from '../ollama/chat.ts';
+import { AskLimiter, allowedModels, pickModel } from '../ollama/limits.ts';
+import { answerMessages } from '../ollama/reply.ts';
 import { env } from '../env.ts';
 
-const DISCORD_MESSAGE_LIMIT = 2000;
 const RESPONSE_TIMEOUT_MS = 60_000;
 
-function splitForDiscord(text: string): string[] {
-  if (text.length <= DISCORD_MESSAGE_LIMIT) return [text];
-  const chunks: string[] = [];
-  let remaining = text;
-  while (remaining.length > DISCORD_MESSAGE_LIMIT) {
-    const slice = remaining.slice(0, DISCORD_MESSAGE_LIMIT);
-    const breakAt = Math.max(slice.lastIndexOf('\n\n'), slice.lastIndexOf('\n'), slice.lastIndexOf(' '));
-    const cut = breakAt > DISCORD_MESSAGE_LIMIT * 0.5 ? breakAt : DISCORD_MESSAGE_LIMIT;
-    chunks.push(remaining.slice(0, cut));
-    remaining = remaining.slice(cut).trimStart();
-  }
-  if (remaining.length) chunks.push(remaining);
-  return chunks;
-}
+/**
+ * The models a member may pick. Any name used to go to Ollama on the owner's
+ * key; now the option offers these as choices, and `execute` refuses anything
+ * else (a stale registration, a hand-made request).
+ */
+const MODELS = allowedModels(env.OLLAMA_MODEL, env.OLLAMA_MODELS);
+const limiter = new AskLimiter();
 
 export const ask: Command = {
   data: new SlashCommandBuilder()
@@ -35,8 +29,8 @@ export const ask: Command = {
     .addStringOption((o) =>
       o
         .setName('model')
-        .setDescription(`Override the default model (default: ${env.OLLAMA_MODEL})`)
-        .setMaxLength(100),
+        .setDescription(`The model to ask (default: ${env.OLLAMA_MODEL})`.slice(0, 100))
+        .addChoices(...MODELS.map((name) => ({ name, value: name }))),
     ),
   async execute(interaction) {
     if (!env.OLLAMA_API_KEY) {
@@ -48,40 +42,57 @@ export const ask: Command = {
     }
 
     const prompt = interaction.options.getString('prompt', true);
-    const model = interaction.options.getString('model') ?? undefined;
-
-    await interaction.deferReply();
-
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), RESPONSE_TIMEOUT_MS);
-
-    let answer: string;
-    try {
-      answer = await chat({
-        model,
-        messages: [{ role: 'user', content: prompt }],
-        signal: controller.signal,
-      });
-    } catch (err) {
-      const reason =
-        err instanceof OllamaError
-          ? err.message
-          : controller.signal.aborted
-            ? `Model took longer than ${RESPONSE_TIMEOUT_MS / 1000}s to respond.`
-            : 'Unexpected error talking to Ollama.';
-      await interaction.editReply(`⚠️ ${reason}`);
+    const requested = interaction.options.getString('model');
+    const model = pickModel(requested, MODELS, env.OLLAMA_MODEL);
+    if (!model) {
+      await interaction.reply({ content: "That model isn't one of the models offered here.", ephemeral: true });
       return;
-    } finally {
-      clearTimeout(timer);
     }
 
-    const header = `> ${prompt.length > 200 ? prompt.slice(0, 197) + '…' : prompt}`;
-    const first = `${header}\n\n${answer}`;
-    const chunks = splitForDiscord(first);
+    // Taken before the first await, so a burst of commands gets one through.
+    const slot = limiter.claim(`${interaction.guildId ?? 'dm'}:${interaction.user.id}`);
+    if (!slot.ok) {
+      await interaction.reply({
+        content:
+          slot.reason === 'busy'
+            ? 'Your last question is still being answered.'
+            : `You're asking too fast. Wait ${slot.waitSeconds}s.`,
+        ephemeral: true,
+      });
+      return;
+    }
 
-    await interaction.editReply(chunks[0]);
-    for (const extra of chunks.slice(1)) {
-      await interaction.followUp(extra);
+    try {
+      await interaction.deferReply();
+
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), RESPONSE_TIMEOUT_MS);
+
+      let answer: string;
+      try {
+        answer = await chat({
+          model,
+          messages: [{ role: 'user', content: prompt }],
+          signal: controller.signal,
+        });
+      } catch (err) {
+        const reason =
+          err instanceof OllamaError
+            ? err.message
+            : controller.signal.aborted
+              ? `Model took longer than ${RESPONSE_TIMEOUT_MS / 1000}s to respond.`
+              : 'Unexpected error talking to Ollama.';
+        await interaction.editReply(`⚠️ ${reason}`);
+        return;
+      } finally {
+        clearTimeout(timer);
+      }
+
+      const [first, ...rest] = answerMessages(prompt, answer);
+      await interaction.editReply(first);
+      for (const extra of rest) await interaction.followUp(extra);
+    } finally {
+      slot.done();
     }
   },
 };
