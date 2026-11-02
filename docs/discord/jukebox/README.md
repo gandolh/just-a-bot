@@ -20,7 +20,7 @@ on its own; ask it with `/jukebox nowplaying`.
 | `/jukebox join` · `/jukebox leave` | Bring the bot into your voice channel, or send it out. |
 | `/jukebox shuffle on:<true/false>` | Shuffle the playlist (the queue always plays in order). |
 | `/jukebox repeat mode:<off/one song/the playlist>` | Repeat nothing, the current song, or the whole playlist. |
-| `/jukebox nowplaying` | Title, artist, album, and elapsed over total time. Only you see it. |
+| `/jukebox nowplaying` | Title, artist, album, and elapsed over total time. If atrium stopped the player after five songs in a row would not play, it says so. Only you see it. |
 | `/jukebox queue` | What is playing and the first 10 queued songs, with who added each. Only you see it. |
 
 Controls answer publicly ("Skipped.", "Added *Song* to the queue."). Lookups and
@@ -99,6 +99,11 @@ All log lines carry the `[jukebox]` scope.
   up to 30 seconds and logs `Jukebox link back` when atrium answers again. A
   song already buffered keeps playing meanwhile. If sign-ins are rate-limited
   the bot waits out atrium's `retryAfterSeconds` and says so.
+- **"Playback stopped: 5 songs in a row would not play".** Atrium gives up
+  after five songs fail in a row and names the last. Look for `playback
+  failed`, `could not open` or `ffmpeg failed` lines: a missing file, an
+  upload ffmpeg cannot read, or no ffmpeg in the image. The next play clears
+  the message.
 - **"The player is offline."** Atrium has not heard from the bot for 30
   seconds: the bot is down, or its link stopped (see the two lines above).
 - **The bot doesn't join.** It needs the Connect and Speak permissions in that

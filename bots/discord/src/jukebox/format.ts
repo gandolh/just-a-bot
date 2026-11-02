@@ -24,6 +24,8 @@ export interface PlayerView {
   repeat: 'off' | 'one' | 'all';
   queue: { id: number; track: Track; addedBy: { kind: 'profile' | 'discord'; name: string } }[];
   upcoming: Track[];
+  /** Why playback gave up after atrium's run of failed songs; null otherwise. The next play clears it. */
+  failure: string | null;
 }
 
 /** Discord's limits on autocomplete. */
@@ -86,7 +88,9 @@ function trackLine(track: Track): string {
 
 export function nowPlayingText(player: PlayerView, now: number): string {
   if (!player.online) return 'The player is offline.';
-  if (!player.track || player.state === 'idle') return 'Nothing is playing.';
+  if (!player.track || player.state === 'idle') {
+    return player.failure ? `Nothing is playing. Playback stopped: ${player.failure}` : 'Nothing is playing.';
+  }
   const time = `${formatTime(elapsedSeconds(player, now))} / ${formatTime(player.track.durationSeconds)}`;
   const paused = player.state === 'paused' ? ' (paused)' : '';
   return `${trackLine(player.track)}\n\`${time}\`${paused}`;

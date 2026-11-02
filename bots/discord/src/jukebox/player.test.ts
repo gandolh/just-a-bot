@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { PassThrough } from 'node:stream';
-import type { OpenTrack } from './buffer.ts';
+import type { OpenTrack, TrackBuffer } from './buffer.ts';
 import { GuildPlayer, shouldApplyPlay, type PlayerApi } from './player.ts';
 import type { Speaker, SpeakerHandlers, VoiceChannelInfo } from './speaker.ts';
 import type { BotCommand, JukeboxPlay, Track } from './types.ts';
@@ -58,7 +58,9 @@ class FakeSpeaker implements Speaker {
   }
 }
 
-const fakeBuffer = {
+type PlayerBuffer = Pick<TrackBuffer, 'update' | 'open' | 'clear'>;
+
+const fakeBuffer: PlayerBuffer = {
   update: () => {},
   open: async (): Promise<OpenTrack> => ({ stream: new PassThrough(), live: false, failed: () => false }),
   clear: async () => {},
@@ -104,4 +106,60 @@ test('a failed join reports no voice channel and stops playing', async () => {
   assert.equal(status.voiceChannel, null);
   assert.equal(status.state, 'idle');
   assert.equal(calls.reports, reportsBefore + 1, 'one report, from the join');
+});
+
+/** A player already playing play 1 (Track `a`), with atrium answering `advance` from `next`. */
+async function playing(next: (playId: number) => { play: JukeboxPlay | null; stale?: true }, buffer = fakeBuffer) {
+  const speaker = new FakeSpeaker();
+  const { api, calls } = fakeApi(next);
+  const player = new GuildPlayer(GUILD, speaker, buffer, api);
+  player.apply(command({ kind: 'join', channelId: CHANNEL.id }));
+  player.apply(playCommand(1, 'a'));
+  await settle();
+  return { speaker, player, calls };
+}
+
+const nextPlay = (playId: number): { play: JukeboxPlay } => ({
+  play: { playId: playId + 1, track: track(`after-${playId}`), upcoming: [] },
+});
+
+test('a playback error and the Idle after it advance once, as an error', async () => {
+  const { speaker, player, calls } = await playing(nextPlay);
+  speaker.handlers.error?.(new Error('unreadable'));
+  speaker.handlers.ended?.();
+  await settle();
+  assert.deepEqual(calls.advance, [{ playId: 1, reason: 'error' }]);
+  assert.equal(player.status().playId, 2, 'the next song plays, and is not skipped');
+  assert.equal(speaker.plays, 2);
+});
+
+test('a second event for a play atrium left unchanged does not advance again', async () => {
+  for (const answer of [{ play: null }, { play: null, stale: true as const }]) {
+    const { speaker, calls } = await playing(() => answer);
+    speaker.handlers.error?.(new Error('unreadable'));
+    speaker.handlers.ended?.();
+    await settle();
+    assert.equal(calls.advance.length, 1, JSON.stringify(answer));
+  }
+});
+
+test('the old song ending while the next one opens does not advance the next one', async () => {
+  let release!: () => void;
+  const opened = new Promise<void>((resolve) => (release = resolve));
+  const slowB: PlayerBuffer = {
+    ...fakeBuffer,
+    open: async (id: string): Promise<OpenTrack> => {
+      if (id === 'b') await opened;
+      return fakeBuffer.open(id);
+    },
+  };
+  const { speaker, player, calls } = await playing(nextPlay, slowB);
+  player.apply(playCommand(2, 'b'));
+  await settle();
+  speaker.handlers.ended?.(); // Song a runs out while b is still downloading.
+  release();
+  await settle();
+  assert.deepEqual(calls.advance, []);
+  assert.equal(player.status().playId, 2);
+  assert.equal(player.status().state, 'playing');
 });

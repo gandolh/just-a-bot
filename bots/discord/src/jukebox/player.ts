@@ -35,6 +35,10 @@ export class GuildPlayer {
   private track: Track | null = null;
   private upcoming: Track[] = [];
   private current: OpenTrack | null = null;
+  /** The play whose stream the speaker has. Its end or error is about this play, whatever started since. */
+  private sounding: number | null = null;
+  /** The last play `finished` asked atrium about, so a second event for it does not advance again. */
+  private advancedPlayId: number | null = null;
   private chain: Promise<void> = Promise.resolve();
   private readonly alone: AloneWatch;
 
@@ -48,11 +52,18 @@ export class GuildPlayer {
       pause: () => void this.api.control(this.guildId, 'pause').catch((err) => log.warn(`pausing an empty channel failed: ${err.message}`)),
       leave: () => void this.api.control(this.guildId, 'leave').catch((err) => log.warn(`leaving an empty channel failed: ${err.message}`)),
     });
+    // Both events read the play when they fire, not when the chain gets to
+    // them: by then a newer play may have started.
     speaker.setHandlers({
-      ended: () => this.enqueue(() => this.finished(this.current?.failed() ? 'error' : 'ended')),
+      ended: () => {
+        const playId = this.sounding;
+        const reason = this.current?.failed() ? 'error' : 'ended';
+        this.enqueue(() => this.finished(reason, playId));
+      },
       error: (err) => {
         log.warn(`playback failed in ${this.guildId}: ${err.message}`);
-        this.enqueue(() => this.finished('error'));
+        const playId = this.sounding;
+        this.enqueue(() => this.finished('error', playId));
       },
       listeners: (humans) => this.alone.update(humans),
       channels: () => this.api.report(this.guildId),
@@ -152,6 +163,7 @@ export class GuildPlayer {
     this.state = 'idle';
     this.track = null;
     this.current = null;
+    this.sounding = null;
     this.buffer.update(null, this.upcoming.map((t) => t.id));
   }
 
@@ -173,6 +185,7 @@ export class GuildPlayer {
     try {
       this.current = await this.buffer.open(play.track.id);
       this.speaker.play(this.current.stream);
+      this.sounding = play.playId;
       this.state = 'playing';
       log.info(`playing "${play.track.title}" in ${this.guildId} (${this.current.live ? 'live' : 'buffered'})`);
     } catch (err) {
@@ -180,20 +193,28 @@ export class GuildPlayer {
       this.state = 'idle';
       this.api.report(this.guildId);
       // Atrium could not hand over the file; ask for the next one.
-      await this.finished('error');
+      await this.finished('error', play.playId);
       return;
     }
     this.api.report(this.guildId);
   }
 
   /**
-   * The current Track ended or failed: ask atrium what plays next. If atrium
-   * cannot be reached, ask again later, outside the command chain so a newer
-   * command is never held up; a newer `play` makes the retry moot.
+   * A play ended or failed: ask atrium what plays next, once per play. A broken
+   * file gives the speaker's `error` and then its Idle; the first carries the
+   * reason, the second is dropped. Advancing twice would start the next song
+   * and then skip it, and the second advance, `ended`, would reset atrium's
+   * count of failed songs in a row. A play that is no longer current is
+   * dropped too. If atrium cannot be reached, ask again later, outside the
+   * command chain so a newer command is never held up; a newer `play` makes
+   * the retry moot.
    */
-  private async finished(reason: 'ended' | 'error', attempt = 0): Promise<void> {
-    if (this.playId === null) return;
-    const playId = this.playId;
+  private async finished(reason: 'ended' | 'error', playId: number | null, attempt = 0): Promise<void> {
+    if (playId === null || playId !== this.playId) return;
+    if (attempt === 0) {
+      if (this.advancedPlayId === playId) return;
+      this.advancedPlayId = playId;
+    }
     this.state = 'idle';
     let answer: Awaited<ReturnType<PlayerApi['advance']>>;
     try {
@@ -204,7 +225,7 @@ export class GuildPlayer {
       setTimeout(() => {
         // Not if a newer play started, or a stop or leave cleared the Track meanwhile.
         if (this.playId === playId && this.state === 'idle' && this.track !== null) {
-          this.enqueue(() => this.finished(reason, attempt + 1));
+          this.enqueue(() => this.finished(reason, playId, attempt + 1));
         }
       }, delay).unref();
       return;

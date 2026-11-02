@@ -74,6 +74,7 @@ const player = (over: Partial<PlayerView> = {}): PlayerView => ({
   repeat: 'off',
   queue: [],
   upcoming: [],
+  failure: null,
   ...over,
 });
 
@@ -88,6 +89,14 @@ test('now playing shows title, artist, album and elapsed over total', () => {
   assert.equal(nowPlayingText(player({ state: 'paused' }), 1_000_000), '**Slow River** — Ana Marin · Low Water\n`1:01 / 3:20` (paused)');
   assert.equal(nowPlayingText(player({ state: 'idle', track: null }), 0), 'Nothing is playing.');
   assert.equal(nowPlayingText(player({ online: false }), 0), 'The player is offline.');
+});
+
+test("atrium's failure shows when it stopped after songs that would not play", () => {
+  const failure = '5 songs in a row would not play, the last “Slow River”.';
+  assert.equal(
+    nowPlayingText(player({ state: 'idle', track: null, failure }), 0),
+    'Nothing is playing. Playback stopped: 5 songs in a row would not play, the last “Slow River”.',
+  );
 });
 
 test('the queue lists ten entries with who added them, and counts the rest', () => {
