@@ -47,8 +47,9 @@ container. Brief numbering restarted at 01 on 2026-11-02 (see
 Eleven briefs from the 2026-10-20 improvement sweep, in build order:
 01-05 fix the Jukebox before its first run (05 is a check to make on that
 run), 06-09 are Now items and 10-11 Next items. The 2026-11-02 run builds
-them in order: 01 (a voice join that never gets ready is dropped) and 02
-(one playback error advances once) are done.
+them in order: 01 (a voice join that never gets ready is dropped), 02 (one
+playback error advances once) and 03 (`/jukebox queue` under 2000
+characters) are done.
 
 ## Next (owner)
 

@@ -998,3 +998,10 @@ atrium's five-song failure budget. The once-per-play memory is needed besides th
 because `{play: null}` and `stale` leave the playId unchanged; keying on the sounding play rather
 than `this.playId` covers the old song ending while the next one opens. `PlayerView` gains atrium's
 `failure`, shown by `/jukebox nowplaying` and `queue`. Typecheck clean, 68/68 bot tests.
+
+## [2026-11-02] done | Brief 03: `/jukebox queue` stays under 2000 characters
+
+Each song field in a `/jukebox` reply is clipped (title 60, artist and album 40, name 32, by code
+point), and the queue list stops before 1900 characters with "…and N more". Ten entries of
+300-character tags now give 1775 characters instead of a DiscordAPIError 50035. Typecheck clean,
+70/70 bot tests.
