@@ -22,7 +22,11 @@ link with `/quote add`.
 
 `/quote add` parses the Discord message link (format: `https://discord.com/channels/<guild>/<channel>/<message>`),
 validates it belongs to the current guild, fetches the message via the Discord API,
-and appends it to the guild's quote book. The context menu "Save Quote" skips the
+and appends it to the guild's quote book. It first checks that the person
+quoting can read the channel (View Channel and Read Message History); for a
+private thread they must also be in the thread or have Manage Threads. Anything
+else gets "You can't quote from a channel you can't read.", because saved quotes
+are shown publicly. The context menu "Save Quote" skips the
 fetch — `interaction.targetMessage` is already resolved.
 
 Each quote gets an 8-character UUID fragment as its ID (e.g. `a1b2c3d4`).
