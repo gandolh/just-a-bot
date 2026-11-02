@@ -104,6 +104,12 @@ All log lines carry the `[jukebox]` scope.
   failed`, `could not open` or `ffmpeg failed` lines: a missing file, an
   upload ffmpeg cannot read, or no ffmpeg in the image. The next play clears
   the message.
+- **`buffering <id> failed: …; left alone for 5 minutes while it stays next`.**
+  The bot could not download or convert an upcoming song ahead of time (an
+  atrium error on that file, an upload ffmpeg cannot read, or no ffmpeg). It
+  logs this once and does not fetch that song again while it stays next, for
+  up to 5 minutes; when its turn comes it plays from a live download, or is
+  skipped as an error if that fails too.
 - **"The player is offline."** Atrium has not heard from the bot for 30
   seconds: the bot is down, or its link stopped (see the two lines above).
 - **The bot doesn't join.** It needs the Connect and Speak permissions in that

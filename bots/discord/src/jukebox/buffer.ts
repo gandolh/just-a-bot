@@ -24,6 +24,8 @@ const log = logger.scoped('jukebox');
 export const BUFFER_ROOT = join(tmpdir(), 'jukebox');
 /** The current Track plus this many of `upcoming`. */
 export const PREFETCH = 2;
+/** How long a Track that failed to buffer is left alone while it stays upcoming. */
+export const RETRY_FAILED_AFTER_MS = 5 * 60_000;
 
 const OGG_OPUS = ['-vn', '-c:a', 'libopus', '-b:a', '96k', '-ar', '48000', '-ac', '2', '-f', 'ogg'];
 
@@ -36,27 +38,33 @@ export interface BufferPlan {
   cancel: string[];
   /** Buffered, no longer wanted. */
   delete: string[];
+  /** Failed to buffer and no longer upcoming: tried again if it comes back. */
+  forget: string[];
 }
 
 /**
  * Which files to keep, fetch, cancel or delete for a given current Track and
  * `upcoming`. The current Track is kept if it is buffered but never fetched:
  * when it is not, it is already playing from the live pipe, and a second
- * download would only compete with it.
+ * download would only compete with it. A Track that failed to buffer is not
+ * fetched again while it stays upcoming; it plays from the live pipe.
  */
 export function planBuffer(input: {
   current: string | null;
   upcoming: readonly string[];
   ready: readonly string[];
   fetching: readonly string[];
+  failed?: readonly string[];
 }): BufferPlan {
+  const failed = input.failed ?? [];
   const next = [...new Set(input.upcoming)].filter((id) => id !== input.current).slice(0, PREFETCH);
   const wanted = new Set(input.current ? [input.current, ...next] : next);
   return {
     keep: input.ready.filter((id) => wanted.has(id)),
-    fetch: next.filter((id) => !input.ready.includes(id) && !input.fetching.includes(id)),
+    fetch: next.filter((id) => !input.ready.includes(id) && !input.fetching.includes(id) && !failed.includes(id)),
     cancel: input.fetching.filter((id) => !wanted.has(id)),
     delete: input.ready.filter((id) => !wanted.has(id)),
+    forget: failed.filter((id) => !next.includes(id)),
   };
 }
 
@@ -78,11 +86,20 @@ export async function wipeBuffers(): Promise<void> {
 export class TrackBuffer {
   private readonly ready = new Set<string>();
   private readonly fetching = new Map<string, AbortController>();
+  /**
+   * Tracks whose buffering failed, and when. Planned again only once they
+   * leave `upcoming` and come back, or after `RETRY_FAILED_AFTER_MS`: every
+   * status answer calls `update`, every 10 s while playing, and a corrupt
+   * upload or a missing ffmpeg would otherwise be downloaded, converted and
+   * logged that often.
+   */
+  private readonly failed = new Map<string, number>();
   private readonly dir: string;
 
   constructor(
     guildId: string,
     private readonly fetchTrack: FetchTrack,
+    private readonly now: () => number = Date.now,
   ) {
     this.dir = join(BUFFER_ROOT, guildId);
   }
@@ -93,7 +110,15 @@ export class TrackBuffer {
 
   /** Bring the directory in line with what plays now and next. */
   update(current: string | null, upcoming: readonly string[]): void {
-    const plan = planBuffer({ current, upcoming, ready: [...this.ready], fetching: [...this.fetching.keys()] });
+    for (const [id, at] of this.failed) if (this.now() - at >= RETRY_FAILED_AFTER_MS) this.failed.delete(id);
+    const plan = planBuffer({
+      current,
+      upcoming,
+      ready: [...this.ready],
+      fetching: [...this.fetching.keys()],
+      failed: [...this.failed.keys()],
+    });
+    for (const id of plan.forget) this.failed.delete(id);
     for (const id of plan.cancel) {
       this.fetching.get(id)?.abort();
       this.fetching.delete(id);
@@ -175,7 +200,10 @@ export class TrackBuffer {
       else this.ready.add(trackId);
     } catch (err) {
       await rm(part, { force: true });
-      if (!abort.signal.aborted) log.warn(`buffering ${trackId} failed: ${(err as Error).message}`);
+      if (!abort.signal.aborted) {
+        this.failed.set(trackId, this.now());
+        log.warn(`buffering ${trackId} failed: ${(err as Error).message}; left alone for ${RETRY_FAILED_AFTER_MS / 60_000} minutes while it stays next`);
+      }
     } finally {
       if (this.fetching.get(trackId) === abort) this.fetching.delete(trackId);
     }
@@ -186,6 +214,7 @@ export class TrackBuffer {
     for (const abort of this.fetching.values()) abort.abort();
     this.fetching.clear();
     this.ready.clear();
+    this.failed.clear();
     await rm(this.dir, { recursive: true, force: true });
   }
 
