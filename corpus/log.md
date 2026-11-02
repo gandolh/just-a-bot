@@ -1041,3 +1041,9 @@ Character names lose mention syntax, @everyone, @here and backticks at creation 
 loads; crier posts parse no mentions, and a duel proposal pings only the defender, now in its first
 post, since Discord does not notify for a mention added by an edit. Typecheck clean, 84/84 bot
 tests. The RPG manual still describes the old slash subcommands: filed as a todo.
+
+## [2026-11-02] done | Brief 09: the `/confess` cooldown is taken before the first await
+
+Concurrent submissions from one member all passed the cooldown check, since it was set only after
+the store, the fetch and the post. `submitConfession()` now sets it before any await and gives it
+back when nothing was posted. Typecheck clean, 86/86 bot tests.

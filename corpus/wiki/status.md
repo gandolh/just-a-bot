@@ -52,7 +52,8 @@ playback error advances once), 03 (`/jukebox queue` under 2000 characters),
 04 (a song that failed to buffer is not refetched every 10 s), 05 (a slow
 public answer stays visible; live check owed), 06 (shutdown drains every
 store when an RPG world fails), 07 (`/quote add` refuses private threads
-the member is not in) and 08 (RPG names cannot ping) are done.
+the member is not in), 08 (RPG names cannot ping) and 09 (the `/confess`
+cooldown is taken before the first await) are done.
 
 ## Next (owner)
 
