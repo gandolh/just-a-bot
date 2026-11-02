@@ -1005,3 +1005,9 @@ Each song field in a `/jukebox` reply is clipped (title 60, artist and album 40,
 point), and the queue list stops before 1900 characters with "…and N more". Ten entries of
 300-character tags now give 1775 characters instead of a DiscordAPIError 50035. Typecheck clean,
 70/70 bot tests.
+
+## [2026-11-02] done | Brief 04: a song that failed to buffer is remembered
+
+`TrackBuffer` remembers ids whose prefetch failed and `planBuffer` leaves them out until they leave
+the next two or 5 minutes pass, so a corrupt upload or a missing ffmpeg is fetched, converted and
+logged once instead of every 10 s. Typecheck clean, 72/72 bot tests.

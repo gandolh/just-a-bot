@@ -38,6 +38,10 @@ comes from atrium"). Code: `bots/discord/src/jukebox/`.
   fed through stdin so the session cookie never reaches its command line. Keeps
   the current Track and the next two, never more than three files. A Track not
   yet buffered plays from a live pipe. Wiped at boot, cleared at shutdown.
+  A song that fails to buffer is not fetched again while it stays next, for
+  up to 5 minutes (2026-11-02): every status answer replans the buffer, every
+  10 s while playing, and one bad file used to be refetched and logged that
+  often.
 - **`alone.ts`**: nobody but bots in the channel → `control: pause`, then
   `leave` after 10 minutes; someone returning cancels the leave and stays
   paused. Both go through atrium, so the Player keeps one writer.
