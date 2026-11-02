@@ -129,22 +129,35 @@ function invokerName(interaction: ChatInputCommandInteraction): string {
   return name.slice(0, MAX_ADDED_BY);
 }
 
-interface Answer {
+export interface Answer {
   content: string;
   /** Public for a successful control; `queue`, `nowplaying` and every error are ephemeral. */
   public: boolean;
 }
 
+/** The parts of an interaction `answer` uses. */
+export type Answerable = Pick<ChatInputCommandInteraction, 'reply' | 'deferReply' | 'editReply' | 'followUp' | 'deleteReply'>;
+
 /**
  * Run the work and answer within Discord's 3 seconds. A slow call (a first
- * sign-in, say) defers ephemerally; a public answer is then sent as a
- * follow-up and the placeholder removed, so errors stay ephemeral either way.
+ * sign-in, say) defers ephemerally, so errors stay ephemeral either way.
+ *
+ * Discord fills a still-loading deferred reply with the first follow-up and
+ * keeps its ephemeral flag (its interaction docs, "deprecated" but live), so a
+ * follow-up straight after the defer would be ephemeral, and deleting the
+ * placeholder would then delete the answer. So the placeholder is filled in
+ * first; a public answer then goes out as a real follow-up, and the
+ * ephemeral copy is removed only once that follow-up is posted.
  */
-async function answer(interaction: ChatInputCommandInteraction, work: () => Promise<Answer>): Promise<void> {
+export async function answer(
+  interaction: Answerable,
+  work: () => Promise<Answer>,
+  deferAfterMs = DEFER_AFTER_MS,
+): Promise<void> {
   let deferring: Promise<unknown> | null = null;
   const timer = setTimeout(() => {
     deferring = interaction.deferReply({ ephemeral: true }).catch(() => {});
-  }, DEFER_AFTER_MS);
+  }, deferAfterMs);
   let result: Answer;
   try {
     result = await work();
@@ -157,11 +170,10 @@ async function answer(interaction: ChatInputCommandInteraction, work: () => Prom
     return;
   }
   await deferring;
+  await interaction.editReply({ content: result.content });
   if (result.public) {
     await interaction.followUp({ content: result.content });
     await interaction.deleteReply().catch(() => {});
-  } else {
-    await interaction.editReply({ content: result.content });
   }
 }
 
