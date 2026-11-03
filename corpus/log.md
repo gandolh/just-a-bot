@@ -1069,3 +1069,10 @@ at most three messages and says when it was cut. Ollama errors are still public 
 brief's steps). Typecheck clean, 99/99 bot tests. That empties `briefs/todo/`: all eleven briefs
 of the 2026-10-20 sweep are built, none deployed or run in Discord; the owner's checks are in
 status.md.
+
+## [2026-11-03] todo | Brief 12: the RPG manual matches the commands
+
+Promoted from the todo `rpg-docs-describe-old-commands` in an estate-wide grill with the owner,
+with the todo as the spec: rewrite `docs/discord/rpg/README.md` against `/rpg start`, `exit`,
+`help`, the buttons and the modal, plus brief 10's limits. The todo is deleted; brief 08's
+outcome's link to it is now plain text, the only change to that brief.

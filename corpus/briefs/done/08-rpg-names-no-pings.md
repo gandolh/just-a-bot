@@ -54,7 +54,7 @@ directory. The bot was not run.
 
 Found: the RPG manual (`docs/discord/rpg/README.md`) documents slash
 subcommands that no longer exist; filed as
-[a todo](../../todos/rpg-docs-describe-old-commands.md) rather than fixed here.
+a todo (brief 12 since 2026-11-03) rather than fixed here.
 
 **Owed by the owner** (optional, live): a duel challenge notifies the
 defender once; a character created as `<@your id>` shows your username.

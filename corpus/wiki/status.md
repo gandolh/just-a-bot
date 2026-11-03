@@ -1,6 +1,6 @@
 ---
 summary: Dated snapshot (2026-11-02) of just-a-bot, per area — the Discord-only bot, deployed as a container with its state outside the mirror (2026-10-07); the 2026-09-26 audit fixes (2026-10-02); the Jukebox built (2026-10-09, atrium's own login 2026-10-13) but not heard in Discord or deployed; the docs site on Docusaurus (2026-10-19, not deployed); the eleven briefs of the 2026-10-20 sweep built on 2026-11-02, not deployed; what is left for the owner.
-updated: 2026-11-02
+updated: 2026-11-03
 ---
 
 # Status — 2026-11-02
@@ -44,13 +44,13 @@ container. Brief numbering restarted at 01 on 2026-11-02 (see
 
 ## Open briefs
 
-None. The eleven briefs from the 2026-10-20 improvement sweep were built on
+12, the RPG manual matches the commands (written 2026-11-03 from its todo, in
+a grill with the owner; not started). The eleven briefs from the 2026-10-20 improvement sweep were built on
 2026-11-02, one commit each plus a corpus commit (see [`../log.md`](../log.md)):
 01-05 the Jukebox's failure paths, checked against atrium's source, 06-09 the
 Now items (shutdown drain, private-thread quotes, RPG names, the `/confess`
 race), 10-11 the Next items (RPG proposals and pruning, `/ask` limits). None of
-it is deployed or run in Discord. One todo is open: the RPG manual describes
-slash subcommands the command no longer has.
+it is deployed or run in Discord. No todo is open.
 
 ## Next (owner)
 
