@@ -1,311 +1,377 @@
 # RPG
 
-A lightweight multiplayer chat RPG. Each Discord server gets one shared
-persistent world: players drop in with `/rpg join`, walk an emoji grid,
-fight mobs that spawn and hunt them, collect loot, and level up. No DM,
-no turn order, no character sheets to fill out.
+A drop-in multiplayer text RPG. Each Discord server has one shared,
+persistent world: six places, from a safe Plaza out to the Deep Woods.
+Players explore, fight, loot, shop, level up, and duel or trade with
+whoever is standing in the same place. There is no DM, no turn order
+between players, and no character sheet to fill in.
 
-Replaces the earlier D&D layer (DM-authored campaign + initiative-based
-combat). The trade: less depth per session, but anyone can interact in
-30 seconds and feel like something happened.
+Everything after `/rpg start` happens on buttons in a private (ephemeral)
+controller that only you see. Duel and trade proposals are the exception:
+they are posted in the channel so the other player can answer them.
 
 ## Command surface
 
-A single slash command, `/rpg <sub>`:
+One slash command, `/rpg`, with three subcommands. It only works in a server.
 
-| Subcommand          | Effect                                                                |
-| ------------------- | --------------------------------------------------------------------- |
-| `/rpg join`         | Create your character (name + glyph optional). Spawns at the plaza.   |
-| `/rpg me`           | Sheet: HP, ATK/DEF, level, XP, coins, kills/deaths, cooldown, inventory. |
-| `/rpg move <dir>`   | One step (n/s/e/w/ne/nw/se/sw). Auto-picks up loot on the tile.       |
-| `/rpg look`         | List entities within 7 cells.                                         |
-| `/rpg attack`       | Strike the nearest adjacent mob. 3-second cooldown. Mob counter-attacks. |
-| `/rpg pickup`       | Manually grab loot on your current tile (move auto-collects too).     |
-| `/rpg use`          | Drink a healing potion (`+12 HP`) if you have one.                    |
-| `/rpg map`          | Emoji viewport centred on you (or the plaza if you haven't joined).   |
-| `/rpg top`          | Leaderboard by XP.                                                    |
-| `/rpg leave`        | Delete your character.                                                |
-| `/rpg duel @user`   | Challenge another player to a 1v1 arena duel. Accept/Decline buttons. |
-| `/rpg trade @user`  | Open a trade proposal with another player. Item selectors + coin adjustments. |
-| `/rpg equip <item>` | Equip a weapon or armor from your inventory. Old slot item returns to inventory. |
-| `/rpg unequip <slot>` | Move the weapon or armor slot back into inventory.                  |
-| `/rpg shop`         | Browse the plaza shop catalog (buy prices + stat lines).              |
-| `/rpg buy <item>`   | Buy from the shop. Must stand on a 🟧 plaza tile.                     |
-| `/rpg sell <item>`  | Sell from inventory. Must stand on a 🟧 plaza tile.                   |
-| `/rpg bounty`       | View your active bounty, or roll a new one if you have none.          |
-| `/rpg play`         | Open an ephemeral, button-driven controller — walk, attack, loot in place. |
-| `/rpg help`         | Quickstart and command reference.                                     |
+| Subcommand  | Effect |
+| ----------- | ------ |
+| `/rpg start` | Enter the world. The first time, it offers a **Create character** button; after that it opens your controller where you left off (in your fight, if you were in one). It also makes this channel the server's town-crier channel. |
+| `/rpg exit`  | Step away. Your character stays in the world but is hidden from other players' Nearby lists until you come back. Same as the 🚪 Exit button. |
+| `/rpg help`  | A short how-to-play card (private). |
+
+The leaderboards are `/top` with the `rpg-xp`, `rpg-kills` and `rpg-coins`
+categories; see [leaderboards](../leaderboards/README.md).
 
 ## Quick start
 
-The fastest way in is `/rpg join` followed by `/rpg play`, which opens an
-ephemeral controller you click instead of typing.
-
 ```
-Alice: /rpg join name:Astrid glyph:🧝
-Alice: /rpg play          ← controller appears (ephemeral)
-                          ← click ➡ to step east, ⚔ Attack when adjacent to a goblin
-                          ← embed updates in place after every click
-```
-
-Prefer raw slash commands? The classic flow still works:
-
-```
-Alice: /rpg map           ← see the plaza
-Alice: /rpg move e
-Alice: /rpg look          ← spots a goblin 4 cells away
-Alice: /rpg move e        ← step closer
-Alice: /rpg attack        ← swing; goblin counter-attacks
-Alice: /rpg attack        ← (after cooldown) finish it; +12 XP, +3 coins
+Alice: /rpg start              ← private welcome with a "Create character" button
+       [Create character]      ← a form opens: name and an optional emoji
+       (submit)                ← Alice appears at the Plaza; the controller opens
+       [🌲 Whisperwood]        ← travel to a connected place
+       [🔍 Explore]            ← "You run into a foe!" — the combat screen
+       [⚔ Attack] [⚔ Attack]   ← each press is one round: her swing, then the mob's
+                               ← "☠️ Defeated! +12 XP, +3c" — back to the place
+       [🏕️ Rest]               ← heal up before the next fight
 ```
 
-### Controller layout
+### Creating a character
 
-```
-[↖] [⬆] [↗] [⚔ Attack] [🔄]
-[⬅] [💰 Pickup] [➡] [🧪 Potion] [✖]
-[↙] [⬇] [↘]
-```
+The **Create character** button opens a form with two optional fields:
 
-The embed above the buttons shows an HP bar, effective ATK/DEF, coins, the
-viewport, and — when a mob stands adjacent — a target line with the mob's HP
-bar so you can see how close a kill is. Cooldown ticks down in the title;
-clicking Attack while on cooldown just prints `⏳ X.Xs` in the banner instead
-of erroring out. Buttons go idle after ~15 min of inactivity — reopen with
-`/rpg play`.
+- **Character name**, up to 24 characters. Mention syntax (`<@…>`, `<@&…>`,
+  `<#…>`), `@everyone`, `@here` and backticks are stripped and runs of
+  spaces collapse, so a name can never ping anyone. A blank name, or one
+  with nothing left after cleaning, becomes your Discord username (cleaned
+  the same way), or "Adventurer" if that is empty too.
+- **Emoji**: the first emoji in the field is your glyph. Leave it blank and
+  the bot picks one of ten that nobody else in the world is using yet (any
+  of the ten once all are taken).
+
+You start at the Plaza with 20 HP, ATK 3, DEF 1, 10 coins, an empty bag and
+a starter bounty.
+
+## The controller
+
+The controller is one private message that redraws itself after every
+press. Each screen shows your HP bar, effective ATK and DEF, coins, level
+and XP to the next level, and a banner line with the result of your last
+press. Its footer says it stays live about 15 minutes; if the buttons stop
+answering, run `/rpg start` again.
+
+### At a place
+
+| Button | Effect |
+| ------ | ------ |
+| 🔍 Explore | Search the place: a fight, a find, or nothing (odds below). |
+| 🏕️ Rest | Heal 30 % of max HP (at least 3). Free, anywhere, refused at full HP. |
+| 🎒 Bag | The bag screen. |
+| 📋 Me | Your sheet. |
+| 🏪 Town | The shop. Only at the Plaza. |
+| Travel buttons | One per connected place. Arriving may start an ambush. |
+| 👥 Nearby | Shown only when another player is in the same place. |
+| 🚪 Exit | Close the controller and step away, as `/rpg exit`. |
+
+The screen also lists any other players here and your current bounty.
+
+### In a fight
+
+| Button | Effect |
+| ------ | ------ |
+| ⚔ Attack | One round: you swing, then the mob swings back if it is still standing. |
+| 🏃 Flee | Always leaves the fight. 70 % of the time cleanly; otherwise the mob gets one parting swing, which can down you. |
+| 🧪 Potion | Drink a Healing Potion (+12 HP, up to max). The mob does not swing back. Disabled with no potion or at full HP. |
+
+While you are in a fight, only these three work. A button on an older
+controller (Rest, Explore, Travel, a screen change) answers "You're in a
+fight! Attack, flee, or drink a potion." The fight is saved with your
+character, so `/rpg start` drops you back into it.
+
+### Bag, Me, Town, Nearby
+
+- **🎒 Bag** lists what you wear and what you carry. Pick an item from the
+  menu: a weapon or armor is equipped (the one it replaces goes back in the
+  bag), a potion is drunk, a material just says to sell it at the Plaza.
+  **🗡 Unequip weapon** and **🛡 Unequip armor** move a worn item back into
+  the bag.
+- **📋 Me** shows level, XP, HP, ATK and DEF, coins, kills, deaths, where you
+  are, what you wear and your bounty. **🎯 Reroll bounty** rolls a new
+  bounty at any time, replacing the current one and its progress.
+- **🏪 Town** has a buy menu (the catalog below) and a sell menu (your bag).
+  Worn items are not in the bag, so they can't be sold or traded until you
+  unequip them.
+- **👥 Nearby** lists up to four other players in the same place, each with
+  **⚔ Duel** and **🤝 Trade**. A player who used Exit is not listed.
+
+Bag, Me, Town and Nearby each have a **⬅ Back** button to the place.
 
 ## How it works
 
-### World
+### Places
 
-Procedural per-guild map (default 60×40), seeded by guild ID so the
-layout is stable across restarts. Edges are walls, interior is ground +
-forest + water + mountain + scattered walls, with a 5×5 plaza carved at
-the centre as the spawn point.
+Each server has the same six places joined the same way; only the names
+change, picked per server from a short list (seeded by the server id, so
+they never change). The table names each place by its kind. The Plaza's names are The Plaza, Last Light, The
+Hollow Market and Travellers' Rest.
 
-| Token | Meaning  | Render | Walkable |
-| :---: | -------- | :----: | :------: |
-| `.`   | Ground   | 🟫     | yes      |
-| `=`   | Plaza    | 🟧     | yes      |
-| `f`   | Forest   | 🌲     | yes      |
-| `~`   | Water    | 🟦     | no       |
-| `^`   | Mountain | ⛰️     | no       |
-| `#`   | Wall     | ⬛     | no       |
+| Place | Danger | Mobs | Exits |
+| ----- | :----: | ---- | ----- |
+| 🟧 Plaza (the hub, the shop) | 0 | none | Meadow, Forest, River |
+| 🟩 Meadow | 1 | slime, goblin | Plaza, Forest, Hills |
+| 🌲 Forest | 2 | goblin, wolf | Plaza, Meadow, Deep Woods |
+| 🟦 River | 2 | wolf, bandit | Plaza, Hills |
+| ⛰️ Hills | 3 | bandit, orc | Meadow, River, Deep Woods |
+| 🌑 Deep Woods | 4 | orc, troll | Forest, Hills |
 
-### Characters
+**Travel** is one press. Arriving at a place with mobs starts an ambush
+with probability 12 % × danger (12 % to the Meadow, 48 % to the Deep Woods);
+the Plaza is always safe.
 
-Three numbers + a glyph. No abilities, no classes, no equipment slots.
+**Explore** at the Plaza finds 1–4 stray coins one time in five and nothing
+otherwise. Anywhere else:
 
-| Field      | Starting value | On level-up         |
-| ---------- | -------------- | ------------------- |
-| `hp/maxHp` | 20             | `+4 maxHp`, full heal |
-| `atk`      | 3              | `+1`                |
-| `def`      | 1              | `+1`                |
-| `coins`    | 10             | —                   |
-
-Levels cost 50 XP each (L1 → L2 at 50, L2 → L3 at 100, …).
-
-### Equipment
-
-Two slots: **weapon** and **armor**. Items dropped by mobs or bought at the shop
-stack in `inventory`; `/rpg equip <item>` moves one into its slot, adding its
-stat bonus to combat math. Unequipping (or equipping a replacement) moves the
-old item back to inventory. Equipment is never destroyed, lost on death, or
-worn down — it's strictly additive.
-
-| Item          | Slot   | Bonus    | Source             |
-| ------------- | ------ | -------- | ------------------ |
-| Rusty Dagger  | weapon | +1 ATK   | Goblin drop, shop  |
-| Iron Sword    | weapon | +3 ATK   | Orc drop, shop     |
-| Steel Sword   | weapon | +4 ATK   | Shop only          |
-| Greatsword    | weapon | +5 ATK   | Troll drop only    |
-| Leather Armor | armor  | +2 DEF   | Bandit drop, shop  |
-| Chain Mail    | armor  | +4 DEF   | Shop only          |
-
-Effective ATK/DEF — what combat math actually uses — is `base + bonus`. The
-`/rpg me` sheet shows both numbers (e.g. `ATK 6 (3 +3)`). Duels also use the
-effective stats, so equipping a weapon before duelling matters.
-
-### Plaza shop
-
-The central plaza (🟧 tiles) doubles as a shop. While standing on any plaza
-tile a player can `/rpg buy <item>` or `/rpg sell <item>`. The catalog is fixed
-and the same in every guild:
-
-| Item            | Buy  | Sell |
-| --------------- | ---- | ---- |
-| Healing Potion  | 15c  | 6c   |
-| Rusty Dagger    | 25c  | 8c   |
-| Leather Armor   | 40c  | 15c  |
-| Iron Sword      | 120c | 50c  |
-| Steel Sword     | 220c | 90c  |
-| Chain Mail      | 260c | 100c |
-
-Materials (slime jelly, wolf pelt, troll tooth) can only be sold (2c/6c/15c
-respectively) — there's no crafting recipe in v1. Equipped items can't be
-sold; unequip first. The shop doesn't have stock limits, so a high-level
-player can dump trolls' worth of teeth into the buyback any time.
-
-### Bounties
-
-Every adventurer holds **one bounty at a time** — a "slay N of mob X" objective
-that auto-claims when the last kill lands.
-
-- A starter bounty is rolled the moment you `/rpg join`.
-- After completion the slot is empty; running `/rpg bounty` rolls a fresh one,
-  weighted toward mobs in your tier (low levels see slime/goblin bounties,
-  high levels see orc/troll bounties).
-- Rewards are XP + coins, applied instantly when the kill that triggered
-  completion resolves (so the message that prints the kill also prints
-  `🎯 Bounty complete!`).
-
-| Target  | Goal | XP  | Coins |
-| ------- | ---- | --- | ----- |
-| Slime   | 5    | 30  | 15    |
-| Goblin  | 4    | 60  | 30    |
-| Wolf    | 4    | 90  | 35    |
-| Bandit  | 3    | 100 | 60    |
-| Orc     | 3    | 160 | 80    |
-| Troll   | 1    | 150 | 100   |
-
-There is no expiry, no daily reset, no streak — just one objective at a time.
-That's deliberate: the design philosophy stays "30 seconds to interact" and
-bounties are a nudge in the right direction, not a system to manage.
-
-### Mobs
-
-Six handmade kinds with fixed stats:
-
-| Mob    | HP | ATK | DEF | XP  | Coins | Loot                                  |
-| ------ | -- | --- | --- | --- | ----- | ------------------------------------- |
-| Slime  | 8  | 2   | 0   | 5   | 0–2   | slime-jelly (30%)                     |
-| Goblin | 14 | 4   | 1   | 12  | 1–5   | rusty-dagger (20%), healing-potion (15%) |
-| Wolf   | 18 | 5   | 1   | 18  | 0–3   | wolf-pelt (40%)                       |
-| Bandit | 22 | 6   | 2   | 25  | 3–12  | healing-potion (25%), leather-armor (10%) |
-| Orc    | 32 | 8   | 3   | 40  | 4–15  | iron-sword (15%), healing-potion (30%) |
-| Troll  | 60 | 12  | 4   | 100 | 10–40 | troll-tooth (60%), greatsword (10%)   |
-
-Spawn weight biases toward mobs whose XP tier matches the highest
-player's level, so newcomers see slimes and goblins and high-level
-players see orcs and trolls.
+| Chance | Outcome |
+| -----: | ------- |
+| 65 % | A fight with one of the place's mobs, picked evenly |
+| 12 % | A Healing Potion, into the bag |
+| 10 % | A purse of 2 to 5 + 6 × danger coins |
+| 13 % | Nothing |
 
 ### Combat math
 
-A swing is a d20 hit check followed by a damage roll. Used for both
-players and mobs.
+A swing is a d20 hit check followed by a damage roll, the same for players
+and mobs.
 
 ```
-hit:    d20 + attacker.atk  vs  10 + defender.def
-        natural 1  → always miss
-        natural 20 → always hit, damage doubled
-damage: 1d6 + attacker.atk
+hit:    d20 + attacker ATK  >=  10 + defender DEF
+        natural 1  → always a miss
+        natural 20 → always a hit, damage doubled
+damage: 1d6 + attacker ATK
 ```
 
-Players have a 3-second cooldown between swings. Mobs swing once per
-`speedMs` (2.5–5s depending on kind).
+Players use effective stats (base plus the worn weapon's ATK and armor's
+DEF). Every fight starts against a mob at full HP.
 
-When a mob dies: drops loot on the tile, coins go straight to the
-killer's wallet, killer gets XP, may level up (full heal). When a
-character dies: respawns at the plaza with full HP, drops half their
-coins as a loot tile.
+**A kill** pays the mob's XP and a coin roll straight into your wallet; each
+loot entry is rolled on its own and lands in your bag. **A level** costs 50
+XP (level 2 at 50, level 3 at 100, …). Each level gained adds 4 max HP, 1
+ATK and 1 DEF and heals you to full.
 
-### Tick
+**Dying** sends you back to the Plaza at full HP and costs you half your
+coins (rounded down); they are gone, not dropped. Your bag and equipment
+are kept.
 
-There is **no background timer**. Every command calls `tickWorld(w)`
-before doing anything else. The tick:
+### Characters
 
-1. Spawns new mobs if the per-guild cap isn't met (cap scales with
-   player count and map area, min 6).
-2. For each mob whose `lastStepAt` is older than `speedMs`, either
-   attacks an adjacent player, steps toward the nearest player in
-   aggro range, or wanders.
+| Field | Start | Per level |
+| ----- | ----- | --------- |
+| `hp` / `maxHp` | 20 | +4 max HP, full heal |
+| `atk` | 3 | +1 |
+| `def` | 1 | +1 |
+| `coins` | 10 | — |
 
-Lazy ticking means a dead server with zero `/rpg` traffic costs zero CPU,
-and there's no `setInterval` machinery to coordinate across guilds.
-Tradeoff: mobs don't move when no one's playing — which is fine.
+### Equipment
 
-## Source layout
+Two slots, **weapon** and **armor**. Equipment is never destroyed, worn
+down or lost on death.
 
-_File map re-verified 2026-08-27._ There is no dedicated mob-tick or
-map-rendering module — earlier versions of this table named `rpg/tick.ts`,
-`rpg/render.ts` and `rpg/controller.ts`, none of which exist. Mob definitions and
-tick state live in `world.ts`, encounters in `encounter.ts`, and all button
-routing in `commands/rpg-buttons.ts`.
+| Item | Slot | Bonus | Source |
+| ---- | ---- | ----- | ------ |
+| Rusty Dagger | weapon | +1 ATK | Goblin drop, shop |
+| Iron Sword | weapon | +3 ATK | Orc drop, shop |
+| Steel Sword | weapon | +4 ATK | Shop only |
+| Greatsword | weapon | +5 ATK | Troll drop only |
+| Leather Armor | armor | +2 DEF | Bandit drop, shop |
+| Chain Mail | armor | +4 DEF | Shop only |
 
-| Concern              | Location                                                              |
-| -------------------- | --------------------------------------------------------------------- |
-| World + persistence  | [`bots/discord/src/rpg/world.ts`](../../../bots/discord/src/rpg/world.ts) |
-| Combat resolution    | [`bots/discord/src/rpg/combat.ts`](../../../bots/discord/src/rpg/combat.ts) |
-| Mob kinds + world tick state | [`bots/discord/src/rpg/world.ts`](../../../bots/discord/src/rpg/world.ts) (`MOB_KINDS`) |
-| Encounter rolls      | [`bots/discord/src/rpg/encounter.ts`](../../../bots/discord/src/rpg/encounter.ts) |
-| Location / encounter UI | [`bots/discord/src/rpg/locationui.ts`](../../../bots/discord/src/rpg/locationui.ts) |
-| Town crier tick      | [`bots/discord/src/rpg/crier.ts`](../../../bots/discord/src/rpg/crier.ts)  |
-| Duel logic           | [`bots/discord/src/rpg/duel.ts`](../../../bots/discord/src/rpg/duel.ts)    |
-| Trade logic          | [`bots/discord/src/rpg/trade.ts`](../../../bots/discord/src/rpg/trade.ts)  |
-| Item registry        | [`bots/discord/src/rpg/items.ts`](../../../bots/discord/src/rpg/items.ts)  |
-| Shop (buy/sell)      | [`bots/discord/src/rpg/shop.ts`](../../../bots/discord/src/rpg/shop.ts)    |
-| Bounty roll + claim  | [`bots/discord/src/rpg/bounty.ts`](../../../bots/discord/src/rpg/bounty.ts) |
-| Slash command        | [`bots/discord/src/commands/rpg.ts`](../../../bots/discord/src/commands/rpg.ts) |
-| RPG button router    | [`bots/discord/src/commands/rpg-buttons.ts`](../../../bots/discord/src/commands/rpg-buttons.ts) |
-| Per-guild state file | `bots/discord/data/rpg/<guild-id>.json` (gitignored)                  |
+### The Plaza shop
+
+Open **🏪 Town** at the Plaza. The catalog is fixed and the same in every
+server, with no stock limits.
+
+| Item | Buy | Sell |
+| ---- | --: | ---: |
+| Healing Potion | 15c | 6c |
+| Rusty Dagger | 25c | 8c |
+| Leather Armor | 40c | 15c |
+| Iron Sword | 120c | 50c |
+| Steel Sword | 220c | 90c |
+| Chain Mail | 260c | 100c |
+
+Some things can only be sold: the Greatsword (140c), Slime Jelly (2c),
+Wolf Pelt (6c) and Troll Tooth (15c). There are no crafting recipes.
+
+### Bounties
+
+You hold one bounty at a time: "slay N of mob X". A starter bounty is rolled
+when the character is made. The kill that completes it pays the reward at
+once (the banner adds "🎯 Bounty complete!") and empties the slot; press
+**🎯 Reroll bounty** on 📋 Me for the next one. Rolls lean toward mobs near
+your level.
+
+| Target | Goal | XP | Coins |
+| ------ | ---: | --: | ----: |
+| Slime | 5 | 30 | 15 |
+| Goblin | 4 | 60 | 30 |
+| Wolf | 4 | 90 | 35 |
+| Bandit | 3 | 100 | 60 |
+| Orc | 3 | 160 | 80 |
+| Troll | 1 | 150 | 100 |
+
+### Mobs
+
+| Mob | HP | ATK | DEF | XP | Coins | Loot |
+| --- | --: | --: | --: | --: | ----- | ---- |
+| Slime | 8 | 2 | 0 | 5 | 0–2 | slime jelly (30 %) |
+| Goblin | 14 | 4 | 1 | 12 | 1–5 | rusty dagger (20 %), healing potion (15 %) |
+| Wolf | 18 | 5 | 1 | 18 | 0–3 | wolf pelt (40 %) |
+| Bandit | 22 | 6 | 2 | 25 | 3–12 | healing potion (25 %), leather armor (10 %) |
+| Orc | 32 | 8 | 3 | 40 | 4–15 | iron sword (15 %), healing potion (30 %) |
+| Troll | 60 | 12 | 4 | 100 | 10–40 | troll tooth (60 %), greatsword (10 %) |
+
+### The town crier
+
+Level-ups from kills, troll kills, Greatsword finds and deaths are queued as
+crier lines (at most 20 waiting). Every 20 seconds the bot posts the latest
+eight in one "📜 Town crier" message to the channel where `/rpg start` was
+last run in that server. The post pings nobody.
 
 ## PvP duels
 
-Consented 1v1 fights. No open-world ganking — both players must agree.
+Consented 1v1 fights, proposed between two players in the same place.
 
-1. `/rpg duel @bob` — Alice posts a challenge with Accept / Decline buttons. The challenge expires after 60 seconds.
-2. Bob clicks **Accept**: the bot runs the full fight immediately using the same `d20 + ATK vs 10 + DEF` formula as PvE combat, then replays the swing log one line per 1.5s.
-3. Neither character is permanently damaged. Both are at full HP before and after. The winner gets a small XP bonus (`floor(loserLevel × 5 × 0.1)`), no coins transfer, no item loss.
-4. Bob clicks **Decline** (or the 60s window lapses): challenge marked finished, no stat changes.
+1. Open **👥 Nearby** and press **⚔ Duel** next to the player. The bot posts
+   the challenge in the channel with **Accept** and **Decline**; the
+   defender is the one member it pings. The challenge expires after 60
+   seconds.
+2. Only the defender can accept. Either of the two can decline.
+3. On Accept the fight is resolved at once with the PvE formula, both
+   players starting at full HP with their effective stats, the challenger
+   swinging first, for at most 30 rounds. The more HP left wins; a tie is a
+   coin flip. The message then replays the swings, one every 1.5 seconds.
+4. Nobody is hurt: real HP, coins and items don't change. The winner gets
+   XP equal to half the loser's level (rounded down, at least 1), which can
+   level them up.
 
 ## Item and coin trading
 
-Consented, atomic swaps of items and coins between two players.
+Consented, atomic swaps, proposed between two players in the same place.
 
-1. `/rpg trade @bob` — opens a trade proposal message visible to the channel.
-2. Each side adjusts their offer using **+10 / -10 coin** buttons and item select menus (populated from their inventory).
-3. Any change by either side resets both confirmations, so both must always re-confirm after any edit.
-4. When both click **Confirm**, the server validates that each player still owns what they offered (guards against race conditions), then performs an atomic swap inside a single `updateWorld` mutation.
-5. Either player can click **Cancel** at any time to abort the trade.
+1. Open **👥 Nearby** and press **🤝 Trade** next to the player. The bot
+   posts a trade card in the channel. The proposer is side A, the other
+   player side B.
+2. Each side sets its offer: an item menu built from that player's bag (pick
+   any of the listed items, one of each) and **+10 / -10 coins** buttons. An
+   offer can't go below 0 coins or above what the player has. Only side A's
+   player can change side A, and the same for B.
+3. Any change clears both confirmations.
+4. When both have pressed **✅ Confirm**, the bot checks that each player
+   still has the coins and items offered, then swaps everything in one world
+   update. If a check fails, both confirmations clear and the presser is
+   told why.
+5. Either player can press **❌ Cancel** at any time.
 
-Custom ID prefixes:
+## Limits on proposals
+
+Each duel or trade proposal is a public post and a stored record, so they
+are limited:
+
+- **One proposal per member every 15 seconds**, duel or trade alike. A
+  press inside the window gets "Wait N s before proposing again." The timer
+  is in memory, so a restart clears it. A proposal refused before anything
+  is posted (the other player left the place, or one of the two rules
+  below) doesn't use up the window.
+- **One pending duel per pair**, whichever of the two challenged: a second
+  challenge is refused until the first is answered or its 60 seconds run
+  out.
+- **One open trade per pair**, until it completes or is cancelled.
+
+A pending duel doesn't block a trade between the same two players, or the
+other way round.
+
+**Pruning.** When a world loads (the first use after a restart) and whenever
+a new duel or trade starts, the world drops finished duels and completed or
+cancelled trades. A duel or trade that never finished is dropped one day
+after it started. An expired challenge is kept until then so that pressing
+Accept still says it expired; after that Accept answers "Duel not found."
+The buttons of an open trade dropped this way answer "Trade is no longer
+open."
+
+## Data and source
+
+### The world file
+
+One JSON file per server, `bots/discord/data/rpg/<guild-id>.json`
+(gitignored). The parts that matter:
+
+- `chars`, keyed by user id: `name`, `glyph`, `locationId`, `encounter`
+  (the mob kind, its HP and the recent swing lines, or `null`), `hp`,
+  `maxHp`, `atk`, `def`, `level`, `xp`, `coins`, `kills`, `deaths`,
+  `inventory`, `equipment`, `bounty`, `away`.
+- `duels` and `trades`: open proposals (see Pruning).
+- `crierChannelId` and `crierQueue`.
+
+The file still carries keys from an older grid-based version of the game
+(`grid`, `spawn`, `mobs`, `loot`, `tick`, a character's `pos`,
+`lastAttackAt`, `lastMoveAt`, `downUntil`). Nothing reads them. On load,
+missing fields get defaults and every character name is cleaned again.
+
+The world is cached in memory. Character creation, `/rpg exit` and every
+controller press write the file at once; `/rpg start` and the duel and
+trade buttons are written within 2.5 seconds, and shutdown flushes whatever
+is pending.
+
+### Source layout
+
+| Concern | Location |
+| ------- | -------- |
+| Slash command, character factory | [`commands/rpg.ts`](../../../bots/discord/src/commands/rpg.ts) |
+| Button, menu and modal router | [`commands/rpg-buttons.ts`](../../../bots/discord/src/commands/rpg-buttons.ts) |
+| World model, persistence, mob kinds, name cleaning, pruning | [`rpg/world.ts`](../../../bots/discord/src/rpg/world.ts) |
+| The six places | [`rpg/locations.ts`](../../../bots/discord/src/rpg/locations.ts) |
+| Controller screens and their actions | [`rpg/locationui.ts`](../../../bots/discord/src/rpg/locationui.ts) |
+| Explore and travel rolls | [`rpg/encounter.ts`](../../../bots/discord/src/rpg/encounter.ts) |
+| Combat rounds, flee, kills, death | [`rpg/combat.ts`](../../../bots/discord/src/rpg/combat.ts) |
+| Duels | [`rpg/duel.ts`](../../../bots/discord/src/rpg/duel.ts) |
+| Trades | [`rpg/trade.ts`](../../../bots/discord/src/rpg/trade.ts) |
+| Proposal cooldown and pair limits | [`rpg/proposals.ts`](../../../bots/discord/src/rpg/proposals.ts) |
+| Items | [`rpg/items.ts`](../../../bots/discord/src/rpg/items.ts) |
+| Shop buy and sell | [`rpg/shop.ts`](../../../bots/discord/src/rpg/shop.ts) |
+| Bounties | [`rpg/bounty.ts`](../../../bots/discord/src/rpg/bounty.ts) |
+| Town crier | [`rpg/crier.ts`](../../../bots/discord/src/rpg/crier.ts) |
+
+Custom ID prefixes (all under `rpg:`, which the router checks first):
+
+- `rpg:create:open`, `rpg:create:submit`
+- `rpg:ctl:<action>[:<arg>]`: `screen:<name>`, `explore`, `rest`,
+  `travel:<place>`, `fight`, `flee`, `combatpotion`, `bagsel`,
+  `unequip:<slot>`, `buysel`, `sellsel`, `bounty`, `duel:<user>`,
+  `trade:<user>`, `exit`
 - `rpg:duel:accept:<id>`, `rpg:duel:decline:<id>`
-- `rpg:trade:coins:<id>:<side>:<delta>`, `rpg:trade:item:<id>:<side>`, `rpg:trade:confirm:<id>:<side>`, `rpg:trade:cancel:<id>`
-
-Both `Duel` and `Trade` records live in the per-guild world JSON under `duels` and `trades` keys (default `{}` on load for backward compatibility).
+- `rpg:trade:coins:<id>:<side>:<delta>`, `rpg:trade:item:<id>:<side>`,
+  `rpg:trade:confirm:<id>:<side>`, `rpg:trade:cancel:<id>`
 
 ## Design notes
 
-- **No DM role.** The world generates itself and respawns mobs forever.
-  This was the biggest change: the old `/dm …` command surface (paint
-  terrain, place monsters, run encounters) is gone entirely.
-- **No initiative, no turns.** Combat is real-time with a per-player
-  cooldown. Mobs counter-attack on the same swing. Feels conversational
-  in chat — no "whose turn is it" lookups.
-- **Three stats, not six.** HP, ATK, DEF. Anything you might want to
-  encode (ability scores, AC, proficiency, saves) collapses into one
-  of those three. Death and inventory mechanics that used to need a
-  20-field character sheet now fit in ~10 fields.
-- **Lazy tick.** Mob movement and spawning happen inline when a player
-  acts. No background `setInterval`, no per-guild orchestration, no
-  worry about leaking timers when the bot restarts.
-- **Coins live on the character, not the gambling wallet.** Easier
-  death-drops, and keeps PvE economy separate from `/slots`. The two
-  systems share nothing — that's intentional.
-- **Procedural maps, seeded by guild id.** A given Discord server
-  always lands on the same map, but every server gets its own layout.
-  No DM authoring step needed.
-- **One file per guild, JSON, human-readable.** Same trade as the rest
-  of the project — readability over transactional correctness.
-- **Duels don't kill.** The fight resolves on snapshotted HP; real characters are untouched. This keeps PvP low-stakes and avoids griefing.
-- **Trades are atomic.** The swap happens inside a single `updateWorld` callback so the per-guild write chain serialises it. No intermediate state is ever flushed.
-- **No wagers, no cursed items.** Both are v2 ideas. In v1 every item is freely tradable and duels award only XP.
-- **Shop lives on the plaza, not on an NPC.** No vendor entity to spawn,
-  collide with, or kill — the existing 5×5 plaza tile pattern doubles as the
-  shop's footprint. This matches the "no DM authoring" rule.
-- **One bounty at a time.** Quest lists are a slippery slope toward inventory
-  management UI. A single slot keeps `/rpg me` legible and avoids needing
-  expiry timers or a daily reset.
-- **Equipment is never destroyed.** No durability, no break-on-death. Death
-  already drops half coins; piling on equipment loss makes the world feel
-  punishing in a way that doesn't match the casual-chat tone.
+- **No DM.** The places, mobs and loot tables are fixed in code; nobody
+  authors a campaign.
+- **Places, not tiles.** You are always at one of six named places and move
+  between them with one press. There is no map to walk and no mob that
+  moves on its own, so nothing happens in a world nobody is playing, and
+  the RPG's only background timer is the crier.
+- **Fights are private and turn-based.** A fight belongs to one player and
+  advances one round per press; other players can't join or steal it.
+- **Three stats.** HP, ATK and DEF carry the whole system.
+- **Coins live on the character**, not in the gambling wallet. The RPG and
+  `/slots` share nothing.
+- **One JSON file per server**, readable by a person or an LLM, the same
+  trade as the rest of the bot.
+- **Duels don't kill.** They run on a copy of each player's HP, so PvP stays
+  low-stakes.
+- **Trades are atomic.** The swap happens inside one world update, so no
+  half-done trade is ever written.
+- **Equipment is never lost.** Death already costs half your coins.
+- **One bounty at a time**, with no expiry or daily reset.
+- **No wagers, no cursed items.** Duels award only XP, and every item can be
+  traded.

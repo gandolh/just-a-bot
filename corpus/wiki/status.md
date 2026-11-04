@@ -1,12 +1,12 @@
 ---
-summary: Dated snapshot (2026-11-02) of just-a-bot, per area — the Discord-only bot, deployed as a container with its state outside the mirror (2026-10-07); the 2026-09-26 audit fixes (2026-10-02); the Jukebox built (2026-10-09, atrium's own login 2026-10-13) but not heard in Discord or deployed; the docs site on Docusaurus (2026-10-19, not deployed); the eleven briefs of the 2026-10-20 sweep built on 2026-11-02, not deployed; what is left for the owner.
+summary: Dated snapshot (2026-11-04) of just-a-bot, per area — the Discord-only bot, deployed as a container with its state outside the mirror (2026-10-07); the 2026-09-26 audit fixes (2026-10-02); the Jukebox built (2026-10-09, atrium's own login 2026-10-13) but not heard in Discord or deployed; the docs site on Docusaurus (2026-10-19, not deployed); the eleven briefs of the 2026-10-20 sweep built on 2026-11-02, not deployed; what is left for the owner.
 updated: 2026-11-04
 ---
 
-# Status — 2026-11-02
+# Status — 2026-11-04
 
-`origin/main` is at `523dfe9`; the local commits after it (`aad247f`, the
-briefs reset and the 2026-11-02 brief run) are not pushed. Typecheck is clean
+`origin/main` is at `ade9e76`, the end of the 2026-11-02 brief run; the
+corpus commits since and the 2026-11-04 brief run are local, not pushed. Typecheck is clean
 and `npm test` passes 104 tests (99 in the bot, 5 in `shared`). Production runs the 2026-10-07
 container. Brief numbering restarted at 01 on 2026-11-02 (see
 [`../log.md`](../log.md), "Briefs reset").
@@ -40,12 +40,13 @@ container. Brief numbering restarted at 01 on 2026-11-02 (see
   ([code-graph.md](code-graph.md)).
 - **Rest of the bot.** Games, gambling, AI chat, image cards, reminders, RPG,
   quotes and confessions work as before. They have no wiki pages; their
-  manuals are under [`docs/discord/`](../../docs/discord/README.md).
+  manuals are under [`docs/discord/`](../../docs/discord/README.md). The RPG
+  manual was rewritten against the code on 2026-11-04 (brief 12): places and
+  buttons, not the tile grid it used to describe.
 
 ## Open briefs
 
-12, the RPG manual matches the commands (written 2026-11-03 from its todo, in
-a grill with the owner; not started). 13 and 14, written 2026-11-04 from a grill with the owner, not
+12, the RPG manual, was done on 2026-11-04 (docs only). 13 and 14, written 2026-11-04 from a grill with the owner, not
 started: 13 `/ask` always uses `OLLAMA_MODEL` (no model option) and fails
 privately; 14 `/ask` goes through Wicket, the estate's new LLM queue, once
 Wicket is deployed. 15, also 2026-11-04: the container starts the bot with `node` and tsx's
@@ -54,7 +55,9 @@ loader directly, not through `npm` (the owner's memory review of the VPS). The e
 01-05 the Jukebox's failure paths, checked against atrium's source, 06-09 the
 Now items (shutdown drain, private-thread quotes, RPG names, the `/confess`
 race), 10-11 the Next items (RPG proposals and pruning, `/ask` limits). None of
-it is deployed or run in Discord. No todo is open.
+it is deployed or run in Discord. Two todos are open, both from brief 12: the
+RPG shop won't sell a spare copy of a worn item, and two manual pages still
+describe the RPG's old grid tick.
 
 ## Next (owner)
 

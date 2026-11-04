@@ -1091,3 +1091,12 @@ ticket line while the question waits and a note when the backup model answered. 
 From the owner's memory review of the VPS (vps-deploy's `memory-on-the-box` research): the bot's
 container starts through two `npm` processes before tsx. The owner decided apps start with `node`
 directly; the bot keeps tsx under its "No build step" decision, and only the `npm` wrappers go.
+
+## [2026-11-04] done | Brief 12: the RPG manual matches the commands
+
+`docs/discord/rpg/README.md` is rewritten against the code: `/rpg start`, `exit` and `help`, the
+creation modal, each controller screen and button, the six places, combat, the shop, bounties,
+duels, trades, brief 10's limits and pruning, and the world file. The old page described a tile
+grid with roaming mobs and twenty slash subcommands. Docs only; links checked by hand, the
+Docusaurus build not run. Two todos filed: the shop won't sell a spare copy of a worn item, and two
+other manual pages still describe the grid's tick.
