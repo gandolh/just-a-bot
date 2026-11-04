@@ -1,6 +1,6 @@
 ---
 summary: How the repo and the Discord bot are put together: the three workspaces (two runtime, one docs build), the no-build tsx runtime, one-feature-dir-per-capability layout, and the commands→features→shared dependency direction.
-updated: 2026-10-09
+updated: 2026-11-04
 ---
 
 # Architecture
@@ -28,9 +28,15 @@ just-a-bot/
   tsconfig.base.json     shared TS config
 ```
 
-- **The bot never builds** — `tsx src/index.ts` runs TypeScript directly, in dev
-  and in production. The one build in the repo is `docs-site`'s `docusaurus build`,
-  a static site with no bearing on the bot. (`dice-activity`, which also built,
+- **The bot never builds** — tsx runs the TypeScript directly, in dev and in
+  production. Locally that is the tsx CLI (`npm run discord:dev` /
+  `discord:start`). The container runs `node --import tsx
+  bots/discord/src/index.ts` from `/app` with no npm in front (2026-11-04): `node`
+  is PID 1, so `docker stop`'s SIGTERM reaches the shutdown drain directly, and
+  the two npm processes and the tsx CLI no longer take memory on the shared VPS.
+  The working directory stays `/app` because vps-deploy runs `npm run
+  discord:register` in the same image. The one build in the repo is
+  `docs-site`'s `docusaurus build`, a static site with no bearing on the bot. (`dice-activity`, which also built,
   was removed 2026-08-27.)
 - Run scripts live in the root package.json (`discord:dev`, `discord:start`,
   `discord:register`, etc.), plus `typecheck` and `corpus:lint`.

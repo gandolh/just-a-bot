@@ -42,4 +42,16 @@ ENV NODE_ENV=production
 # The bot's credentials are NOT baked in. `bots/discord/.env` is bind-mounted at
 # runtime from the host, the same file the deploy pushes today — a token in an
 # image layer is a token in every copy of that image.
-CMD ["npm", "run", "discord:start"]
+#
+# The bot starts as `node` with tsx's loader, the same TypeScript run as
+# `npm run discord:start` without the two npm processes and the tsx CLI in
+# front of it. On a small shared box those wrappers cost memory, and every hop
+# between `docker stop`'s SIGTERM and the bot was one more place the shutdown
+# drain could be cut off. `node` is PID 1 here (the base image's entrypoint
+# execs it), so the signal reaches the bot's own handler.
+#
+# The working directory stays /app. vps-deploy registers the slash commands
+# with `npm run discord:register` in this image, and that script lives in the
+# root package.json: run from bots/discord, npm would look in the bot
+# workspace's scripts and fail.
+CMD ["node", "--import", "tsx", "bots/discord/src/index.ts"]

@@ -1108,3 +1108,13 @@ and `pickModel()` are gone. A failed call deletes the public deferred reply and 
 member, through `failPrivately()` in `ollama/reply.ts`, and is logged as a warning since the
 channel no longer shows it. Typecheck clean, 99/99 bot tests. The command definition changed:
 the deploy re-registers the commands (vps-deploy does that on every deploy). Not run in Discord.
+
+## [2026-11-04] done | Brief 15: the bot starts without npm
+
+The image's `CMD` is `node --import tsx bots/discord/src/index.ts`, run from `/app`: one `node`
+as the container's PID 1 instead of `npm → npm → tsx CLI → node`. The working directory stays
+`/app` because vps-deploy's `npm run discord:register` runs in the same image and needs the root
+scripts. Checked in Docker on an image built from a `git archive` export with a dummy token: the
+process tree is one `node`, the bot loads and fails its login as expected, and a stand-in using the
+bot's own drain stopped in 0.22 s with exit 0. The 2026-09-26 Watch item about busybox `sh`
+exec'ing is retired. Typecheck clean, 99/99 bot tests.

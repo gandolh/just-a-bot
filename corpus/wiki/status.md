@@ -1,5 +1,5 @@
 ---
-summary: Dated snapshot (2026-11-04) of just-a-bot, per area — the Discord-only bot, deployed as a container with its state outside the mirror (2026-10-07); the 2026-09-26 audit fixes (2026-10-02); the Jukebox built (2026-10-09, atrium's own login 2026-10-13) but not heard in Discord or deployed; the docs site on Docusaurus (2026-10-19, not deployed); the eleven briefs of the 2026-10-20 sweep built on 2026-11-02, not deployed; what is left for the owner.
+summary: Dated snapshot (2026-11-04) of just-a-bot, per area — the Discord-only bot, deployed as a container with its state outside the mirror (2026-10-07); the 2026-09-26 audit fixes (2026-10-02); the Jukebox built (2026-10-09, atrium's own login 2026-10-13) but not heard in Discord or deployed; the docs site on Docusaurus (2026-10-19, not deployed); the eleven briefs of the 2026-10-20 sweep built on 2026-11-02, not deployed; briefs 12, 13 and 15 built on 2026-11-04 (13 and 15 not deployed), 14 waiting for Wicket; what is left for the owner.
 updated: 2026-11-04
 ---
 
@@ -26,6 +26,8 @@ container. Brief numbering restarted at 01 on 2026-11-02 (see
 - **Production** (2026-10-07). A container from `infrastructure/`, deployed by
   `vps-deploy`; state in two bind mounts at `/srv/just-a-bot/state/`, outside
   the rsync mirror. The owner purged the old state, so the bot started fresh.
+  Since brief 15 (2026-11-04, not deployed) the image runs `node --import tsx`
+  as PID 1 with no npm in front ([architecture.md](architecture.md)).
 - **Music: the Jukebox** (built 2026-10-09). The bot plays atrium's library in
   voice, steered by atrium over a long-poll; `/jukebox` is the Discord remote.
   Since 2026-10-13 it signs in as a local atrium user with the `jukebox` role,
@@ -50,8 +52,9 @@ container. Brief numbering restarted at 01 on 2026-11-02 (see
 2026-11-04, not deployed: `/ask` always uses `OLLAMA_MODEL` (no model option)
 and fails privately. 14, written 2026-11-04 from a grill with the owner and
 waiting until Wicket is deployed: `/ask` goes through Wicket, the estate's new
-LLM queue. 15, also 2026-11-04: the container starts the bot with `node` and tsx's
-loader directly, not through `npm` (the owner's memory review of the VPS). The eleven briefs from the 2026-10-20 improvement sweep were built on
+LLM queue. 15, done on 2026-11-04, not deployed: the container starts the bot
+with `node` and tsx's loader directly, not through `npm` (the owner's memory
+review of the VPS). The eleven briefs from the 2026-10-20 improvement sweep were built on
 2026-11-02, one commit each plus a corpus commit (see [`../log.md`](../log.md)):
 01-05 the Jukebox's failure paths, checked against atrium's source, 06-09 the
 Now items (shutdown drain, private-thread quotes, RPG names, the `/confess`
@@ -79,9 +82,11 @@ describe the RPG's old grid tick.
   visible to a second account (05); `/quote add` into a private thread you are
   not in is refused (07); a duel challenge notifies the defender once (08, 10);
   `/ask` refuses a second question in flight (11).
-- **Brief 13 in Discord**: deploy (it re-registers the commands, which
-  brief 13 changed); `/ask` offers only `prompt`, and a failing question
-  leaves nothing in the channel and tells the asker privately.
+- **Briefs 13 and 15**: deploy (`node cli.ts just-a-bot deploy` from
+  vps-deploy; it re-registers the commands, which brief 13 changed). Then
+  `/ask` offers only `prompt`, a failing question leaves nothing in the
+  channel and tells the asker privately, and `docker top` on the bot's
+  container shows one `node` and no `npm`.
 - **Rotate the Activity secrets**: `DISCORD_CLIENT_SECRET`,
   `SESSION_HMAC_KEY` and `ENGINE_AUTH_TOKEN` from the 2026-08 experiment, or
   delete that app in the developer portal. Deleting the local `.env` did not

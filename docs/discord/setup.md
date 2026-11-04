@@ -78,13 +78,22 @@ Dev (auto-reload via tsx watch):
 npm run discord:dev
 ```
 
-Production (no watcher):
+Without a watcher (the pm2 path, see `ecosystem.config.cjs`):
 
 ```
 npm run discord:start
 ```
 
-Both run TypeScript directly through tsx — no build step.
+Both run TypeScript directly through tsx — no build step. The production
+container runs the same code without npm in front of it:
+
+```
+node --import tsx bots/discord/src/index.ts    # from the repo root
+```
+
+Keep the repo root as the working directory: the deploy registers commands
+in the same image with `npm run discord:register`, which only the root
+package.json has.
 
 ## Data directories
 

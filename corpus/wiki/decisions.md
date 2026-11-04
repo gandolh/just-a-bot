@@ -47,7 +47,9 @@ a container through the estate's deploy (`vps-deploy` `stacks/just-a-bot.ts`,
 container-only since 2026-09-06; the image is from `53a5cbb`). Its state is two
 bind mounts outside the rsync mirror. `docker compose logs` replaces `pm2 logs`
 there. `ecosystem.config.cjs` stays for local runs. Unchanged: tsx at runtime,
-no build step, the `.env` bind-mounted and never baked in.
+no build step, the `.env` bind-mounted and never baked in. Since 2026-11-04 the
+image starts the bot as `node --import tsx`, not through npm: the owner decided
+apps start with `node` directly, to save the wrappers' memory on the VPS.
 Was: pm2 everywhere, rejecting containers for "no container runtime to
 maintain". That reason lapsed when the estate took on rootless Docker for every
 service.

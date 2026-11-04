@@ -29,7 +29,10 @@ all, which the package boundary enforces mechanically.
 ## Runtime
 
 TypeScript runs **directly** via [tsx](https://github.com/privatenumber/tsx) — no
-build step in the run path. `npm run <bot>:start` → `tsx src/index.ts`.
+build step in the run path. Locally, `npm run discord:start` → `tsx src/index.ts`
+in `bots/discord`. The container skips npm and the tsx CLI and runs one process,
+`node --import tsx bots/discord/src/index.ts` from the repo root (see
+[`infrastructure/Dockerfile`](../../infrastructure/Dockerfile)).
 `npm run typecheck` runs `tsc --noEmit` for validation across every workspace.
 
 Relative imports use `.ts` extensions because `tsconfig.base.json` sets
