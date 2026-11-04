@@ -1,6 +1,6 @@
 ---
 summary: Locked tech/design calls with their rejected alternatives and reasons — read before proposing pnpm, a build step, or an ORM-style rewrite.
-updated: 2026-11-02
+updated: 2026-11-04
 ---
 
 # Decisions (locked)
@@ -200,3 +200,16 @@ _2026-10-04, owner_ — Before the state move deploys, the owner checks the VPS
 and picks the pm2-era or container copy per file. Rejected: the agent holding
 SSH to the box, even read-only. Overtaken on 2026-10-07: the owner purged the
 state instead and the bot started fresh ([audit-fixes.md](audit-fixes.md)).
+
+## `/ask` asks one model, and later goes through Wicket
+
+_2026-11-04, owner_ — Members don't pick `/ask`'s model: it always uses
+`OLLAMA_MODEL`, and an Ollama failure answers only the member. Once Wicket
+(the estate's LLM queue, its own repo) is deployed, `/ask` sends its questions
+there instead of calling Ollama itself; Wicket holds the key, runs one call at
+a time with ticket numbers, and falls back to a small model on the VPS.
+Rejected: a picker of several models (brief 11's `OLLAMA_MODELS`, now
+removed), a small fast model beside the default, public error lines, and
+calling Ollama Cloud directly for good. Reason: one model keeps the quota
+predictable; one queue for every app keeps the box and the quota from being
+hit by two callers at once.

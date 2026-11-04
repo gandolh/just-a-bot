@@ -1076,3 +1076,12 @@ Promoted from the todo `rpg-docs-describe-old-commands` in an estate-wide grill 
 with the todo as the spec: rewrite `docs/discord/rpg/README.md` against `/rpg start`, `exit`,
 `help`, the buttons and the modal, plus brief 10's limits. The todo is deleted; brief 08's
 outcome's link to it is now plain text, the only change to that brief.
+
+## [2026-11-04] todo | Briefs 13-14: `/ask`'s model, its failures, and Wicket
+
+In a grill with the owner: `/ask` offers no model choice and always uses `OLLAMA_MODEL`, and an
+Ollama failure answers only the member (brief 13). The owner also decided the estate gets Wicket, a
+new service that queues every LLM call, one at a time, with ticket numbers, Ollama Cloud first and a
+small model on the VPS as backup; brief 14 moves `/ask` onto it once Wicket is deployed, showing the
+ticket line while the question waits and a note when the backup model answered. The owner step
+"Decide `/ask`'s models" is answered and removed from status.md.

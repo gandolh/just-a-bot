@@ -1,6 +1,6 @@
 ---
 summary: Dated snapshot (2026-11-02) of just-a-bot, per area — the Discord-only bot, deployed as a container with its state outside the mirror (2026-10-07); the 2026-09-26 audit fixes (2026-10-02); the Jukebox built (2026-10-09, atrium's own login 2026-10-13) but not heard in Discord or deployed; the docs site on Docusaurus (2026-10-19, not deployed); the eleven briefs of the 2026-10-20 sweep built on 2026-11-02, not deployed; what is left for the owner.
-updated: 2026-11-03
+updated: 2026-11-04
 ---
 
 # Status — 2026-11-02
@@ -45,7 +45,10 @@ container. Brief numbering restarted at 01 on 2026-11-02 (see
 ## Open briefs
 
 12, the RPG manual matches the commands (written 2026-11-03 from its todo, in
-a grill with the owner; not started). The eleven briefs from the 2026-10-20 improvement sweep were built on
+a grill with the owner; not started). 13 and 14, written 2026-11-04 from a grill with the owner, not
+started: 13 `/ask` always uses `OLLAMA_MODEL` (no model option) and fails
+privately; 14 `/ask` goes through Wicket, the estate's new LLM queue, once
+Wicket is deployed. The eleven briefs from the 2026-10-20 improvement sweep were built on
 2026-11-02, one commit each plus a corpus commit (see [`../log.md`](../log.md)):
 01-05 the Jukebox's failure paths, checked against atrium's source, 06-09 the
 Now items (shutdown drain, private-thread quotes, RPG names, the `/confess`
@@ -71,8 +74,6 @@ it is deployed or run in Discord. No todo is open.
   visible to a second account (05); `/quote add` into a private thread you are
   not in is refused (07); a duel challenge notifies the defender once (08, 10);
   `/ask` refuses a second question in flight (11).
-- **Decide `/ask`'s models**: production offers only `OLLAMA_MODEL` until
-  `OLLAMA_MODELS` is set in its `.env`.
 - **Rotate the Activity secrets**: `DISCORD_CLIENT_SECRET`,
   `SESSION_HMAC_KEY` and `ENGINE_AUTH_TOKEN` from the 2026-08 experiment, or
   delete that app in the developer portal. Deleting the local `.env` did not
