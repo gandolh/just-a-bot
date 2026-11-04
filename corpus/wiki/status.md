@@ -48,7 +48,8 @@ container. Brief numbering restarted at 01 on 2026-11-02 (see
 a grill with the owner; not started). 13 and 14, written 2026-11-04 from a grill with the owner, not
 started: 13 `/ask` always uses `OLLAMA_MODEL` (no model option) and fails
 privately; 14 `/ask` goes through Wicket, the estate's new LLM queue, once
-Wicket is deployed. The eleven briefs from the 2026-10-20 improvement sweep were built on
+Wicket is deployed. 15, also 2026-11-04: the container starts the bot with `node` and tsx's
+loader directly, not through `npm` (the owner's memory review of the VPS). The eleven briefs from the 2026-10-20 improvement sweep were built on
 2026-11-02, one commit each plus a corpus commit (see [`../log.md`](../log.md)):
 01-05 the Jukebox's failure paths, checked against atrium's source, 06-09 the
 Now items (shutdown drain, private-thread quotes, RPG names, the `/confess`

@@ -1085,3 +1085,9 @@ new service that queues every LLM call, one at a time, with ticket numbers, Olla
 small model on the VPS as backup; brief 14 moves `/ask` onto it once Wicket is deployed, showing the
 ticket line while the question waits and a note when the backup model answered. The owner step
 "Decide `/ask`'s models" is answered and removed from status.md.
+
+## [2026-11-04] todo | Brief 15: the bot starts without npm
+
+From the owner's memory review of the VPS (vps-deploy's `memory-on-the-box` research): the bot's
+container starts through two `npm` processes before tsx. The owner decided apps start with `node`
+directly; the bot keeps tsx under its "No build step" decision, and only the `npm` wrappers go.
