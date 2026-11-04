@@ -46,10 +46,11 @@ container. Brief numbering restarted at 01 on 2026-11-02 (see
 
 ## Open briefs
 
-12, the RPG manual, was done on 2026-11-04 (docs only). 13 and 14, written 2026-11-04 from a grill with the owner, not
-started: 13 `/ask` always uses `OLLAMA_MODEL` (no model option) and fails
-privately; 14 `/ask` goes through Wicket, the estate's new LLM queue, once
-Wicket is deployed. 15, also 2026-11-04: the container starts the bot with `node` and tsx's
+12, the RPG manual, was done on 2026-11-04 (docs only). 13, done on
+2026-11-04, not deployed: `/ask` always uses `OLLAMA_MODEL` (no model option)
+and fails privately. 14, written 2026-11-04 from a grill with the owner and
+waiting until Wicket is deployed: `/ask` goes through Wicket, the estate's new
+LLM queue. 15, also 2026-11-04: the container starts the bot with `node` and tsx's
 loader directly, not through `npm` (the owner's memory review of the VPS). The eleven briefs from the 2026-10-20 improvement sweep were built on
 2026-11-02, one commit each plus a corpus commit (see [`../log.md`](../log.md)):
 01-05 the Jukebox's failure paths, checked against atrium's source, 06-09 the
@@ -78,6 +79,9 @@ describe the RPG's old grid tick.
   visible to a second account (05); `/quote add` into a private thread you are
   not in is refused (07); a duel challenge notifies the defender once (08, 10);
   `/ask` refuses a second question in flight (11).
+- **Brief 13 in Discord**: deploy (it re-registers the commands, which
+  brief 13 changed); `/ask` offers only `prompt`, and a failing question
+  leaves nothing in the channel and tells the asker privately.
 - **Rotate the Activity secrets**: `DISCORD_CLIENT_SECRET`,
   `SESSION_HMAC_KEY` and `ENGINE_AUTH_TOKEN` from the 2026-08 experiment, or
   delete that app in the developer portal. Deleting the local `.env` did not

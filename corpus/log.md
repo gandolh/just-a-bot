@@ -1100,3 +1100,11 @@ duels, trades, brief 10's limits and pruning, and the world file. The old page d
 grid with roaming mobs and twenty slash subcommands. Docs only; links checked by hand, the
 Docusaurus build not run. Two todos filed: the shop won't sell a spare copy of a worn item, and two
 other manual pages still describe the grid's tick.
+
+## [2026-11-04] done | Brief 13: `/ask` uses one model and fails privately
+
+`/ask` has one option, `prompt`, and always asks `OLLAMA_MODEL`; `OLLAMA_MODELS`, `allowedModels()`
+and `pickModel()` are gone. A failed call deletes the public deferred reply and tells only the
+member, through `failPrivately()` in `ollama/reply.ts`, and is logged as a warning since the
+channel no longer shows it. Typecheck clean, 99/99 bot tests. The command definition changed:
+the deploy re-registers the commands (vps-deploy does that on every deploy). Not run in Discord.

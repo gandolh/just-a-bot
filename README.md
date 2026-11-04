@@ -46,7 +46,7 @@ Every slash command the bot registers, with the description Discord shows for it
 | [`/remindme`](docs/discord/reminders/README.md) | `set when text`, `list`, `cancel id` | Set or manage personal reminders |
 | [`/clock`](docs/discord/clock/README.md) | `set timezone`, `unset`, `show` | World clock — see what time it is for everyone |
 | [`/jukebox`](docs/discord/jukebox/README.md) | `play track [next]`, `skip`, `previous`, `pause`, `resume`, `stop`, `join`, `leave`, `shuffle on`, `repeat mode`, `nowplaying`, `queue` | Play atrium's music in a voice channel |
-| [`/ask`](docs/discord/ask/README.md) | `prompt [model]` | Ask an Ollama-hosted model a question |
+| [`/ask`](docs/discord/ask/README.md) | `prompt` | Ask an Ollama-hosted model a question |
 | [`/img`](docs/discord/img/README.md) | `meme top bottom [template]`, `card title body` | Generate a PNG image |
 | [`/top`](docs/discord/leaderboards/README.md) | `category` | Show the top 10 players for a category |
 | `/ping` | | Replies with Pong! |

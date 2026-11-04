@@ -1,21 +1,17 @@
 import { SlashCommandBuilder } from 'discord.js';
+import { logger } from '@bots/shared';
 import type { Command } from './types.ts';
 import { chat, OllamaError } from '../ollama/chat.ts';
-import { AskLimiter, allowedModels, pickModel } from '../ollama/limits.ts';
-import { answerMessages } from '../ollama/reply.ts';
+import { AskLimiter } from '../ollama/limits.ts';
+import { answerMessages, failPrivately } from '../ollama/reply.ts';
 import { env } from '../env.ts';
 
+const log = logger.scoped('ask');
 const RESPONSE_TIMEOUT_MS = 60_000;
-
-/**
- * The models a member may pick. Any name used to go to Ollama on the owner's
- * key; now the option offers these as choices, and `execute` refuses anything
- * else (a stale registration, a hand-made request).
- */
-const MODELS = allowedModels(env.OLLAMA_MODEL, env.OLLAMA_MODELS);
 const limiter = new AskLimiter();
 
 export const ask: Command = {
+  // One option: every question goes to OLLAMA_MODEL, which keeps the quota predictable.
   data: new SlashCommandBuilder()
     .setName('ask')
     .setDescription('Ask an Ollama-hosted model a question')
@@ -25,12 +21,6 @@ export const ask: Command = {
         .setDescription('Your question or instruction')
         .setRequired(true)
         .setMaxLength(1500),
-    )
-    .addStringOption((o) =>
-      o
-        .setName('model')
-        .setDescription(`The model to ask (default: ${env.OLLAMA_MODEL})`.slice(0, 100))
-        .addChoices(...MODELS.map((name) => ({ name, value: name }))),
     ),
   async execute(interaction) {
     if (!env.OLLAMA_API_KEY) {
@@ -42,12 +32,6 @@ export const ask: Command = {
     }
 
     const prompt = interaction.options.getString('prompt', true);
-    const requested = interaction.options.getString('model');
-    const model = pickModel(requested, MODELS, env.OLLAMA_MODEL);
-    if (!model) {
-      await interaction.reply({ content: "That model isn't one of the models offered here.", ephemeral: true });
-      return;
-    }
 
     // Taken before the first await, so a burst of commands gets one through.
     const slot = limiter.claim(`${interaction.guildId ?? 'dm'}:${interaction.user.id}`);
@@ -71,7 +55,7 @@ export const ask: Command = {
       let answer: string;
       try {
         answer = await chat({
-          model,
+          model: env.OLLAMA_MODEL,
           messages: [{ role: 'user', content: prompt }],
           signal: controller.signal,
         });
@@ -82,7 +66,11 @@ export const ask: Command = {
             : controller.signal.aborted
               ? `Model took longer than ${RESPONSE_TIMEOUT_MS / 1000}s to respond.`
               : 'Unexpected error talking to Ollama.';
-        await interaction.editReply(`⚠️ ${reason}`);
+        // The channel no longer shows failures, so the log is where the owner finds them.
+        log.warn(`/ask failed: ${reason}`, err instanceof OllamaError || controller.signal.aborted ? undefined : err);
+        await failPrivately(interaction, `⚠️ ${reason}`, (deleteErr) =>
+          log.error('Could not delete the deferred /ask reply', deleteErr),
+        );
         return;
       } finally {
         clearTimeout(timer);

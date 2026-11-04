@@ -1,4 +1,4 @@
-/** How `/ask` turns an answer into Discord messages. No env here, so it is tested on its own. */
+/** How `/ask` turns an answer, or a failure, into Discord messages. No env here, so it is tested on its own. */
 
 export const DISCORD_MESSAGE_LIMIT = 2000;
 /** The reply plus two follow-ups. A longer answer is cut, and says so. */
@@ -35,4 +35,27 @@ export function answerMessages(prompt: string, answer: string): string[] {
   const last = kept[MAX_ANSWER_MESSAGES - 1];
   kept[MAX_ANSWER_MESSAGES - 1] = `${last.slice(0, DISCORD_MESSAGE_LIMIT - CUT_NOTE.length).trimEnd()}${CUT_NOTE}`;
   return kept;
+}
+
+/** The two calls a failed question makes. A slash-command interaction has both. */
+export interface FailedAsk {
+  deleteReply(): Promise<unknown>;
+  followUp(options: { content: string; ephemeral: true }): Promise<unknown>;
+}
+
+/**
+ * Tell only the member why their question failed. The reply is deferred
+ * publicly before the answer is known, and a deferred reply can't turn
+ * ephemeral, so the public placeholder is deleted and the reason goes out as
+ * an ephemeral follow-up. The delete comes first: Discord fills a still-loading
+ * deferred reply with the first follow-up and keeps the deferral's public flag.
+ * A failed delete is reported and the member is still told.
+ */
+export async function failPrivately(
+  interaction: FailedAsk,
+  content: string,
+  onDeleteError: (err: unknown) => void = () => {},
+): Promise<void> {
+  await interaction.deleteReply().catch(onDeleteError);
+  await interaction.followUp({ content, ephemeral: true });
 }

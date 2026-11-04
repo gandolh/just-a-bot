@@ -1,21 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { AskLimiter, allowedModels, ASK_COOLDOWN_MS, pickModel } from './limits.ts';
-
-test('the offered models are the default and OLLAMA_MODELS, cleaned', () => {
-  assert.deepEqual(allowedModels('gpt-oss:120b', undefined), ['gpt-oss:120b']);
-  assert.deepEqual(allowedModels('gpt-oss:120b', ' qwen3:32b, ,gpt-oss:120b,llama3 '), ['gpt-oss:120b', 'qwen3:32b', 'llama3']);
-  assert.equal(allowedModels('a', 'x'.repeat(101)).length, 1, 'a name Discord would refuse is dropped');
-  const many = Array.from({ length: 40 }, (_, i) => `m${i}`).join(',');
-  assert.equal(allowedModels('a', many).length, 25);
-});
-
-test('an unknown model is refused; no pick means the default', () => {
-  const offered = ['gpt-oss:120b', 'qwen3:32b'];
-  assert.equal(pickModel('some-expensive-model', offered, 'gpt-oss:120b'), null);
-  assert.equal(pickModel('qwen3:32b', offered, 'gpt-oss:120b'), 'qwen3:32b');
-  assert.equal(pickModel(null, offered, 'gpt-oss:120b'), 'gpt-oss:120b');
-});
+import { AskLimiter, ASK_COOLDOWN_MS } from './limits.ts';
 
 test('one question in flight per member, then a cooldown', () => {
   let clock = 0;

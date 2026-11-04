@@ -19,8 +19,6 @@ const schema = z
     OLLAMA_API_KEY: z.string().optional(),
     OLLAMA_HOST: z.string().url().default('https://ollama.com'),
     OLLAMA_MODEL: z.string().default('gpt-oss:120b'),
-    // More models /ask may offer besides OLLAMA_MODEL, comma-separated.
-    OLLAMA_MODELS: optional(z.string()),
     // The Jukebox: atrium's music, signed in as the Bot account, atrium's own local user.
     JUKEBOX_ATRIUM_URL: optional(z.string().url()),
     JUKEBOX_ATRIUM_USERNAME: optional(z.string().min(1)),
