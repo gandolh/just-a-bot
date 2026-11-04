@@ -24,6 +24,16 @@ Wicket's API contract (the same text is in Wicket's and ro-housing's briefs):
 > `{ id, ticket, nowServing, position, status: "queued"|"running"|"done"|"failed"|"cancelled", result?: { text, model, backup }, error? }`.
 > `DELETE {WICKET_URL}/v1/jobs/:id` cancels the caller's own job.
 
+Wicket was built on 2026-11-04 (not deployed yet); its full API is in its
+repo's `corpus/wiki/api.md`. Beyond the contract above, a caller must know:
+send only `messages` (and `format`), since unknown fields are a 400; a 404
+for a job (after a Wicket restart, say) means cancelled; 503 `queue_full`
+past 200 waiting jobs; `?wait` above 25 is held to 25; a finished answer is
+kept 10 minutes, so fetch it promptly; a cancelled job's `error` gives the
+reason (caller, force closed, cleared, server restarted). On the VPS the bot
+must call the public `/wicket-api` address, not Wicket's loopback port: under
+the rootless Docker daemon a container can't reach the host's loopback.
+
 ## Files you OWN
 
 - `bots/discord/src/commands/ask.ts`, `bots/discord/src/ollama/` (or a new
