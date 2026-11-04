@@ -1118,3 +1118,10 @@ scripts. Checked in Docker on an image built from a `git archive` export with a 
 process tree is one `node`, the bot loads and fails its login as expected, and a stand-in using the
 bot's own drain stopped in 0.22 s with exit 0. The 2026-09-26 Watch item about busybox `sh`
 exec'ing is retired. Typecheck clean, 99/99 bot tests.
+
+## [2026-11-04] decision | Wicket is cloud-only; brief 14 drops the backup note
+
+The owner dropped Wicket's backup model on the VPS (its Ollama image was
+6.55 GB against 7.1 GB free on the box): Wicket calls Ollama Cloud only, and
+a cloud failure fails the job. Brief 14 no longer adds a "the backup answered"
+line, and its contract text loses `result.backup`.
