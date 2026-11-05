@@ -33,3 +33,25 @@ find in the same way.
 
 No page under `docs/` describes the RPG's tile grid, map renderer or mob
 tick; `npm run corpus:lint` passes.
+
+## Outcome (2026-11-05)
+
+Built in the commit that moved this brief to `done/` ("Brief 17: two manual
+pages drop the RPG's old grid and tick"). Docs only.
+
+- `docs/discord/architecture.md`: `rpg/` is "world model and places,
+  controller screens, combat, duels, trades, shop, bounties, town crier".
+- `docs/discord/reminders/README.md`: the "lazy tick" contrast is now
+  heartbeat vs. player-driven. The RPG needs no clock to run its world
+  (places are fixed, mobs don't move, a fight advances on its player's
+  press) and its one timer is the town crier. The page also said the
+  reminder loop was "the only background timer in the bot" and kept
+  "exactly one timer in the process"; neither was true (`index.ts` starts
+  the crier's 20-second interval beside it), so both lines say what the
+  loop is without claiming to be alone.
+- A grep of `docs/` for grid, tile, map renderer, mob tick, spawn and roam
+  found nothing else about the RPG's old model. The RPG manual's note that
+  the save file still carries keys from the grid version (`grid`, `tick`,
+  `pos`, …) stays: it describes the file, and `world.ts` still backfills
+  `world.tick` and has a grid-era `entityAt(row, col)`. Those code leftovers
+  are outside a docs brief.

@@ -1162,3 +1162,13 @@ from the start. `rpg/shop.test.ts` covers the spare and the worn-only case. Type
 `jukebox.test.ts` fail at import: `WICKET_URL` in the local `.env` (production's, changed today
 after brief 14 was committed) is not a valid URL, so a deploy with it would stop the bot at boot.
 The owner fixes it; the `.env` was not touched.
+
+## [2026-11-05] done | Brief 17: two manual pages drop the RPG's old grid and tick
+
+Docs only. `docs/discord/architecture.md` lists what `rpg/` holds now (places, controller screens,
+combat, duels, trades, shop, bounties, crier) instead of a mob spawn/tick and a map renderer. The
+reminders manual contrasts its heartbeat with the RPG being player-driven, not with a "lazy tick",
+and no longer calls the reminder loop the bot's only timer: the crier's 20-second interval runs
+beside it. A grep of `docs/` found no other description of the old grid; the RPG manual's note on
+the save file's grid-era keys stays. `world.ts` still carries grid leftovers (`world.tick`,
+`entityAt(row, col)`), not touched by a docs brief.

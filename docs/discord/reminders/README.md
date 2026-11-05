@@ -41,7 +41,7 @@ Two small commands — `/remindme` and `/birthday` — backed by a shared once-p
 
 A single `setInterval(60_000)` is started in `bots/discord/src/index.ts` immediately after `client.login`. Each interval fires `tickReminders(client)` and `tickBirthdays(client)` in parallel (errors are caught and logged separately).
 
-This is the only background timer in the bot. Date-based fires require a heartbeat; there's no lazy-tick alternative the way world ticks work for the RPG.
+Date-based fires require a heartbeat: nothing a member does can stand in for the clock. The RPG's town crier runs on its own 20-second interval next to this one, but it only posts world events; it moves nothing.
 
 ## Source layout
 
@@ -58,8 +58,8 @@ This is the only background timer in the bot. Date-based fires require a heartbe
 
 ## Design notes
 
-- **Single tick loop, not two.** Both reminder and birthday checks share one `setInterval`. This keeps exactly one timer in the process, makes it easy to find, and avoids drift if the intervals were separate.
-- **Heartbeat vs. lazy tick.** The RPG world uses no background timer (mobs only move when a player acts). Reminders and birthdays fundamentally cannot be lazy — they need to fire at a wall-clock time even when no command is issued. The trade-off is documented here rather than hidden.
+- **Single tick loop, not two.** Both reminder and birthday checks share one `setInterval`. This keeps one timer for the two, makes it easy to find, and avoids drift if the intervals were separate.
+- **Heartbeat vs. player-driven.** The RPG needs no clock to run its world: places are fixed, mobs don't move, and a fight advances only when its player presses a button. Its one timer is the town crier. Reminders and birthdays fundamentally cannot wait for a player — they need to fire at a wall-clock time even when no command is issued. The trade-off is documented here rather than hidden.
 - **UTC for birthdays (v1).** Birthday matching is done against UTC midnight. Per-user timezone offsets are a v2 add — the field `channelId` already captures where to post, so adding a `timezone` field to `Birthday` later is a clean migration.
 - **`crypto.randomUUID().slice(0, 8)` for IDs.** No new dependency; the 8-char hex prefix is short enough for users to type in `/remindme cancel id:…` and statistically collision-free for a typical guild's reminder volume.
 - **Same wallet pattern.** In-memory cache + single promise-chain for writes, matching `gambling/wallet.ts` and `rpg/world.ts`. No SQLite, JSON stays human-readable.

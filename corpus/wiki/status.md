@@ -1,5 +1,5 @@
 ---
-summary: Dated snapshot (2026-11-05) of just-a-bot, per area — the Discord-only bot, deployed as a container with its state outside the mirror (2026-10-07); the 2026-09-26 audit fixes (2026-10-02); the Jukebox built (2026-10-09, atrium's own login 2026-10-13) but not heard in Discord or deployed; the docs site on Docusaurus (2026-10-19, not deployed); the eleven briefs of the 2026-10-20 sweep built on 2026-11-02, not deployed; briefs 12-16 built on 2026-11-04 and 2026-11-05 (13-16 not deployed), 17 open; the local .env's WICKET_URL is not a URL; what is left for the owner.
+summary: Dated snapshot (2026-11-05) of just-a-bot, per area — the Discord-only bot, deployed as a container with its state outside the mirror (2026-10-07); the 2026-09-26 audit fixes (2026-10-02); the Jukebox built (2026-10-09, atrium's own login 2026-10-13) but not heard in Discord or deployed; the docs site on Docusaurus (2026-10-19, not deployed); the eleven briefs of the 2026-10-20 sweep built on 2026-11-02, not deployed; briefs 12-17 built on 2026-11-04 and 2026-11-05 (13-17 not deployed), none open; the local .env's WICKET_URL is not a URL; what is left for the owner.
 updated: 2026-11-05
 ---
 
@@ -64,8 +64,10 @@ Now items (shutdown drain, private-thread quotes, RPG names, the `/confess`
 race), 10-11 the Next items (RPG proposals and pruning, `/ask` limits). None of
 it is deployed or run in Discord. 16, done on 2026-11-05, not deployed: the
 Town sells a spare copy of a worn item (the sell checks were redundant from
-the start, since equipping takes the item out of the bag). 17 is open: two
-manual pages still describe the RPG's old grid tick.
+the start, since equipping takes the item out of the bag). 17, done on 2026-11-05
+(docs only, ships with the docs site): the architecture and reminders
+manuals no longer describe the RPG's old grid, mob tick or map renderer. No
+brief or todo is open.
 
 ## Next (owner)
 
@@ -77,7 +79,8 @@ manual pages still describe the RPG's old grid tick.
   remove the bot's old `atrium` grant at Ward.
 - **Hear it in Discord**: the checks in [jukebox.md](jukebox.md), on a dev
   application or after the deploy.
-- **Deploy the docs site** from `vps-deploy`.
+- **Deploy the docs site** from `vps-deploy`; it ships whenever the bot
+  does, so the deploy below carries brief 17 too.
 - **The 2026-10-02 fixes in Discord**: the list at the end of
   [audit-fixes.md](audit-fixes.md).
 - **The 2026-11-02 briefs in Discord** (each brief's outcome has its check):
@@ -87,7 +90,7 @@ manual pages still describe the RPG's old grid tick.
   not in is refused (07); a duel challenge notifies the defender once (08, 10);
   `/ask` refuses a second question in flight (11).
 - **Fix `WICKET_URL` in the bot's `.env` before any deploy** (see Known
-  issues), then **briefs 13-16**: deploy (`node cli.ts just-a-bot all` from
+  issues), then **briefs 13-17**: deploy (`node cli.ts just-a-bot all` from
   vps-deploy: pre-deploy, deploy, then the server phase; it re-registers the
   commands, which brief 13 changed). Then
   `/ask` offers only `prompt`, a failing question leaves nothing in the

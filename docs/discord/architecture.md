@@ -14,7 +14,8 @@ bots/discord/src/
 │   ├── *.ts            one file per command (or close family)
 │   └── index.ts        exports the Command[] used by index.ts + register.ts
 ├── gambling/           wallet + slot/blackjack/dice game logic
-└── rpg/                world model, combat, mob spawn/tick, map renderer
+└── rpg/                world model and places, controller screens, combat,
+                        duels, trades, shop, bounties, town crier
 ```
 
 **Convention:** `commands/*.ts` is the Discord-facing surface (slash defs,
