@@ -1141,3 +1141,11 @@ reply, and `answer.ts`, the flow, with no env or discord.js so it runs against s
 client in `wicket/`. Checked against Wicket's `corpus/wiki/api.md`, which matches the brief's
 contract. Typecheck clean, 112/112 bot tests (19 for `/ask`, 13 new). Not run in Discord: the
 local `.env` is production's. The command's definition is unchanged.
+
+## [2026-11-05] todo | Briefs 16-17 from the two RPG todos
+
+At the owner's request for more work, the todos `rpg-sell-spare-of-worn-item`
+and `rpg-grid-model-in-other-docs` (both found while rewriting the RPG
+manual, brief 12) are promoted to brief 16 (the shop sells a spare copy of
+a worn item) and brief 17 (two manual pages drop the old grid and tick).
+The briefs carry their text, so the todos are deleted.
