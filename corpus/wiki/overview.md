@@ -1,6 +1,6 @@
 ---
 summary: What just-a-bot is: a personal, feature-rich Discord bot in an npm-workspaces repo (bot, shared library, docs site); the orientation page and the map of what lives where.
-updated: 2026-11-02
+updated: 2026-11-05
 ---
 
 # Overview
@@ -26,7 +26,7 @@ it holds code with no Discord dependency, and the boundary enforces that.
   via `ecosystem.config.cjs` locally.
 
 The Discord bot is organized as one feature directory per capability under
-`bots/discord/src/` (e.g. `rpg/`, `mafia/`, `trivia/`, `ollama/`), with a thin
+`bots/discord/src/` (e.g. `rpg/`, `mafia/`, `trivia/`, `ask/`), with a thin
 slash-command handler per feature in `commands/`.
 
 Only the Jukebox has its own page ([jukebox.md](jukebox.md)); the 2026-10-02

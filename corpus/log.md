@@ -1125,3 +1125,19 @@ The owner dropped Wicket's backup model on the VPS (its Ollama image was
 6.55 GB against 7.1 GB free on the box): Wicket calls Ollama Cloud only, and
 a cloud failure fails the job. Brief 14 no longer adds a "the backup answered"
 line, and its contract text loses `result.backup`.
+
+## [2026-11-05] done | Brief 14: `/ask` goes through Wicket
+
+`/ask` posts to Wicket (`POST /v1/jobs`, only `messages` in the body) and long-polls the job with
+`?wait=` up to 25 s. The deferred reply shows "You're number N · now serving M" while it waits,
+edited only when the line changes, then "Thinking…", then the answer as before. Failed, cancelled,
+a refused submit (queue full, unreachable), a job Wicket forgot (404 after a restart) and a
+question still waiting 14 minutes after the interaction was created all go down brief 13's private
+path; at 14 minutes the job is withdrawn with `DELETE` first, since Discord stops accepting edits
+at 15. Wicket or Discord failing mid-wait also withdraws the job. Brief 11's limits are unchanged.
+`WICKET_URL` and `WICKET_TOKEN` replace the three `OLLAMA_*` variables; the bot holds no Ollama
+key any more, and the old 60 s timeout is Wicket's 120 s now. `ollama/` became `ask/` (limits,
+reply, and `answer.ts`, the flow, with no env or discord.js so it runs against stubs), with the
+client in `wicket/`. Checked against Wicket's `corpus/wiki/api.md`, which matches the brief's
+contract. Typecheck clean, 112/112 bot tests (19 for `/ask`, 13 new). Not run in Discord: the
+local `.env` is production's. The command's definition is unchanged.

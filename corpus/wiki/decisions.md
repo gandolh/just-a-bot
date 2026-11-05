@@ -1,6 +1,6 @@
 ---
 summary: Locked tech/design calls with their rejected alternatives and reasons — read before proposing pnpm, a build step, or an ORM-style rewrite.
-updated: 2026-11-04
+updated: 2026-11-05
 ---
 
 # Decisions (locked)
@@ -180,4 +180,6 @@ Rejected: a picker of several models (brief 11's `OLLAMA_MODELS`, now
 removed), a small fast model beside the default, public error lines, and
 calling Ollama Cloud directly for good. Reason: one model keeps the quota
 predictable; one queue for every app keeps the box and the quota from being
-hit by two callers at once.
+hit by two callers at once. _2026-11-05_: built (brief 14). Wicket asks Ollama
+Cloud only since the owner's call of 2026-11-04, so there is no small model to
+fall back on: a cloud failure fails the question.

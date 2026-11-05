@@ -1,6 +1,6 @@
 ---
 summary: Dated snapshot (2026-11-04) of just-a-bot, per area — the Discord-only bot, deployed as a container with its state outside the mirror (2026-10-07); the 2026-09-26 audit fixes (2026-10-02); the Jukebox built (2026-10-09, atrium's own login 2026-10-13) but not heard in Discord or deployed; the docs site on Docusaurus (2026-10-19, not deployed); the eleven briefs of the 2026-10-20 sweep built on 2026-11-02, not deployed; briefs 12, 13 and 15 built on 2026-11-04 (13 and 15 not deployed), 14 waiting for Wicket; what is left for the owner.
-updated: 2026-11-04
+updated: 2026-11-05
 ---
 
 # Status — 2026-11-04
@@ -50,9 +50,10 @@ container. Brief numbering restarted at 01 on 2026-11-02 (see
 
 12, the RPG manual, was done on 2026-11-04 (docs only). 13, done on
 2026-11-04, not deployed: `/ask` always uses `OLLAMA_MODEL` (no model option)
-and fails privately. 14, written 2026-11-04 from a grill with the owner and
-waiting until Wicket is deployed: `/ask` goes through Wicket, the estate's new
-LLM queue. 15, done on 2026-11-04, not deployed: the container starts the bot
+and fails privately. 14, done on 2026-11-05, not deployed: `/ask` goes through
+Wicket, the estate's LLM queue, with a ticket line while it waits; production
+needs `WICKET_URL` and `WICKET_TOKEN` in the bot's `.env` first (the owner's
+step). 15, done on 2026-11-04, not deployed: the container starts the bot
 with `node` and tsx's loader directly, not through `npm` (the owner's memory
 review of the VPS). The eleven briefs from the 2026-10-20 improvement sweep were built on
 2026-11-02, one commit each plus a corpus commit (see [`../log.md`](../log.md)):
@@ -98,7 +99,7 @@ describe the RPG's old grid tick.
   2026-11-02 after a day without one, and the deploy pushes it as it is.
   Never edit it or replace it with dev values, and never run the bot,
   `discord:register` or any script that calls `loadEnv()` with it in place:
-  they would use the production token, atrium and Ollama. Unit tests that
+  they would use the production token, atrium and Wicket. Unit tests that
   import `env.ts` read it but make no network calls.
 - `docusaurus.config.ts` has the placeholder `url` `https://example.org` (it
   only feeds the sitemap and og tags), and the site has no favicon.

@@ -68,3 +68,17 @@ the rootless Docker daemon a container can't reach the host's loopback.
   in that order; failed and cancelled answer
   privately; an expiring interaction cancels its job.
 - `npm run typecheck` and `npm test` pass.
+
+## Outcome (2026-11-05)
+
+Built in the commit that moved this brief to `done/` ("Brief 14: /ask goes
+through Wicket"). Wicket's README and API page match the contract above.
+The client is `bots/discord/src/wicket/client.ts`; the flow is
+`bots/discord/src/ask/answer.ts` (the old `ollama/` directory, renamed now
+that the bot doesn't call Ollama). Tested against a stub Wicket and a fake
+interaction: queued → running → done edits in that order, once per change;
+failed, cancelled, queue full and a forgotten job answer privately; an
+expiring interaction cancels its job, then tells the member. Not run in
+Discord. Production needs `WICKET_URL=https://<domain>/wicket-api` and the
+bot's `WICKET_TOKEN` (its pair in vps-deploy's `secrets/wicket.env`) in
+`bots/discord/.env` before the deploy, or `/ask` answers "not configured".

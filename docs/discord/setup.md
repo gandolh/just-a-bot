@@ -15,7 +15,8 @@ GUILD_ID=...        # the guild slash commands are registered to
 ```
 
 `env.ts` validates with zod and fails fast on boot if any of them is missing or
-not numeric where it should be. `OLLAMA_API_KEY` (for `/ask`) is optional.
+not numeric where it should be. `WICKET_URL` and `WICKET_TOKEN` (for `/ask`, see
+[ask](ask/README.md#config)) are optional.
 
 ### The Jukebox (optional)
 

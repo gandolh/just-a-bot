@@ -16,9 +16,9 @@ const schema = z
     DISCORD_TOKEN: z.string().min(1),
     CLIENT_ID: z.string().regex(/^\d+$/, 'must be a numeric Discord snowflake'),
     GUILD_ID: z.string().regex(/^\d+$/, 'must be a numeric Discord snowflake'),
-    OLLAMA_API_KEY: z.string().optional(),
-    OLLAMA_HOST: z.string().url().default('https://ollama.com'),
-    OLLAMA_MODEL: z.string().default('gpt-oss:120b'),
+    // /ask: Wicket, the estate's LLM queue, which holds the Ollama key. Both or /ask says it isn't configured.
+    WICKET_URL: optional(z.string().url()),
+    WICKET_TOKEN: optional(z.string().min(1)),
     // The Jukebox: atrium's music, signed in as the Bot account, atrium's own local user.
     JUKEBOX_ATRIUM_URL: optional(z.string().url()),
     JUKEBOX_ATRIUM_USERNAME: optional(z.string().min(1)),

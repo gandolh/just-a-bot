@@ -1,17 +1,16 @@
 import { SlashCommandBuilder } from 'discord.js';
 import { logger } from '@bots/shared';
 import type { Command } from './types.ts';
-import { chat, OllamaError } from '../ollama/chat.ts';
-import { AskLimiter } from '../ollama/limits.ts';
-import { answerMessages, failPrivately } from '../ollama/reply.ts';
+import { AskLimiter } from '../ask/limits.ts';
+import { answerThroughWicket, ASK_DEADLINE_MS } from '../ask/answer.ts';
+import { wicketClient } from '../wicket/client.ts';
 import { env } from '../env.ts';
 
 const log = logger.scoped('ask');
-const RESPONSE_TIMEOUT_MS = 60_000;
 const limiter = new AskLimiter();
 
 export const ask: Command = {
-  // One option: every question goes to OLLAMA_MODEL, which keeps the quota predictable.
+  // One option: Wicket picks the model, so members don't.
   data: new SlashCommandBuilder()
     .setName('ask')
     .setDescription('Ask an Ollama-hosted model a question')
@@ -23,9 +22,10 @@ export const ask: Command = {
         .setMaxLength(1500),
     ),
   async execute(interaction) {
-    if (!env.OLLAMA_API_KEY) {
+    if (!env.WICKET_URL || !env.WICKET_TOKEN) {
+      const missing = [!env.WICKET_URL && '`WICKET_URL`', !env.WICKET_TOKEN && '`WICKET_TOKEN`'].filter(Boolean);
       await interaction.reply({
-        content: 'Ask is not configured: `OLLAMA_API_KEY` is missing on the bot.',
+        content: `Ask is not configured: ${missing.join(' and ')} ${missing.length > 1 ? 'are' : 'is'} missing on the bot.`,
         ephemeral: true,
       });
       return;
@@ -48,37 +48,16 @@ export const ask: Command = {
 
     try {
       await interaction.deferReply();
-
-      const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), RESPONSE_TIMEOUT_MS);
-
-      let answer: string;
-      try {
-        answer = await chat({
-          model: env.OLLAMA_MODEL,
-          messages: [{ role: 'user', content: prompt }],
-          signal: controller.signal,
-        });
-      } catch (err) {
-        const reason =
-          err instanceof OllamaError
-            ? err.message
-            : controller.signal.aborted
-              ? `Model took longer than ${RESPONSE_TIMEOUT_MS / 1000}s to respond.`
-              : 'Unexpected error talking to Ollama.';
-        // The channel no longer shows failures, so the log is where the owner finds them.
-        log.warn(`/ask failed: ${reason}`, err instanceof OllamaError || controller.signal.aborted ? undefined : err);
-        await failPrivately(interaction, `⚠️ ${reason}`, (deleteErr) =>
-          log.error('Could not delete the deferred /ask reply', deleteErr),
-        );
-        return;
-      } finally {
-        clearTimeout(timer);
-      }
-
-      const [first, ...rest] = answerMessages(prompt, answer);
-      await interaction.editReply(first);
-      for (const extra of rest) await interaction.followUp(extra);
+      const result = await answerThroughWicket({
+        interaction,
+        client: wicketClient({ url: env.WICKET_URL, token: env.WICKET_TOKEN }),
+        prompt,
+        // From when Discord created the interaction: its 15 minutes started then.
+        deadline: interaction.createdTimestamp + ASK_DEADLINE_MS,
+        onDeleteError: (err) => log.error('Could not delete the deferred /ask reply', err),
+      });
+      // The channel no longer shows failures, so the log is where the owner finds them.
+      if (result.outcome !== 'answered') log.warn(`/ask ${result.outcome}: ${result.reason}`);
     } finally {
       slot.done();
     }
