@@ -100,7 +100,8 @@ character, so `/rpg start` drops you back into it.
   bounty at any time, replacing the current one and its progress.
 - **🏪 Town** has a buy menu (the catalog below) and a sell menu (your bag).
   Worn items are not in the bag, so they can't be sold or traded until you
-  unequip them.
+  unequip them. A spare copy of something you wear is in the bag and sells
+  like anything else.
 - **👥 Nearby** lists up to four other players in the same place, each with
   **⚔ Duel** and **🤝 Trade**. A player who used Exit is not listed.
 

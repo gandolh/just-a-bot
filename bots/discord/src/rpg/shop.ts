@@ -28,12 +28,11 @@ export interface SellResult {
   gained?: number;
 }
 
+// Equipping takes an item out of the bag, so a worn item is never in
+// `inventory` and can't be sold here; a spare copy in the bag can.
 export function sellItem(char: Character, slug: string): SellResult {
   const item = getItem(slug);
   if (!item) return { ok: false, reason: `Unknown item **${slug}**.` };
-  if (char.equipment.weapon === slug || char.equipment.armor === slug) {
-    return { ok: false, reason: `${item.label} is equipped — unequip it first.` };
-  }
   const idx = char.inventory.indexOf(slug);
   if (idx < 0) return { ok: false, reason: `You don't have a **${item.label}** to sell.` };
   char.inventory.splice(idx, 1);

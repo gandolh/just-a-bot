@@ -1,13 +1,14 @@
 ---
-summary: Dated snapshot (2026-11-04) of just-a-bot, per area — the Discord-only bot, deployed as a container with its state outside the mirror (2026-10-07); the 2026-09-26 audit fixes (2026-10-02); the Jukebox built (2026-10-09, atrium's own login 2026-10-13) but not heard in Discord or deployed; the docs site on Docusaurus (2026-10-19, not deployed); the eleven briefs of the 2026-10-20 sweep built on 2026-11-02, not deployed; briefs 12, 13 and 15 built on 2026-11-04 (13 and 15 not deployed), 14 waiting for Wicket; what is left for the owner.
+summary: Dated snapshot (2026-11-05) of just-a-bot, per area — the Discord-only bot, deployed as a container with its state outside the mirror (2026-10-07); the 2026-09-26 audit fixes (2026-10-02); the Jukebox built (2026-10-09, atrium's own login 2026-10-13) but not heard in Discord or deployed; the docs site on Docusaurus (2026-10-19, not deployed); the eleven briefs of the 2026-10-20 sweep built on 2026-11-02, not deployed; briefs 12-16 built on 2026-11-04 and 2026-11-05 (13-16 not deployed), 17 open; the local .env's WICKET_URL is not a URL; what is left for the owner.
 updated: 2026-11-05
 ---
 
-# Status — 2026-11-04
+# Status — 2026-11-05
 
 `origin/main` is at `ade9e76`, the end of the 2026-11-02 brief run; the
-corpus commits since and the 2026-11-04 brief run are local, not pushed. Typecheck is clean
-and `npm test` passes 104 tests (99 in the bot, 5 in `shared`). Production runs the 2026-10-07
+corpus commits since and the 2026-11-04 and 2026-11-05 brief runs are local, not pushed.
+Typecheck is clean and the bot's `npm test` passes 114 tests, given a valid
+`WICKET_URL` (see Known issues). Production runs the 2026-10-07
 container. Brief numbering restarted at 01 on 2026-11-02 (see
 [`../log.md`](../log.md), "Briefs reset").
 
@@ -44,7 +45,8 @@ container. Brief numbering restarted at 01 on 2026-11-02 (see
   quotes and confessions work as before. They have no wiki pages; their
   manuals are under [`docs/discord/`](../../docs/discord/README.md). The RPG
   manual was rewritten against the code on 2026-11-04 (brief 12): places and
-  buttons, not the tile grid it used to describe.
+  buttons, not the tile grid it used to describe. Since brief 16 (2026-11-05,
+  not deployed) the Town sells a spare copy of a worn item.
 
 ## Open briefs
 
@@ -60,9 +62,10 @@ review of the VPS). The eleven briefs from the 2026-10-20 improvement sweep were
 01-05 the Jukebox's failure paths, checked against atrium's source, 06-09 the
 Now items (shutdown drain, private-thread quotes, RPG names, the `/confess`
 race), 10-11 the Next items (RPG proposals and pruning, `/ask` limits). None of
-it is deployed or run in Discord. Two todos are open, both from brief 12: the
-RPG shop won't sell a spare copy of a worn item, and two manual pages still
-describe the RPG's old grid tick.
+it is deployed or run in Discord. 16, done on 2026-11-05, not deployed: the
+Town sells a spare copy of a worn item (the sell checks were redundant from
+the start, since equipping takes the item out of the bag). 17 is open: two
+manual pages still describe the RPG's old grid tick.
 
 ## Next (owner)
 
@@ -83,11 +86,15 @@ describe the RPG's old grid tick.
   visible to a second account (05); `/quote add` into a private thread you are
   not in is refused (07); a duel challenge notifies the defender once (08, 10);
   `/ask` refuses a second question in flight (11).
-- **Briefs 13 and 15**: deploy (`node cli.ts just-a-bot deploy` from
-  vps-deploy; it re-registers the commands, which brief 13 changed). Then
+- **Fix `WICKET_URL` in the bot's `.env` before any deploy** (see Known
+  issues), then **briefs 13-16**: deploy (`node cli.ts just-a-bot all` from
+  vps-deploy: pre-deploy, deploy, then the server phase; it re-registers the
+  commands, which brief 13 changed). Then
   `/ask` offers only `prompt`, a failing question leaves nothing in the
   channel and tells the asker privately, and `docker top` on the bot's
-  container shows one `node` and no `npm`.
+  container shows one `node` and no `npm`. Brief 16: wear a Rusty Dagger
+  with a second in the bag, sell the spare in 🏪 Town at the Plaza, and the
+  first stays worn.
 - **Rotate the Activity secrets**: `DISCORD_CLIENT_SECRET`,
   `SESSION_HMAC_KEY` and `ENGINE_AUTH_TOKEN` from the 2026-08 experiment, or
   delete that app in the developer portal. Deleting the local `.env` did not
@@ -95,6 +102,12 @@ describe the RPG's old grid tick.
 
 ## Known issues
 
+- **`WICKET_URL` in the local `bots/discord/.env` is not a valid URL**
+  (found 2026-11-05: the file changed after brief 14 was committed; the
+  value has no `http(s)://` in front). `env.ts` throws at import, so a deploy
+  with it stops the bot at boot, and `help.test.ts` and `jukebox.test.ts`
+  fail; run the tests with a dummy `WICKET_URL` in the shell until the owner
+  fixes it.
 - The local `bots/discord/.env` is production's: the owner restored it on
   2026-11-02 after a day without one, and the deploy pushes it as it is.
   Never edit it or replace it with dev values, and never run the bot,

@@ -1149,3 +1149,16 @@ and `rpg-grid-model-in-other-docs` (both found while rewriting the RPG
 manual, brief 12) are promoted to brief 16 (the shop sells a spare copy of
 a worn item) and brief 17 (two manual pages drop the old grid and tick).
 The briefs carry their text, so the todos are deleted.
+
+## [2026-11-05] done | Brief 16: the shop sells a spare copy of a worn item
+
+The Town sell menu dropped every bag slug equal to the worn weapon or armor, and `sellItem()`
+refused the same slugs, so a spare copy of a worn item couldn't be sold. Both checks are gone.
+Every equip path takes the item out of the bag first (`doEquip`; nothing else writes
+`equipment`), so a worn item alone still can't be sold: it isn't in the bag. The checks were not
+leftovers, as the brief guessed: they came in with equip's splice in `63cba90` and were redundant
+from the start. `rpg/shop.test.ts` covers the spare and the worn-only case. Typecheck clean;
+114/114 bot tests with a dummy `WICKET_URL` in the shell. Without it, `help.test.ts` and
+`jukebox.test.ts` fail at import: `WICKET_URL` in the local `.env` (production's, changed today
+after brief 14 was committed) is not a valid URL, so a deploy with it would stop the bot at boot.
+The owner fixes it; the `.env` was not touched.

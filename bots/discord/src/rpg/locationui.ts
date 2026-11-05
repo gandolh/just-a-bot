@@ -284,7 +284,7 @@ export function buildRows(world: World, char: Character, screen: Screen): Row[] 
         })),
       ),
     ));
-    const sellable = [...new Set(char.inventory)].filter((s) => s !== char.equipment.weapon && s !== char.equipment.armor);
+    const sellable = [...new Set(char.inventory)];
     if (sellable.length) {
       rows.push(new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
         new StringSelectMenuBuilder().setCustomId('rpg:ctl:sellsel').setPlaceholder('Sell an item…').addOptions(
