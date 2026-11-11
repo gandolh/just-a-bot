@@ -1,15 +1,14 @@
 ---
-summary: Dated snapshot (2026-11-05) of just-a-bot, per area — the Discord-only bot, deployed as a container with its state outside the mirror (2026-10-07); the 2026-09-26 audit fixes (2026-10-02); the Jukebox built (2026-10-09, atrium's own login 2026-10-13) but not heard in Discord or deployed; the docs site on Docusaurus (2026-10-19, not deployed); the eleven briefs of the 2026-10-20 sweep built on 2026-11-02, not deployed; briefs 12-17 built on 2026-11-04 and 2026-11-05 (13-17 not deployed), none open; the local .env's WICKET_URL is not a URL; what is left for the owner.
-updated: 2026-11-05
+summary: Dated snapshot (2026-11-11) of just-a-bot, per area — the Discord-only bot, deployed as a container with its state outside the mirror (2026-10-07); the 2026-09-26 audit fixes (2026-10-02); the Jukebox built (2026-10-09, atrium's own login 2026-10-13) but not heard in Discord or deployed; the docs site on Docusaurus (2026-10-19, not deployed); the eleven briefs of the 2026-10-20 sweep built on 2026-11-02, not deployed; briefs 12-17 built on 2026-11-04 and 2026-11-05 (13-17 not deployed); brief 18, the house style and npm run check, built 2026-11-11; a flaky RPG test; the local .env's WICKET_URL is not a URL; what is left for the owner.
+updated: 2026-11-11
 ---
 
-# Status — 2026-11-05
+# Status — 2026-11-11
 
-`origin/main` is at `ade9e76`, the end of the 2026-11-02 brief run; the
-corpus commits since and the 2026-11-04 and 2026-11-05 brief runs are local, not pushed.
-Typecheck is clean and the bot's `npm test` passes 114 tests, given a valid
-`WICKET_URL` (see Known issues). Production runs the 2026-10-07
-container. Brief numbering restarted at 01 on 2026-11-02 (see
+Production runs the 2026-10-07 container. `npm run check` is the gate since
+brief 18 (2026-11-11): typecheck, lint, format, conventions, and the 119 tests
+through `npm run test:clean`, in a copy without the `.env` (never `npm test`
+in the checkout; see Known issues for the one flaky test). Brief numbering restarted at 01 on 2026-11-02 (see
 [`../log.md`](../log.md), "Briefs reset").
 
 ## By area
@@ -38,6 +37,11 @@ container. Brief numbering restarted at 01 on 2026-11-02 (see
   Docusaurus at `/just-a-bot/docs`; the rendered pages are generated on every
   build and gitignored. `vps-deploy` flipped the stack to Docusaurus the same
   day; **not deployed**.
+- **The house style** (2026-11-11, brief 18, not deployed). Prettier at 120
+  with double quotes, the house TypeScript flags and ESLint config, vendored
+  from the skills library as `vendor/house-style/` 1.1.0; `npm run check` and
+  `check:fast`; `.claude/rules/bot.md` for agents
+  ([decisions.md](decisions.md), "The house style, formatted and checked").
 - **Knowledge layers.** Root `CLAUDE.md` points at the corpus; `docs/` is the
   how and ranks last; the code graph is installed for impact queries only
   ([code-graph.md](code-graph.md)).
@@ -66,8 +70,9 @@ it is deployed or run in Discord. 16, done on 2026-11-05, not deployed: the
 Town sells a spare copy of a worn item (the sell checks were redundant from
 the start, since equipping takes the item out of the bag). 17, done on 2026-11-05
 (docs only, ships with the docs site): the architecture and reminders
-manuals no longer describe the RPG's old grid, mob tick or map renderer. No
-brief or todo is open.
+manuals no longer describe the RPG's old grid, mob tick or map renderer. 18,
+done on 2026-11-11, not deployed: the house style and the quality harness. No
+brief is open; one todo is (`proposals-test-clock`, the flaky test below).
 
 ## Next (owner)
 
@@ -98,6 +103,10 @@ brief or todo is open.
   container shows one `node` and no `npm`. Brief 16: wear a Rusty Dagger
   with a second in the bag, sell the spare in 🏪 Town at the Plaza, and the
   first stays worn.
+- **Brief 18**: `git config blame.ignoreRevsFile .git-blame-ignore-revs`
+  once in the checkout, and deploy with the rest. Its new devDependencies
+  enter the image (the image installs them for `tsx`): `node_modules` from
+  the image's `npm ci` grew from 87 MB to 197 MB.
 - **Rotate the Activity secrets**: `DISCORD_CLIENT_SECRET`,
   `SESSION_HMAC_KEY` and `ENGINE_AUTH_TOKEN` from the 2026-08 experiment, or
   delete that app in the developer portal. Deleting the local `.env` did not
@@ -105,18 +114,22 @@ brief or todo is open.
 
 ## Known issues
 
+- **`rpg/proposals.test.ts` is flaky** on a busy machine (found 2026-11-11):
+  one test fixes its clock before the records it prunes are stamped, so a
+  millisecond's tick fails it, and `npm run check` with it. It failed before
+  brief 18 too. The todo `proposals-test-clock` has the fix.
+
 - **`WICKET_URL` in the local `bots/discord/.env` is not a valid URL**
   (found 2026-11-05: the file changed after brief 14 was committed; the
   value has no `http(s)://` in front). `env.ts` throws at import, so a deploy
-  with it stops the bot at boot, and `help.test.ts` and `jukebox.test.ts`
-  fail; run the tests with a dummy `WICKET_URL` in the shell until the owner
-  fixes it.
+  with it stops the bot at boot. The tests no longer read it: `npm run
+  test:clean` runs them in a copy without the `.env`.
 - The local `bots/discord/.env` is production's: the owner restored it on
   2026-11-02 after a day without one, and the deploy pushes it as it is.
   Never edit it or replace it with dev values, and never run the bot,
   `discord:register` or any script that calls `loadEnv()` with it in place:
-  they would use the production token, atrium and Wicket. Unit tests that
-  import `env.ts` read it but make no network calls.
+  they would use the production token, atrium and Wicket. Never run `npm test`
+  in the checkout either: two tests import `env.ts`, which reads it.
 - `docusaurus.config.ts` has the placeholder `url` `https://example.org` (it
   only feeds the sitemap and og tags), and the site has no favicon.
 - `/help`'s Social group is near Discord's 1024-character field limit; the

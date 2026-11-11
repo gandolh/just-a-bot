@@ -1172,3 +1172,161 @@ and no longer calls the reminder loop the bot's only timer: the crier's 20-secon
 beside it. A grep of `docs/` found no other description of the old grid; the RPG manual's note on
 the save file's grid-era keys stays. `world.ts` still carries grid leftovers (`world.tick`,
 `entityAt(row, col)`), not touched by a docs brief.
+
+## [2026-11-11] done | Brief 18: the house style and the quality harness
+
+The bot follows the estate's house style, vendored from the skills library as `vendor/house-style/`
+1.1.0, and `npm run check` is its gate, with the tests run through `npm run test:clean` in a temp
+copy without `.env*`. This entry is the brief's outcome note: the brief is exactly 200 lines, the
+corpus lint's cap, so the note could not be appended to it.
+
+Built on 2026-11-11 on `main`, committed and not pushed, against
+house-style 1.1.0 (library commit `e9de59a`). Commits, in order: `759af98`
+one TypeScript, `b2aa53a` `test:clean`, `1ea8d6d` the vendored copy and the
+pins, `cd8f876` type-only imports, `74de1f6` the compiler flags, `0a72224`
+Prettier, `b0c9491` `style: format with Prettier`, `f66f898` the blame
+ignore file, `0234b4b` the lint findings, `d77beec` the ESLint config,
+`422edee` the gate, `01b346f` `CLAUDE.md` and `.claude/rules/bot.md`,
+`9f075df` the decision and a todo, then this closeout.
+
+**Re-measured** on a scratch clone at `1ea8d6d` (no `.env*` in it, checked
+with `find`), TypeScript 6.0.3:
+
+- tsc, each flag alone: `isolatedModules`, `noImplicitOverride`,
+  `noFallthroughCasesInSwitch` 0; `erasableSyntaxOnly` 19 (the same parameter
+  properties); `verbatimModuleSyntax` 26; `noUnusedLocals` 10 (9 `TS6133`,
+  1 `TS6196`: one fewer than the brief's 11). Not added: `noUnusedParameters`
+  3, `exactOptionalPropertyTypes` 8, `noUncheckedIndexedAccess` 158.
+- Prettier at 120 with the house config: 132 files (131 `.ts` and
+  `.mcp.json`), +4,263/−3,698. One pass was enough.
+- ESLint, the house config with this repo's options, source / tests:
+  `no-non-null-assertion` 63 / 19, `consistent-type-imports` 39 / 0,
+  `no-unnecessary-type-assertion` 19 / 8, `no-unused-vars` 12 / 0 (the 10
+  unused locals and 2 unused arguments), `no-useless-assignment` 8 / 0 (ESLint
+  10's recommended set; the brief didn't measure it), `no-misused-promises`
+  3 / 0, `await-thenable` 1 / 0, `n/no-process-env` 1 / 0 (`link.ts`), every
+  other rule 0. One run each, load average about 4.8: `projectService` 7.2 s,
+  0.78 GB; `project` (the two tsconfigs) 8.0 s, 0.83 GB.
+- knip 6.44.2 (its config files checked first: none imports `env.ts` or reads
+  a `.env`; docs-site is left out with `ignoreWorkspaces`, so
+  `docusaurus.config.ts` isn't loaded): 1 unused file
+  (`bots/discord/src/img/attach.ts`), `ecosystem.config.cjs` (pm2's, now an
+  entry), `prettier` and `dependency-cruiser` unused until the scripts used
+  them, `ffmpeg` and `codegraph` as unlisted binaries (now ignored), and 53
+  unused exports and 17 types as warnings. At the end: the one unused file,
+  54 exports and 18 types (`hasPotion` and `Encounter` lost their last
+  importers with the unused locals).
+- dependency-cruiser: 3 `no-circular` (the mafia command, `mafia/phases.ts`
+  and `mafia/dm.ts`, joined by dynamic imports), 151 modules.
+- The checkers on `scripts/conventions.json` (`web` and `server` none,
+  `shared` `shared/src`): `check-base-ui` 0; `check-structure` rule 3 ×1
+  (`shared/src/env.ts`). With `bots/discord/src` as a server root, for the
+  record: rule 2 ×1 (no `app.ts`), rule 3 ×2, rule 11 ×3 (`rpg-buttons.ts`
+  882 lines, `world.ts` 603, `commands/mafia.ts` 513).
+
+**What changed in behaviour, and what didn't.** The reformat's esbuild
+compare (whitespace and syntax minified, identifiers kept; `.mcp.json`
+compared parsed) found 132 of 132 files identical; the same script on
+`0234b4b` found 18 of 23 different, so it does see a change. The lint fixes
+are guards that keep the old outcome:
+
+- Guild-only handlers take `GuildCommandInteraction` (new in
+  `commands/types.ts`), which their command's `inGuild()` check already
+  proves; the quote list button checks `inGuild()` itself and throws
+  outside a server, which `index.ts` logs (unreachable: the list is only
+  posted in servers). `confess.test.ts` types its fake as that interaction.
+- `draw()` in `gambling/blackjack.ts` throws on an empty deck instead of
+  dealing `undefined`; `/help` throws a named error if a category names no
+  group; the lobby embed says "soon" when a game has no closing time (none is
+  ever saved without one; it used to print `<t:0:R>`); a mafia player with no
+  role throws inside the existing `try`, so the DM fails the way it did.
+- The two gateway listeners are named async functions with a `.catch` that
+  logs "Client error", which is what the client's `captureRejections` did
+  with a rejection. The connect-four timer calls a named function through
+  `void`. `/jukebox`'s deferral is an object property, so the type checker
+  sees the timer's write.
+- `bots/discord/src/env.ts` parses the three `JUKEBOX_WARD_*` names as
+  optional strings, and `link.ts` reads them from `env` (zod drops unknown
+  keys, so they had to be in the schema). Same values, same warning.
+
+**Tests.** Only through `test:clean`. Its guard was proved on a scratch
+clone: with the copy filter cut out and a dummy `.env` force-added, it
+refused and exited 1 before any test ran; with the filter in, the dummy
+`.env` never reached the copy and the tests ran. 119 tests (5 shared, 114
+bot). `rpg/proposals.test.ts` is flaky under load and was before this brief:
+`test:clean` failed it in 3 of 5 runs on `8c97077` and 2 of 5 at `b0c9491`,
+load average 5-20 (todo `proposals-test-clock`).
+
+**Timings**, warm, load average about 5-6: `check:fast` 9.0-9.9 s with one
+file changed (17.3 s on the first run), 6.4 s with nothing changed (the
+typecheck alone is 6.2 s, docs-site's 2.1 s of it); `npm run check` 22.3 s
+and 23.7 s green, 28.9 s on a run the flaky test failed.
+
+**The image.** No docker build. As a stand-in, `npm ci --ignore-scripts` on
+the four files the image's `deps` stage copies: at `8c97077` 62 packages,
+87 MB of `node_modules`, exit 0; at `422edee` 277 packages, 197 MB, exit 0.
+The image keeps devDependencies for `tsx`, so the tools ride along.
+
+**Checks run:** `npm run check` (exit 0 twice, exit 1 once on the flaky
+test), `npm run typecheck` (0 in all three workspaces), `npm run lint` (0
+errors, 19 warnings: the `!` kept in tests), a deliberate `enum`, `// TODO:
+x`, `console.log` in `bots/discord/src/index.ts`, an unawaited promise and a
+`process.env.X` in `bots/discord/src/ask/limits.ts`, a `!` in source and an
+`export default` in a new source file (each exit 1, each reverted),
+`npx prettier --check .` (0), `npm run house-style:sync -- --check` (0),
+`npm ls typescript` (one, 6.0.3), `git check-ignore .claude/rules/bot.md`
+(nothing), `git ls-files .github` (nothing), `bash corpus/lint.sh` (clean).
+The plugin's hooks by hand with Claude Code's event JSON: the formatter
+formatted a messy `.ts` through `prettier.config.mjs` and left a Markdown
+file alone; the Stop hook, after `note-saved-file.mjs`, exited 2 on a
+`TS2322` in `ask/limits.ts` and on a `console.log` in `index.ts`, and 0 once
+each was reverted (6-12 s).
+
+**Checks skipped:** the docker build and the image size (no docker builds
+here; the `npm ci` stand-in above); the live-session hook check waits for
+the plugin update; knip in `check` (an owner question).
+
+**Deviations:**
+
+- Order: `test:clean` landed second, before any test ran. The type-import
+  pass (`cd8f876`) landed before the flags, not in step 5: with
+  `verbatimModuleSyntax` in the tsconfig, tsx keeps an import used only as a
+  type and runs its module (shown on a probe), and tsx finds the tsconfig in
+  dev, in tests and under pm2 but not in the container (`/app` has none).
+  That pass covered the 26 `TS1484` sites and 13 more: inline `type` in mixed
+  imports, `import type` where every name is a type.
+- `no-unnecessary-type-assertion` is off in `eslint.config.mjs` until
+  `noUncheckedIndexedAccess`, and its autofix wasn't run.
+- `no-unused-vars` stays on, as the house has it (2 unused arguments took the
+  `_` prefix), and `no-useless-assignment`'s 8 were fixed.
+- `format` is `prettier --write .`, not the brief's glob, so `.mcp.json` was
+  reformatted too; `ecosystem.config.cjs`, `docker-compose.yml`, the
+  `package.json` files and tsconfigs needed nothing. `.prettierignore` also
+  lists `vendor/house-style/`, `coverage/` and the owner's
+  `.claude/settings.local.json`, and anchors the root folders.
+- `prettier.config.mjs` and `eslint.config.mjs`, because the root
+  `package.json` isn't a module; `knip.config.js`.
+- `tsconfig.base.json` keeps its own flags rather than extending the vendored
+  base (that turns on `noUncheckedIndexedAccess`), says so, and keeps
+  `target` ES2022. `shared/tsconfig.json` names `types: ["node"]` (it saw
+  them only through dotenv). `bots/discord` already had a `typecheck`
+  script; it is `tsc --noEmit` now.
+- dependency-cruiser and the two checkers are in `check:conventions`
+  (the controller's ruling, over default 6), with `no-circular` a warning;
+  `scripts/conventions.json` exists. knip is configured but not in `check`.
+- `env.ts` changed (the three stale names) for `link.ts`.
+
+**Handoff:** `npm run check` is the gate and `npm run check:fast` the Stop
+hook's; never `npm test` in a checkout. `vendor/house-style/` is 1.1.0;
+`npm run house-style:sync -- <tag>` moves it. A later brief that turns on
+`noUncheckedIndexedAccess` turns `no-unnecessary-type-assertion` back on
+(delete the `just-a-bot/until-unchecked-index-access` block).
+
+**Owner steps:** `git config blame.ignoreRevsFile .git-blame-ignore-revs`;
+then `node cli.ts just-a-bot deploy` from the vps-deploy checkout.
+
+## [2026-11-11] todo | The RPG proposals test and its clock
+
+`proposals-test-clock`: `rpg/proposals.test.ts` fixes `now` before `startTrade` and `startDuel`
+stamp records from the real clock, so a millisecond's tick during the setup fails it. It failed 3
+of 5 `test:clean` runs before brief 18 and 2 of 5 after, on a busy machine.
