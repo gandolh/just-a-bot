@@ -1,12 +1,12 @@
 import {
-  ButtonInteraction,
+  type ButtonInteraction,
   ChannelType,
-  ChatInputCommandInteraction,
+  type ChatInputCommandInteraction,
   EmbedBuilder,
   MessageFlags,
   SlashCommandBuilder,
-  TextChannel,
-  ThreadChannel,
+  type TextChannel,
+  type ThreadChannel,
 } from 'discord.js';
 import type { Command } from './types.ts';
 import {

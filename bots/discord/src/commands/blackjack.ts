@@ -1,16 +1,16 @@
 import {
   ActionRowBuilder,
   ButtonBuilder,
-  ButtonInteraction,
+  type ButtonInteraction,
   ButtonStyle,
-  ChatInputCommandInteraction,
+  type ChatInputCommandInteraction,
   MessageFlags,
   SlashCommandBuilder,
 } from 'discord.js';
 import {
   doubleDown,
   finishWithDealer,
-  Game,
+  type Game,
   handValue,
   hit,
   isBlackjack,

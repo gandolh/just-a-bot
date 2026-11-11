@@ -1,4 +1,4 @@
-import { ChatInputCommandInteraction, SlashCommandBuilder } from 'discord.js';
+import { type ChatInputCommandInteraction, SlashCommandBuilder } from 'discord.js';
 import type { Command } from './types.ts';
 import { addReminder, listReminders, cancelReminder } from '../reminders/store.ts';
 import { parseWhen } from '../reminders/parse.ts';

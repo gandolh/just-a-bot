@@ -5,11 +5,11 @@ import {
   EmbedBuilder,
   StringSelectMenuBuilder,
 } from 'discord.js';
-import { Character, MOB_KINDS, World, cheby, effectiveStats, xpToNext } from './world.ts';
+import { type Character, MOB_KINDS, type World, cheby, effectiveStats, xpToNext } from './world.ts';
 import { ITEMS, getItem, isWeapon, shopCatalog } from './items.ts';
 import { buyItem, sellItem } from './shop.ts';
 import { rollBounty } from './bounty.ts';
-import { LocationDef, buildLocations, getLocation } from './locations.ts';
+import { type LocationDef, buildLocations, getLocation } from './locations.ts';
 
 export type Screen = 'location' | 'combat' | 'bag' | 'town' | 'sheet' | 'nearby';
 

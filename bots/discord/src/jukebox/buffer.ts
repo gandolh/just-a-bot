@@ -3,7 +3,7 @@ import { createReadStream } from 'node:fs';
 import { mkdir, rename, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { PassThrough, Readable } from 'node:stream';
+import { PassThrough, type Readable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
 import { logger } from '@bots/shared';
 

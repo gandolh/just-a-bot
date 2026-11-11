@@ -1,13 +1,13 @@
 import {
   ChannelType,
-  ChatInputCommandInteraction,
-  Message,
+  type ChatInputCommandInteraction,
+  type Message,
   SlashCommandBuilder,
   ThreadAutoArchiveDuration,
 } from 'discord.js';
 import {
   applyGuess,
-  Game,
+  type Game,
   isValidWord,
   MAX_ATTEMPTS,
   newGame,

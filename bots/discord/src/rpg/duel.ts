@@ -1,4 +1,4 @@
-import { Duel, World, effectiveStats, nextId, levelFor, pruneDuelsAndTrades } from './world.ts';
+import { type Duel, type World, effectiveStats, nextId, levelFor, pruneDuelsAndTrades } from './world.ts';
 
 const DUEL_EXPIRY_MS = 60_000;
 

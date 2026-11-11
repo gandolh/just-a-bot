@@ -1,4 +1,4 @@
-import { ChatInputCommandInteraction, SlashCommandBuilder } from 'discord.js';
+import { type ChatInputCommandInteraction, SlashCommandBuilder } from 'discord.js';
 import type { Command } from './types.ts';
 import { setBirthday, removeBirthday, listBirthdays } from '../reminders/birthdays.ts';
 

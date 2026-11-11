@@ -1,5 +1,5 @@
-import { Character, World } from './world.ts';
-import { LocationDef } from './locations.ts';
+import type { Character, World } from './world.ts';
+import type { LocationDef } from './locations.ts';
 import { startEncounter } from './combat.ts';
 
 // The outcome of pressing Explore at a location.

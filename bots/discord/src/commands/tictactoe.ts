@@ -1,12 +1,12 @@
 import {
   ActionRowBuilder,
   ButtonBuilder,
-  ButtonInteraction,
+  type ButtonInteraction,
   ButtonStyle,
-  ChatInputCommandInteraction,
+  type ChatInputCommandInteraction,
   SlashCommandBuilder,
 } from 'discord.js';
-import { applyMove, botMove, Game, newGame } from '../tictactoe/game.ts';
+import { applyMove, botMove, type Game, newGame } from '../tictactoe/game.ts';
 import type { Command } from './types.ts';
 
 interface Match {

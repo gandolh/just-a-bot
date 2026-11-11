@@ -1,7 +1,7 @@
 import {
-  AutocompleteInteraction,
+  type AutocompleteInteraction,
   ChannelType,
-  ChatInputCommandInteraction,
+  type ChatInputCommandInteraction,
   GuildMember,
   SlashCommandBuilder,
 } from 'discord.js';

@@ -1,14 +1,14 @@
 import {
-  Character,
+  type Character,
   Encounter,
   MOB_KINDS,
-  World,
+  type World,
   crier,
   effectiveStats,
   levelFor,
 } from './world.ts';
 import { ITEMS } from './items.ts';
-import { BountyClaim, onKill } from './bounty.ts';
+import { type BountyClaim, onKill } from './bounty.ts';
 
 // Encounter combat is turn-based and location-based (no tiles). Each "round" the
 // player swings at the encounter mob; if it survives, it swings back.

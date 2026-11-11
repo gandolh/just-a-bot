@@ -1,6 +1,6 @@
 import {
-  ButtonInteraction,
-  ChatInputCommandInteraction,
+  type ButtonInteraction,
+  type ChatInputCommandInteraction,
   SlashCommandBuilder,
 } from 'discord.js';
 import { fetchQuestion, CATEGORIES } from '../trivia/api.ts';

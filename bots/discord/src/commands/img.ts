@@ -1,4 +1,4 @@
-import { ChatInputCommandInteraction, SlashCommandBuilder } from 'discord.js';
+import { type ChatInputCommandInteraction, SlashCommandBuilder } from 'discord.js';
 import { logger } from '@bots/shared';
 import type { Command } from './types.ts';
 import { renderToPng } from '../img/render.ts';

@@ -2,14 +2,14 @@ import {
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
-  ChatInputCommandInteraction,
+  type ChatInputCommandInteraction,
   EmbedBuilder,
   SlashCommandBuilder,
 } from 'discord.js';
 import type { Command } from './types.ts';
 import {
-  Character,
-  World,
+  type Character,
+  type World,
   cleanCharacterName,
   getOrCreateWorld,
   updateWorld,

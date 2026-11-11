@@ -1,4 +1,4 @@
-import { Trade, TradeOffer, World, nextId, pruneDuelsAndTrades } from './world.ts';
+import { type Trade, type TradeOffer, type World, nextId, pruneDuelsAndTrades } from './world.ts';
 
 /** An open trade between these two, either way round. */
 export function openTradeBetween(world: World, a: string, b: string): Trade | null {

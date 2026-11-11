@@ -1,4 +1,4 @@
-import { World } from './world.ts';
+import type { World } from './world.ts';
 
 // A location is a named place the player can be. Travel happens place-to-place
 // via exits — there is no tile movement. Locations are derived deterministically

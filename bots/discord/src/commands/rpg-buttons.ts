@@ -1,13 +1,13 @@
 import {
   ActionRowBuilder,
   ButtonBuilder,
-  ButtonInteraction,
+  type ButtonInteraction,
   ButtonStyle,
   EmbedBuilder,
   ModalBuilder,
-  ModalSubmitInteraction,
+  type ModalSubmitInteraction,
   StringSelectMenuBuilder,
-  StringSelectMenuInteraction,
+  type StringSelectMenuInteraction,
   TextInputBuilder,
   TextInputStyle,
 } from 'discord.js';
@@ -18,7 +18,7 @@ import {
   declineDuel,
   isDuelExpired,
   runDuel,
-  DuelRunResult,
+  type DuelRunResult,
 } from '../rpg/duel.ts';
 import {
   startTrade,
@@ -30,7 +30,7 @@ import {
 import type { Character, Trade } from '../rpg/world.ts';
 import { claimProposalSlot, proposalConflict } from '../rpg/proposals.ts';
 import {
-  Screen,
+  type Screen,
   applyBagSelection,
   buildEmbed,
   buildRows,

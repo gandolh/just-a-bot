@@ -1,4 +1,4 @@
-import { Character, levelFor } from './world.ts';
+import { type Character, levelFor } from './world.ts';
 
 interface BountyTier {
   goal: number;

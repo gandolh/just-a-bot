@@ -1,7 +1,7 @@
 import {
   ChannelType,
-  ChatInputCommandInteraction,
-  Message,
+  type ChatInputCommandInteraction,
+  type Message,
   SlashCommandBuilder,
   ThreadAutoArchiveDuration,
 } from 'discord.js';
