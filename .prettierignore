@@ -1,0 +1,18 @@
+# Markdown stays out of Prettier (decided 2026-11-10).
+*.md
+
+# The generated house-style copy.
+vendor/house-style/
+
+# Lockfile, build output, the bots' local state.
+package-lock.json
+dist/
+coverage/
+/bots/data/
+/bots/discord/data/
+
+# docs-site is Docusaurus, with its own conventions, outside the house style.
+/docs-site/
+
+# The owner's local Claude Code settings, which git ignores globally.
+/.claude/settings.local.json
