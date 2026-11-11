@@ -1,6 +1,6 @@
 ---
 summary: Locked tech/design calls with their rejected alternatives and reasons — read before proposing pnpm, a build step, or an ORM-style rewrite.
-updated: 2026-11-05
+updated: 2026-11-11
 ---
 
 # Decisions (locked)
@@ -183,3 +183,21 @@ predictable; one queue for every app keeps the box and the quota from being
 hit by two callers at once. _2026-11-05_: built (brief 14). Wicket asks Ollama
 Cloud only since the owner's call of 2026-11-04, so there is no small model to
 fall back on: a cloud failure fails the question.
+
+## The house style, formatted and checked
+
+_2026-11-10, owner; built 2026-11-11_ — The code follows the estate's house
+style, vendored as `vendor/house-style/`: Prettier at width 120 with double
+quotes and semicolons, the house TypeScript flags and ESLint config, behind
+`npm run check`. Rejected: keeping single quotes (77 files changed instead of
+131, but the repo stays an outlier), and a hosted CI. `check` runs the tests
+through `test:clean`, a temporary copy with no `.env*`, because
+`bots/discord/src/env.ts` loads the checkout's production `.env` on import
+(rejected for now: `env.ts` skipping the file under test, a startup change of
+its own). `node:test` stays, so the house's vitest rules are off; moving 26
+test files is its own brief. `docs-site` stays out of Prettier and ESLint:
+Docusaurus, React and default exports. `noUncheckedIndexedAccess` waits (158
+sites). Reason: one format nobody argues about, and checks that catch the
+unawaited promise and the unchecked `!` before review. Cost: one reformat
+commit, skipped by `git blame`, and the tools ride in the image, which
+installs devDependencies for `tsx`.
