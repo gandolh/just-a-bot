@@ -21,11 +21,13 @@ export type AskSlot =
 export class AskLimiter {
   private readonly inFlight = new Set<string>();
   private readonly lastAskedAt = new Map<string, number>();
+  private readonly cooldownMs: number;
+  private readonly now: () => number;
 
-  constructor(
-    private readonly cooldownMs = ASK_COOLDOWN_MS,
-    private readonly now: () => number = Date.now,
-  ) {}
+  constructor(cooldownMs = ASK_COOLDOWN_MS, now: () => number = Date.now) {
+    this.cooldownMs = cooldownMs;
+    this.now = now;
+  }
 
   claim(memberKey: string): AskSlot {
     if (this.inFlight.has(memberKey)) return { ok: false, reason: 'busy' };

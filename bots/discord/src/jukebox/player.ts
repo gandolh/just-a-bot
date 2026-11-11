@@ -41,13 +41,21 @@ export class GuildPlayer {
   private advancedPlayId: number | null = null;
   private chain: Promise<void> = Promise.resolve();
   private readonly alone: AloneWatch;
+  readonly guildId: string;
+  private readonly speaker: Speaker;
+  private readonly buffer: Pick<TrackBuffer, 'update' | 'open' | 'clear'>;
+  private readonly api: PlayerApi;
 
   constructor(
-    readonly guildId: string,
-    private readonly speaker: Speaker,
-    private readonly buffer: Pick<TrackBuffer, 'update' | 'open' | 'clear'>,
-    private readonly api: PlayerApi,
+    guildId: string,
+    speaker: Speaker,
+    buffer: Pick<TrackBuffer, 'update' | 'open' | 'clear'>,
+    api: PlayerApi,
   ) {
+    this.guildId = guildId;
+    this.speaker = speaker;
+    this.buffer = buffer;
+    this.api = api;
     this.alone = new AloneWatch({
       pause: () => void this.api.control(this.guildId, 'pause').catch((err) => log.warn(`pausing an empty channel failed: ${err.message}`)),
       leave: () => void this.api.control(this.guildId, 'leave').catch((err) => log.warn(`leaving an empty channel failed: ${err.message}`)),

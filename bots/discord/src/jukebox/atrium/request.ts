@@ -29,12 +29,12 @@ export interface AtriumInit extends Omit<RequestInit, 'signal' | 'body'> {
  */
 export class AtriumClient {
   private readonly fetchImpl: typeof fetch;
+  private readonly config: { atriumUrl: string };
+  readonly session: AtriumSession;
 
-  constructor(
-    private readonly config: { atriumUrl: string },
-    readonly session: AtriumSession,
-    fetchImpl?: typeof fetch,
-  ) {
+  constructor(config: { atriumUrl: string }, session: AtriumSession, fetchImpl?: typeof fetch) {
+    this.config = config;
+    this.session = session;
     this.fetchImpl = fetchImpl ?? fetch;
   }
 

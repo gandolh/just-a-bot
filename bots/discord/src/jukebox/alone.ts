@@ -29,12 +29,15 @@ const realTimers: Timers = {
 export class AloneWatch {
   private alone = false;
   private leaveTimer: unknown = null;
+  private readonly actions: AloneActions;
+  private readonly timers: Timers;
+  private readonly leaveAfterMs: number;
 
-  constructor(
-    private readonly actions: AloneActions,
-    private readonly timers: Timers = realTimers,
-    private readonly leaveAfterMs = LEAVE_AFTER_MS,
-  ) {}
+  constructor(actions: AloneActions, timers: Timers = realTimers, leaveAfterMs = LEAVE_AFTER_MS) {
+    this.actions = actions;
+    this.timers = timers;
+    this.leaveAfterMs = leaveAfterMs;
+  }
 
   /** The number of people (not bots) in the bot's channel changed, or the bot is in no channel (`null`). */
   update(humans: number | null): void {

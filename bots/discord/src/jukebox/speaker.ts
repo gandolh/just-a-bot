@@ -81,12 +81,12 @@ export class DiscordSpeaker implements Speaker {
   private readonly player = createAudioPlayer({ behaviors: { noSubscriber: NoSubscriberBehavior.Pause } });
   private readonly joinChannel: typeof joinVoiceChannel;
   private readonly readyTimeoutMs: number;
+  private readonly client: Client;
+  readonly guildId: string;
 
-  constructor(
-    private readonly client: Client,
-    readonly guildId: string,
-    options: DiscordSpeakerOptions = {},
-  ) {
+  constructor(client: Client, guildId: string, options: DiscordSpeakerOptions = {}) {
+    this.client = client;
+    this.guildId = guildId;
     this.joinChannel = options.join ?? joinVoiceChannel;
     this.readyTimeoutMs = options.readyTimeoutMs ?? READY_TIMEOUT_MS;
     this.player.on(AudioPlayerStatus.Idle, () => {

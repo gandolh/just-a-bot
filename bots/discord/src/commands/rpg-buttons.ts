@@ -40,11 +40,10 @@ import {
   doSell,
   doUnequip,
   doUseItem,
-  hasPotion,
   nearbyPlayers,
   pushCombatLog,
 } from '../rpg/locationui.ts';
-import { getLocation, buildLocations } from '../rpg/locations.ts';
+import { getLocation } from '../rpg/locations.ts';
 import { fightRound, fleeEncounter, startEncounter } from '../rpg/combat.ts';
 import { rollExplore, rollTravelEncounter } from '../rpg/encounter.ts';
 
@@ -797,9 +796,8 @@ async function handleTradeButton(
 
   } else if (action === 'cancel') {
     let cancelled = false;
-    let updatedWorld: Awaited<ReturnType<typeof updateWorld>> | null = null;
 
-    updatedWorld = await updateWorld(guildId, (w) => {
+    await updateWorld(guildId, (w) => {
       const trade = w.trades[tradeId];
       if (!trade || trade.state !== 'open') return;
       if (interaction.user.id !== trade.aId && interaction.user.id !== trade.bId) return;

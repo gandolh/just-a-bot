@@ -18,7 +18,6 @@ import {
 import type { MafiaGame } from '../mafia/store.ts';
 import { alivePlayers, assignRoles, checkWin } from '../mafia/roles.ts';
 import {
-  dayEmbed,
   gameStartedEmbed,
   joinButton,
   lobbyEmbed,

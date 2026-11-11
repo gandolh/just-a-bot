@@ -1,7 +1,6 @@
 import type { Client, TextChannel, ThreadChannel } from 'discord.js';
 import { EmbedBuilder } from 'discord.js';
-import type { MafiaGame, Player } from './store.ts';
-import { updateGame } from './store.ts';
+import type { MafiaGame } from './store.ts';
 import { aliveByRole, alivePlayers } from './roles.ts';
 import {
   nightKillButtons,

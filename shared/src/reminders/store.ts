@@ -1,6 +1,5 @@
 import { readFile } from 'node:fs/promises';
 import { writeJsonFile } from '../json-file.ts';
-import { dirname } from 'node:path';
 
 export type BaseReminder = {
   id: string;

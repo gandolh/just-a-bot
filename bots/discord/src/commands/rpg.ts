@@ -11,7 +11,6 @@ import {
   type Character,
   type World,
   cleanCharacterName,
-  getOrCreateWorld,
   updateWorld,
 } from '../rpg/world.ts';
 import { rollBounty } from '../rpg/bounty.ts';

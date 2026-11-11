@@ -1,15 +1,28 @@
 {
+  // The house compiler flags (vendor/house-style/tsconfig.base.json), kept here instead of extended:
+  // the house base turns on noUncheckedIndexedAccess, which this repo can't take yet.
   "compilerOptions": {
     "target": "ES2022",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "lib": ["ES2023"],
     "strict": true,
+    // Off for now (2026-11-11): 158 indexed reads would need a guard first. When they are narrowed,
+    // this turns on, and @typescript-eslint/no-unnecessary-type-assertion in eslint.config.mjs with it.
+    "noUncheckedIndexedAccess": false,
+    "noImplicitOverride": true,
+    "noUnusedLocals": true,
+    "noFallthroughCasesInSwitch": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+    "erasableSyntaxOnly": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
     "sourceMap": true,
+    // tsx runs the source as it is, and Node resolves only the real file name, so relative imports
+    // carry their .ts suffix. There is no build: noEmit.
     "allowImportingTsExtensions": true,
     "noEmit": true
   }

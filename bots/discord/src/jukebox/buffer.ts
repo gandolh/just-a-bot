@@ -95,12 +95,12 @@ export class TrackBuffer {
    */
   private readonly failed = new Map<string, number>();
   private readonly dir: string;
+  private readonly fetchTrack: FetchTrack;
+  private readonly now: () => number;
 
-  constructor(
-    guildId: string,
-    private readonly fetchTrack: FetchTrack,
-    private readonly now: () => number = Date.now,
-  ) {
+  constructor(guildId: string, fetchTrack: FetchTrack, now: () => number = Date.now) {
+    this.fetchTrack = fetchTrack;
+    this.now = now;
     this.dir = join(BUFFER_ROOT, guildId);
   }
 

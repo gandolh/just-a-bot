@@ -275,7 +275,6 @@ export async function checkNightComplete(client: Client, guildId: string): Promi
   const game = await loadGame(guildId);
   if (!game || game.phase !== 'night') return;
 
-  const alive = alivePlayers(game);
   const aliveMafia = aliveByRole(game, 'mafia');
   const aliveDoctor = aliveByRole(game, 'doctor');
 

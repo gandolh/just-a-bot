@@ -1,6 +1,5 @@
 import {
   type Character,
-  Encounter,
   MOB_KINDS,
   type World,
   crier,

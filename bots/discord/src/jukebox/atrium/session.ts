@@ -80,8 +80,10 @@ export class AtriumSession {
 
   /** How many logins succeeded. The check script prints it. */
   logins = 0;
+  private readonly options: AtriumSessionOptions;
 
-  constructor(private readonly options: AtriumSessionOptions) {
+  constructor(options: AtriumSessionOptions) {
+    this.options = options;
     this.fetchImpl = options.fetch ?? fetch;
     this.now = options.now ?? Date.now;
   }

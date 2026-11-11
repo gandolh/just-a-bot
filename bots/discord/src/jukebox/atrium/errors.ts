@@ -29,19 +29,24 @@ export class JukeboxUnavailable extends Error {
 
 /** A 403 from atrium: the account's grant is wrong (`JUKEBOX_ROLE_FORBIDDEN`). Configuration, so never retried. */
 export class JukeboxForbidden extends Error {
-  constructor(readonly code: string | undefined) {
+  readonly code: string | undefined;
+
+  constructor(code: string | undefined) {
     super(`atrium refused the Bot account (${code ?? 'no code'})`);
+    this.code = code;
     this.name = 'JukeboxForbidden';
   }
 }
 
 /** Any other refusal from atrium, with its `{error}` code (`PLAYER_OFFLINE`, `NOT_A_TRACK`, ...). */
 export class JukeboxRequestError extends Error {
-  constructor(
-    readonly status: number,
-    readonly code: string | undefined,
-  ) {
+  readonly status: number;
+  readonly code: string | undefined;
+
+  constructor(status: number, code: string | undefined) {
     super(`atrium answered ${status}${code ? ` ${code}` : ''}`);
+    this.status = status;
+    this.code = code;
     this.name = 'JukeboxRequestError';
   }
 }
