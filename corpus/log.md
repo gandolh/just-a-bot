@@ -1267,8 +1267,9 @@ the four files the image's `deps` stage copies: at `8c97077` 62 packages,
 87 MB of `node_modules`, exit 0; at `422edee` 277 packages, 197 MB, exit 0.
 The image keeps devDependencies for `tsx`, so the tools ride along.
 
-**Checks run:** `npm run check` (exit 0 twice, exit 1 once on the flaky
-test), `npm run typecheck` (0 in all three workspaces), `npm run lint` (0
+**Checks run:** `npm run check` five times (exit 0 three times, the last
+after this closeout in 19.1 s at load average 2.2; exit 1 twice, both on the
+flaky test), `npm run typecheck` (0 in all three workspaces), `npm run lint` (0
 errors, 19 warnings: the `!` kept in tests), a deliberate `enum`, `// TODO:
 x`, `console.log` in `bots/discord/src/index.ts`, an unawaited promise and a
 `process.env.X` in `bots/discord/src/ask/limits.ts`, a `!` in source and an
