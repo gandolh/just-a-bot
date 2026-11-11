@@ -37,12 +37,21 @@ that will be relitigated.
 - **The bot has no build step.** `tsx src/index.ts` runs TypeScript directly in
   dev *and* in production. The only build in the repo is `docs-site`'s
   `docusaurus build` (`npm run docs -w @bots/docs-site`), a static docs site. Relative imports carry explicit `.ts` suffixes
-  (`from './play.ts'`) — `tsconfig.base.json` sets `allowImportingTsExtensions`
+  (`from "./play.ts"`) — `tsconfig.base.json` sets `allowImportingTsExtensions`
   + `noEmit`.
-- **Verify with `npm run typecheck` and `npm test`.** Typecheck is `tsc --noEmit`
-  across every workspace. The tests are zero-dependency `node:test` files next to
-  the pure game logic they cover (`*.test.ts`, run through tsx); they don't
-  touch Discord.
+- **Never run `npm test` here: it loads the production `.env`; use `npm run test:clean`.**
+  `bots/discord/src/env.ts` reads `bots/discord/.env` on import. `test:clean` runs
+  the tests in a temporary copy that holds no `.env*` file. The tests are
+  zero-dependency `node:test` files (`*.test.ts`, run through tsx) next to the
+  code they cover; they don't touch Discord.
+- **`npm run check` before every hand-back:** typecheck (`tsc --noEmit` in every
+  workspace), lint, `format:check`, `check:conventions` and `test:clean`.
+  `npm run check:fast` is the typecheck plus ESLint on the changed files, never
+  the tests; the house-style plugin's Stop hook runs it. `npm run format` is
+  Prettier (Markdown and `docs-site` stay out).
+- **The house style** is vendored in `vendor/house-style/` (generated; refresh
+  with `npm run house-style:sync -- <tag>`). `eslint.config.mjs`,
+  `prettier.config.mjs` and `.dependency-cruiser.cjs` extend it.
 - **Run a bot:** `npm run discord:dev` (tsx watch) / `discord:start` (pm2 path).
   `npm run discord:register` pushes slash-command definitions to Discord.
 - **One running instance per bot token.** Discord delivers every interaction to
