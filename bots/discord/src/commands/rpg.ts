@@ -6,7 +6,7 @@ import {
   EmbedBuilder,
   SlashCommandBuilder,
 } from "discord.js";
-import type { Command } from "./types.ts";
+import type { Command, GuildCommandInteraction } from "./types.ts";
 import { type Character, type World, cleanCharacterName, updateWorld } from "../rpg/world.ts";
 import { rollBounty } from "../rpg/bounty.ts";
 import { STARTING_LOCATION } from "../rpg/locations.ts";
@@ -85,11 +85,11 @@ export const rpg: Command = {
   },
 };
 
-async function handleStart(interaction: ChatInputCommandInteraction, userId: string): Promise<void> {
+async function handleStart(interaction: GuildCommandInteraction, userId: string): Promise<void> {
   // Check whether this player has a character yet. The world clock is driven by
   // the engine once a session opens, so we don't tick here.
   let hasChar = false;
-  const world = await updateWorld(interaction.guildId!, (w) => {
+  const world = await updateWorld(interaction.guildId, (w) => {
     // Announce notable events in whichever channel people are actively playing.
     if (interaction.channelId) w.crierChannelId = interaction.channelId;
     const char = w.chars[userId];
@@ -130,10 +130,10 @@ async function handleStart(interaction: ChatInputCommandInteraction, userId: str
   await interaction.reply({ ...view, ephemeral: true });
 }
 
-async function handleExit(interaction: ChatInputCommandInteraction, userId: string): Promise<void> {
+async function handleExit(interaction: GuildCommandInteraction, userId: string): Promise<void> {
   let hadChar = false;
   await updateWorld(
-    interaction.guildId!,
+    interaction.guildId,
     (w) => {
       const char = w.chars[userId];
       if (!char) return;

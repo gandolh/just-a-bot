@@ -13,7 +13,7 @@ import {
   PermissionsBitField,
   SlashCommandBuilder,
 } from "discord.js";
-import type { Command, ContextMenuCommand } from "./types.ts";
+import type { Command, ContextMenuCommand, GuildCommandInteraction } from "./types.ts";
 import { appendQuote, getQuote, loadBook, removeQuote } from "../quotes/store.ts";
 
 const MESSAGE_LINK_RE = /https?:\/\/(?:www\.)?discord(?:app)?\.com\/channels\/(\d+)\/(\d+)\/(\d+)/;
@@ -169,8 +169,8 @@ async function handleAdd(interaction: ChatInputCommandInteraction): Promise<void
   await interaction.editReply(`Quote saved! ID: \`${q.id}\``);
 }
 
-async function handleRandom(interaction: ChatInputCommandInteraction): Promise<void> {
-  const book = await loadBook(interaction.guildId!);
+async function handleRandom(interaction: GuildCommandInteraction): Promise<void> {
+  const book = await loadBook(interaction.guildId);
   if (book.quotes.length === 0) {
     await interaction.reply({
       content: "No quotes saved yet. Use `/quote add` or right-click a message.",
@@ -182,9 +182,9 @@ async function handleRandom(interaction: ChatInputCommandInteraction): Promise<v
   await interaction.reply({ embeds: [buildQuoteEmbed(q)] });
 }
 
-async function handleSearch(interaction: ChatInputCommandInteraction): Promise<void> {
+async function handleSearch(interaction: GuildCommandInteraction): Promise<void> {
   const text = interaction.options.getString("text", true).toLowerCase();
-  const book = await loadBook(interaction.guildId!);
+  const book = await loadBook(interaction.guildId);
   const match = [...book.quotes].reverse().find((q) => q.content.toLowerCase().includes(text));
   if (!match) {
     await interaction.reply({ content: `No quotes found containing \`${text}\`.`, ephemeral: true });
@@ -193,9 +193,9 @@ async function handleSearch(interaction: ChatInputCommandInteraction): Promise<v
   await interaction.reply({ embeds: [buildQuoteEmbed(match)] });
 }
 
-async function handleBy(interaction: ChatInputCommandInteraction): Promise<void> {
+async function handleBy(interaction: GuildCommandInteraction): Promise<void> {
   const user = interaction.options.getUser("user", true);
-  const book = await loadBook(interaction.guildId!);
+  const book = await loadBook(interaction.guildId);
   const pool = book.quotes.filter((q) => q.authorId === user.id);
   if (pool.length === 0) {
     await interaction.reply({ content: `No quotes saved from ${user.displayName}.`, ephemeral: true });
@@ -205,8 +205,11 @@ async function handleBy(interaction: ChatInputCommandInteraction): Promise<void>
   await interaction.reply({ embeds: [buildQuoteEmbed(q)] });
 }
 
-async function handleList(interaction: ChatInputCommandInteraction | ButtonInteraction, page: number): Promise<void> {
-  const guildId = interaction.guildId!;
+async function handleList(
+  interaction: GuildCommandInteraction | ButtonInteraction<"cached" | "raw">,
+  page: number,
+): Promise<void> {
+  const guildId = interaction.guildId;
   const book = await loadBook(guildId);
 
   if (book.quotes.length === 0) {
@@ -254,9 +257,9 @@ async function handleList(interaction: ChatInputCommandInteraction | ButtonInter
   }
 }
 
-async function handleRemove(interaction: ChatInputCommandInteraction): Promise<void> {
+async function handleRemove(interaction: GuildCommandInteraction): Promise<void> {
   const id = interaction.options.getString("id", true);
-  const q = await getQuote(interaction.guildId!, id);
+  const q = await getQuote(interaction.guildId, id);
   if (!q) {
     await interaction.reply({ content: `No quote with ID \`${id}\` found.`, ephemeral: true });
     return;
@@ -273,11 +276,13 @@ async function handleRemove(interaction: ChatInputCommandInteraction): Promise<v
     return;
   }
 
-  await removeQuote(interaction.guildId!, id);
+  await removeQuote(interaction.guildId, id);
   await interaction.reply({ content: `Quote \`${id}\` removed.`, ephemeral: true });
 }
 
 export async function handleQuoteListButton(interaction: ButtonInteraction): Promise<void> {
+  // The list is only ever posted in a server, so its buttons are too.
+  if (!interaction.inGuild()) throw new Error("a quote list button was pressed outside a server");
   const parts = interaction.customId.split(":");
   const page = parseInt(parts[2], 10);
   await handleList(interaction, page);

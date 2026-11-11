@@ -1,8 +1,8 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import type { ChatInputCommandInteraction } from "discord.js";
 import type { ConfessionEntry, ConfessionStore } from "../confessions/store.ts";
 import { submitConfession, type ConfessionStoreApi } from "./confess.ts";
+import type { GuildCommandInteraction } from "./types.ts";
 
 /** A store that takes a moment on every call, like the fsynced file it stands in for. */
 function slowStore(channelId: string | null): ConfessionStoreApi & { added: number } {
@@ -32,7 +32,7 @@ function submission(userId: string, posts: string[], replies: string[]) {
     options: { getString: () => "I ate the last biscuit." },
     client: { channels: { fetch: async () => channel } },
     reply: async ({ content }: { content: string }) => void replies.push(content),
-  } as unknown as ChatInputCommandInteraction;
+  } as unknown as GuildCommandInteraction;
 }
 
 test("two submissions at once from one member: one posts, the other is told to wait", async () => {

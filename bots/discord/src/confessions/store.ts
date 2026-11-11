@@ -25,7 +25,8 @@ function pathFor(guildId: string): string {
 }
 
 export async function loadStore(guildId: string): Promise<ConfessionStore> {
-  if (cache.has(guildId)) return cache.get(guildId)!;
+  const cached = cache.get(guildId);
+  if (cached) return cached;
   try {
     const raw = await readFile(pathFor(guildId), "utf8");
     const store = JSON.parse(raw) as ConfessionStore;

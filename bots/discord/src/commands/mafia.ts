@@ -8,7 +8,7 @@ import {
   type TextChannel,
   type ThreadChannel,
 } from "discord.js";
-import type { Command } from "./types.ts";
+import type { Command, GuildCommandInteraction } from "./types.ts";
 import { createGame, deleteGame, loadGame, updateGame } from "../mafia/store.ts";
 import type { MafiaGame } from "../mafia/store.ts";
 import { alivePlayers, assignRoles, checkWin } from "../mafia/roles.ts";
@@ -60,8 +60,8 @@ export const mafia: Command = {
 
 // ── Handlers ───────────────────────────────────────────────────────────────
 
-async function handleStart(interaction: ChatInputCommandInteraction): Promise<void> {
-  const guildId = interaction.guildId!;
+async function handleStart(interaction: GuildCommandInteraction): Promise<void> {
+  const guildId = interaction.guildId;
   const existing = await loadGame(guildId);
   if (existing && existing.phase !== "finished") {
     await replyEphemeral(
@@ -79,7 +79,7 @@ async function handleStart(interaction: ChatInputCommandInteraction): Promise<vo
     return;
   }
 
-  let thread: ThreadChannel | null = null;
+  let thread: ThreadChannel | null;
   try {
     thread = await (channel as TextChannel).threads.create({
       name: "Mafia Game",
@@ -119,8 +119,8 @@ export function armLobbyExpiry(client: import("discord.js").Client, game: MafiaG
   armLobbyTimer(game.guildId, ms, () => void lobbyExpire(client, game.guildId, game.createdAt));
 }
 
-async function handleJoin(interaction: ChatInputCommandInteraction): Promise<void> {
-  const guildId = interaction.guildId!;
+async function handleJoin(interaction: GuildCommandInteraction): Promise<void> {
+  const guildId = interaction.guildId;
   const game = await loadGame(guildId);
   if (!game || game.phase !== "lobby" || launching.has(guildId)) {
     await replyEphemeral(interaction, "No open Mafia lobby right now. Start one with `/mafia start`.");
@@ -144,8 +144,8 @@ async function handleJoin(interaction: ChatInputCommandInteraction): Promise<voi
   await refreshLobbyMessage(interaction.client, guildId);
 }
 
-async function handleStartNow(interaction: ChatInputCommandInteraction): Promise<void> {
-  const guildId = interaction.guildId!;
+async function handleStartNow(interaction: GuildCommandInteraction): Promise<void> {
+  const guildId = interaction.guildId;
   const game = await loadGame(guildId);
   if (!game || game.phase !== "lobby") {
     await replyEphemeral(interaction, "No open lobby to start.");
@@ -166,8 +166,8 @@ async function handleStartNow(interaction: ChatInputCommandInteraction): Promise
   await interaction.editReply({ content: "Game started!" });
 }
 
-async function handleVote(interaction: ChatInputCommandInteraction): Promise<void> {
-  const guildId = interaction.guildId!;
+async function handleVote(interaction: GuildCommandInteraction): Promise<void> {
+  const guildId = interaction.guildId;
   const game = await loadGame(guildId);
   if (!game || game.phase !== "day") {
     await replyEphemeral(interaction, "No active day phase.");
@@ -212,8 +212,8 @@ async function handleVote(interaction: ChatInputCommandInteraction): Promise<voi
   }
 }
 
-async function handleStatus(interaction: ChatInputCommandInteraction): Promise<void> {
-  const guildId = interaction.guildId!;
+async function handleStatus(interaction: GuildCommandInteraction): Promise<void> {
+  const guildId = interaction.guildId;
   const game = await loadGame(guildId);
   if (!game || game.phase === "finished") {
     await replyEphemeral(interaction, "No active Mafia game.");
@@ -229,8 +229,8 @@ async function handleStatus(interaction: ChatInputCommandInteraction): Promise<v
   await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
 }
 
-async function handleCancel(interaction: ChatInputCommandInteraction): Promise<void> {
-  const guildId = interaction.guildId!;
+async function handleCancel(interaction: GuildCommandInteraction): Promise<void> {
+  const guildId = interaction.guildId;
   const game = await loadGame(guildId);
   if (!game || game.phase === "finished") {
     await replyEphemeral(interaction, "No active Mafia game to cancel.");

@@ -128,9 +128,11 @@ async function resolveClaimedDay(client: Client, guildId: string, game: MafiaGam
   }
 
   if (eliminated) {
+    // A const, so the callback below sees the narrowed player.
+    const out = eliminated;
     await updateGame(guildId, (g) => {
-      g.players[eliminated!.userId].alive = false;
-      g.history.push(`Day ${g.day}: ${eliminated!.tag} (${eliminated!.role}) eliminated.`);
+      g.players[out.userId].alive = false;
+      g.history.push(`Day ${g.day}: ${out.tag} (${out.role}) eliminated.`);
     });
     await postToThread(client, game, { embeds: [eliminatedEmbed(eliminated, game)] });
   } else {
@@ -197,9 +199,11 @@ async function resolveClaimedNight(client: Client, guildId: string, game: MafiaG
   }
 
   if (killed) {
+    // A const, so the callback below sees the narrowed player.
+    const victim = killed;
     await updateGame(guildId, (g) => {
-      g.players[killed!.userId].alive = false;
-      g.history.push(`Night ${g.day}: ${killed!.tag} (${killed!.role}) killed.`);
+      g.players[victim.userId].alive = false;
+      g.history.push(`Night ${g.day}: ${victim.tag} (${victim.role}) killed.`);
     });
   }
 

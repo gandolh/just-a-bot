@@ -362,7 +362,8 @@ export async function flushWorld(guildId: string): Promise<void> {
 }
 
 export async function loadWorld(guildId: string): Promise<World | null> {
-  if (cache.has(guildId)) return cache.get(guildId)!;
+  const cached = cache.get(guildId);
+  if (cached) return cached;
   try {
     const raw = await readFile(pathFor(guildId), "utf8");
     const world = JSON.parse(raw) as World;

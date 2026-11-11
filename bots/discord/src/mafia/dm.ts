@@ -9,7 +9,9 @@ export async function sendRoleDms(client: Client, game: MafiaGame): Promise<stri
   for (const player of Object.values(game.players)) {
     try {
       const user = await client.users.fetch(player.userId);
-      const embed = roleDmEmbed(player.role!, game.guildId);
+      // Roles are dealt before the DMs go out. A player without one is reported like one the bot can't reach.
+      if (!player.role) throw new Error(`${player.userId} was dealt no role`);
+      const embed = roleDmEmbed(player.role, game.guildId);
       if (player.role === "mafia") {
         const allMafia = Object.values(game.players)
           .filter((p) => p.role === "mafia" && p.userId !== player.userId)

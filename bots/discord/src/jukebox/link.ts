@@ -10,6 +10,7 @@ import {
 } from "./atrium/client.ts";
 import { isJukeboxConfigured } from "./atrium/config.ts";
 import { staleJukeboxVars } from "./atrium/env-rule.ts";
+import { env } from "../env.ts";
 import { TrackBuffer, wipeBuffers } from "./buffer.ts";
 import { GuildPlayer, type PlayerApi } from "./player.ts";
 import type { JukeboxHost } from "./speaker.ts";
@@ -64,7 +65,7 @@ const sleep = (ms: number, signal: AbortSignal) =>
  */
 export function startJukeboxLink(host: JukeboxHost): JukeboxLink | null {
   void clearSpentSessionFile();
-  const stale = staleJukeboxVars(process.env);
+  const stale = staleJukeboxVars(env);
   if (stale.length > 0) {
     log.warn(
       `${stale.join(", ")} ${stale.length === 1 ? "is" : "are"} no longer read (brief 29); rename them as .env.example shows`,

@@ -484,9 +484,6 @@ async function handleDuelButton(interaction: ButtonInteraction, parts: string[])
 
   if (action === "accept") {
     let canProceed = false;
-    let duelLog: string[] = [];
-    let challengerName = "";
-    let defenderName = "";
 
     const worldBefore = await updateWorld(guildId, (w) => {
       const duel = w.duels[duelId];
@@ -530,8 +527,8 @@ async function handleDuelButton(interaction: ButtonInteraction, parts: string[])
       return;
     }
 
-    challengerName = `${charA.glyph} ${charA.name}`;
-    defenderName = `${charB.glyph} ${charB.name}`;
+    const challengerName = `${charA.glyph} ${charA.name}`;
+    const defenderName = `${charB.glyph} ${charB.name}`;
 
     await interaction.editReply({
       content: `⚔️ **${challengerName}** vs **${defenderName}** — duel starting!`,
@@ -550,7 +547,7 @@ async function handleDuelButton(interaction: ButtonInteraction, parts: string[])
     }
 
     const duelResult: DuelRunResult = result;
-    duelLog = duelResult.log;
+    const duelLog = duelResult.log;
     const xpAwarded = duelResult.xpAwarded;
     const winnerId = duelResult.winnerId;
     const winnerName = winnerId === charA.userId ? challengerName : defenderName;
@@ -724,9 +721,7 @@ async function handleTradeButton(interaction: ButtonInteraction, parts: string[]
     const delta = parseInt(parts[5], 10);
 
     let errorMsg: string | null = null;
-    let updatedWorld: Awaited<ReturnType<typeof updateWorld>> | null = null;
-
-    updatedWorld = await updateWorld(guildId, (w) => {
+    const updatedWorld = await updateWorld(guildId, (w) => {
       const trade = w.trades[tradeId];
       if (!trade || trade.state !== "open") {
         errorMsg = "Trade is no longer open.";
@@ -747,9 +742,9 @@ async function handleTradeButton(interaction: ButtonInteraction, parts: string[]
       return;
     }
 
-    const trade = updatedWorld!.trades[tradeId];
-    const aChar = updatedWorld!.chars[trade.aId];
-    const bChar = updatedWorld!.chars[trade.bId];
+    const trade = updatedWorld.trades[tradeId];
+    const aChar = updatedWorld.chars[trade.aId];
+    const bChar = updatedWorld.chars[trade.bId];
     const embed = buildTradeEmbed(trade);
     const components = buildTradeComponents(trade, aChar?.inventory ?? [], bChar?.inventory ?? []);
     await interaction.update({ embeds: [embed], components });
@@ -759,9 +754,7 @@ async function handleTradeButton(interaction: ButtonInteraction, parts: string[]
     let errorMsg: string | null = null;
     let completed = false;
     let completionMsg: string | null = null;
-    let updatedWorld: Awaited<ReturnType<typeof updateWorld>> | null = null;
-
-    updatedWorld = await updateWorld(guildId, (w) => {
+    const updatedWorld = await updateWorld(guildId, (w) => {
       const trade = w.trades[tradeId];
       if (!trade || trade.state !== "open") {
         errorMsg = "Trade is no longer open.";
@@ -791,7 +784,7 @@ async function handleTradeButton(interaction: ButtonInteraction, parts: string[]
       return;
     }
 
-    const trade = updatedWorld!.trades[tradeId];
+    const trade = updatedWorld.trades[tradeId];
 
     if (completed) {
       await interaction.update({
@@ -806,8 +799,8 @@ async function handleTradeButton(interaction: ButtonInteraction, parts: string[]
     } else if (completionMsg) {
       await interaction.reply({ content: `Trade failed: ${completionMsg}`, ephemeral: true });
     } else {
-      const aChar = updatedWorld!.chars[trade.aId];
-      const bChar = updatedWorld!.chars[trade.bId];
+      const aChar = updatedWorld.chars[trade.aId];
+      const bChar = updatedWorld.chars[trade.bId];
       const embed = buildTradeEmbed(trade);
       const components = buildTradeComponents(trade, aChar?.inventory ?? [], bChar?.inventory ?? []);
       await interaction.update({ embeds: [embed], components });
@@ -852,9 +845,7 @@ async function handleTradeSelect(interaction: StringSelectMenuInteraction, parts
   const selectedItems = interaction.values;
 
   let errorMsg: string | null = null;
-  let updatedWorld: Awaited<ReturnType<typeof updateWorld>> | null = null;
-
-  updatedWorld = await updateWorld(guildId, (w) => {
+  const updatedWorld = await updateWorld(guildId, (w) => {
     const trade = w.trades[tradeId];
     if (!trade || trade.state !== "open") {
       errorMsg = "Trade is no longer open.";
@@ -894,9 +885,9 @@ async function handleTradeSelect(interaction: StringSelectMenuInteraction, parts
     return;
   }
 
-  const trade = updatedWorld!.trades[tradeId];
-  const aChar = updatedWorld!.chars[trade.aId];
-  const bChar = updatedWorld!.chars[trade.bId];
+  const trade = updatedWorld.trades[tradeId];
+  const aChar = updatedWorld.chars[trade.aId];
+  const bChar = updatedWorld.chars[trade.bId];
   const embed = buildTradeEmbed(trade);
   const components = buildTradeComponents(trade, aChar?.inventory ?? [], bChar?.inventory ?? []);
   await interaction.update({ embeds: [embed], components });

@@ -1,4 +1,4 @@
-import { Client, Events, GatewayIntentBits, Partials } from "discord.js";
+import { Client, Events, GatewayIntentBits, type Interaction, type Message, Partials } from "discord.js";
 import { flushPendingWrites, logger } from "@bots/shared";
 import { env } from "./env.ts";
 import { commands, contextMenuCommands } from "./commands/index.ts";
@@ -65,7 +65,13 @@ client.once(Events.ClientReady, (c) => {
 // uncaught exception and the process exits.
 client.on(Events.Error, (err) => log.error("Client error", err));
 
-client.on(Events.InteractionCreate, async (interaction) => {
+// The client has captureRejections on, which sends a rejected async listener to its error event.
+// The listeners catch their own rejections instead, and log them the way that event does.
+client.on(Events.InteractionCreate, (interaction) => {
+  handleInteraction(interaction).catch((err: unknown) => log.error("Client error", err));
+});
+
+async function handleInteraction(interaction: Interaction): Promise<void> {
   if (interaction.isButton() || interaction.isStringSelectMenu() || interaction.isModalSubmit()) {
     if (interaction.customId.startsWith("rpg:")) {
       try {
@@ -181,9 +187,14 @@ client.on(Events.InteractionCreate, async (interaction) => {
       await interaction.reply({ content: message, ephemeral: true }).catch(() => {});
     }
   }
+}
+
+// As above, the listener catches its own rejections.
+client.on(Events.MessageCreate, (message) => {
+  handleMessage(message).catch((err: unknown) => log.error("Client error", err));
 });
 
-client.on(Events.MessageCreate, async (message) => {
+async function handleMessage(message: Message): Promise<void> {
   if (message.author.bot) return;
 
   if (message.channel.isThread()) {
@@ -204,7 +215,7 @@ client.on(Events.MessageCreate, async (message) => {
       return;
     }
   }
-});
+}
 await client.login(env.DISCORD_TOKEN);
 
 const reminderTimer = setInterval(() => {

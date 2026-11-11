@@ -9,6 +9,7 @@ import {
 import {
   type Card,
   dealerPlay,
+  draw,
   freshDeck,
   handValue,
   isBlackjack,
@@ -171,9 +172,9 @@ export async function handleBlackjack2Button(interaction: ButtonInteraction): Pr
         return;
       }
       // Deal the table.
-      table.seats[0].hand = [table.deck.pop()!, table.deck.pop()!];
-      table.seats[1].hand = [table.deck.pop()!, table.deck.pop()!];
-      table.dealer = [table.deck.pop()!, table.deck.pop()!];
+      table.seats[0].hand = [draw(table.deck), draw(table.deck)];
+      table.seats[1].hand = [draw(table.deck), draw(table.deck)];
+      table.dealer = [draw(table.deck), draw(table.deck)];
       table.started = true;
       table.turn = 0;
 
@@ -202,7 +203,7 @@ export async function handleBlackjack2Button(interaction: ButtonInteraction): Pr
   }
 
   if (action === "hit") {
-    seat.hand.push(table.deck.pop()!);
+    seat.hand.push(draw(table.deck));
     if (handValue(seat.hand).total >= 21) seat.done = true; // bust or 21 ends the turn
   } else if (action === "stand") {
     seat.done = true;
@@ -220,7 +221,7 @@ export async function handleBlackjack2Button(interaction: ButtonInteraction): Pr
       return;
     }
     seat.doubled = true;
-    seat.hand.push(table.deck.pop()!);
+    seat.hand.push(draw(table.deck));
     seat.done = true; // double = exactly one card, then stand
   } else {
     return;

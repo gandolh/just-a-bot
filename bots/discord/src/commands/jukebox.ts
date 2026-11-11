@@ -162,9 +162,11 @@ export async function answer(
   work: () => Promise<Answer>,
   deferAfterMs = DEFER_AFTER_MS,
 ): Promise<void> {
-  let deferring: Promise<unknown> | null = null;
+  // A property, not a `let`: the type checker doesn't see a callback assign a `let`, and would read
+  // `deferring` as always null below.
+  const deferral: { deferring: Promise<unknown> | null } = { deferring: null };
   const timer = setTimeout(() => {
-    deferring = interaction.deferReply({ ephemeral: true }).catch(() => {});
+    deferral.deferring = interaction.deferReply({ ephemeral: true }).catch(() => {});
   }, deferAfterMs);
   let result: Answer;
   try {
@@ -173,11 +175,11 @@ export async function answer(
     result = { content: errorReply(err), public: false };
   }
   clearTimeout(timer);
-  if (!deferring) {
+  if (!deferral.deferring) {
     await interaction.reply({ content: result.content, ephemeral: !result.public });
     return;
   }
-  await deferring;
+  await deferral.deferring;
   await interaction.editReply({ content: result.content });
   if (result.public) {
     await interaction.followUp({ content: result.content });
@@ -212,7 +214,7 @@ export const jukebox: Command = {
             const channel = invokerChannel(interaction);
             if (!channel) return tell("Join a voice channel first, or use `/jukebox join`.");
             if (!channel.usable) return tell(cantJoin(channel.name));
-            player = await control(guildId, { action: "join", channelId: channel.id });
+            await control(guildId, { action: "join", channelId: channel.id });
           }
           const next = interaction.options.getBoolean("next") ?? false;
           player = await atriumFetch<PlayerView>(`${playerPath(guildId)}/queue`, {

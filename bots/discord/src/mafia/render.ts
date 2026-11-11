@@ -8,6 +8,11 @@ const NIGHT_COLOR = 0x2c2f33;
 const WIN_COLOR = 0x57f287;
 const DEAD_COLOR = 0xed4245;
 
+/** A Discord relative timestamp. Every lobby is created with its closing time; the type allows a game saved without one. */
+function closesAt(iso: string | null): string {
+  return iso ? `<t:${Math.floor(new Date(iso).getTime() / 1000)}:R>` : "soon";
+}
+
 export function lobbyEmbed(game: MafiaGame): EmbedBuilder {
   const players = Object.values(game.players);
   const list = players.length
@@ -23,7 +28,7 @@ export function lobbyEmbed(game: MafiaGame): EmbedBuilder {
         `**Players (${players.length}):**`,
         list,
         "",
-        `Lobby closes <t:${Math.floor(new Date(game.lobbyExpiresAt!).getTime() / 1000)}:R> or when the host runs \`/mafia start-now\` (min 5 players).`,
+        `Lobby closes ${closesAt(game.lobbyExpiresAt)} or when the host runs \`/mafia start-now\` (min 5 players).`,
       ].join("\n"),
     );
 }
@@ -65,8 +70,9 @@ function formatVotes(game: MafiaGame): string {
   if (game.votes.length === 0) return "";
   const tally = new Map<string, string[]>();
   for (const v of game.votes) {
-    if (!tally.has(v.targetId)) tally.set(v.targetId, []);
-    tally.get(v.targetId)!.push(v.voterId);
+    const voters = tally.get(v.targetId) ?? [];
+    voters.push(v.voterId);
+    tally.set(v.targetId, voters);
   }
   return Array.from(tally.entries())
     .sort((a, b) => b[1].length - a[1].length)
@@ -74,7 +80,7 @@ function formatVotes(game: MafiaGame): string {
     .join("\n");
 }
 
-export function eliminatedEmbed(player: Player, game: MafiaGame): EmbedBuilder {
+export function eliminatedEmbed(player: Player, _game: MafiaGame): EmbedBuilder {
   return new EmbedBuilder()
     .setColor(DEAD_COLOR)
     .setTitle(`⚰️ ${player.tag} has been eliminated`)
@@ -119,7 +125,7 @@ export function winEmbed(winner: "town" | "mafia", game: MafiaGame): EmbedBuilde
     .setDescription(`${desc}\n\n**Full role reveal:**\n${roleLines}`);
 }
 
-export function roleDmEmbed(role: Role, gameGuildId: string): EmbedBuilder {
+export function roleDmEmbed(role: Role, _gameGuildId: string): EmbedBuilder {
   const descriptions: Record<Role, string> = {
     mafia:
       "You are **Mafia**. Each night, coordinate with your fellow mafia members to eliminate a town player. Stay hidden during the day.",

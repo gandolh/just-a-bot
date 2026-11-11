@@ -1,5 +1,5 @@
 import { type ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
-import type { Command } from "./types.ts";
+import type { Command, GuildCommandInteraction } from "./types.ts";
 import { addReminder, listReminders, cancelReminder } from "../reminders/store.ts";
 import { parseWhen } from "../reminders/parse.ts";
 
@@ -46,7 +46,7 @@ export const remindme: Command = {
   },
 };
 
-async function handleSet(interaction: ChatInputCommandInteraction): Promise<void> {
+async function handleSet(interaction: GuildCommandInteraction): Promise<void> {
   const whenRaw = interaction.options.getString("when", true);
   const text = interaction.options.getString("text", true);
   const dueAt = parseWhen(whenRaw);
@@ -65,7 +65,7 @@ async function handleSet(interaction: ChatInputCommandInteraction): Promise<void
   await addReminder({
     id,
     userId: interaction.user.id,
-    guildId: interaction.guildId!,
+    guildId: interaction.guildId,
     channelId: interaction.channelId,
     dueAt: dueAt.toISOString(),
     text,
@@ -77,8 +77,8 @@ async function handleSet(interaction: ChatInputCommandInteraction): Promise<void
   });
 }
 
-async function handleList(interaction: ChatInputCommandInteraction): Promise<void> {
-  const reminders = await listReminders(interaction.user.id, interaction.guildId!);
+async function handleList(interaction: GuildCommandInteraction): Promise<void> {
+  const reminders = await listReminders(interaction.user.id, interaction.guildId);
   if (reminders.length === 0) {
     await interaction.reply({ content: "You have no pending reminders.", ephemeral: true });
     return;

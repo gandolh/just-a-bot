@@ -8,6 +8,9 @@ import type {
   SlashCommandSubcommandsOnlyBuilder,
 } from "discord.js";
 
+/** A slash command used in a server: `inGuild()` narrows an interaction to this, and its `guildId` is a string. */
+export type GuildCommandInteraction = ChatInputCommandInteraction<"cached" | "raw">;
+
 export interface Command {
   data: SlashCommandBuilder | SlashCommandOptionsOnlyBuilder | SlashCommandSubcommandsOnlyBuilder;
   execute(interaction: ChatInputCommandInteraction): Promise<void>;

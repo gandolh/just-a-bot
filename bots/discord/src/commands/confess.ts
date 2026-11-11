@@ -5,7 +5,7 @@ import {
   PermissionFlagsBits,
   SlashCommandBuilder,
 } from "discord.js";
-import type { Command } from "./types.ts";
+import type { Command, GuildCommandInteraction } from "./types.ts";
 import { loadStore, setChannel, addConfession } from "../confessions/store.ts";
 
 const MAX_LENGTH = 1000;
@@ -55,7 +55,7 @@ export const confess: Command = {
   },
 };
 
-async function handleSetChannel(interaction: ChatInputCommandInteraction): Promise<void> {
+async function handleSetChannel(interaction: GuildCommandInteraction): Promise<void> {
   if (!interaction.memberPermissions?.has(PermissionFlagsBits.ManageGuild)) {
     await interaction.reply({
       content: "You need the **Manage Server** permission to configure the confession channel.",
@@ -76,7 +76,7 @@ async function handleSetChannel(interaction: ChatInputCommandInteraction): Promi
     return;
   }
 
-  await setChannel(interaction.guildId!, channel.id);
+  await setChannel(interaction.guildId, channel.id);
   await interaction.reply({
     content: `Confessions will now be posted in <#${channel.id}>.`,
     ephemeral: true,
@@ -97,10 +97,10 @@ export interface ConfessionStoreApi {
  * not post gives the cooldown back, so a refusal costs nothing.
  */
 export async function submitConfession(
-  interaction: ChatInputCommandInteraction,
+  interaction: GuildCommandInteraction,
   store: ConfessionStoreApi = { loadStore, addConfession },
 ): Promise<void> {
-  const key = `${interaction.guildId!}:${interaction.user.id}`;
+  const key = `${interaction.guildId}:${interaction.user.id}`;
   const lastAt = cooldowns.get(key) ?? 0;
   const remaining = Math.ceil((lastAt + COOLDOWN_MS - Date.now()) / 1000);
   if (remaining > 0) {
@@ -121,8 +121,8 @@ export async function submitConfession(
 }
 
 /** Validate and post one confession. True once it is in the channel. */
-async function postConfession(interaction: ChatInputCommandInteraction, api: ConfessionStoreApi): Promise<boolean> {
-  const store = await api.loadStore(interaction.guildId!);
+async function postConfession(interaction: GuildCommandInteraction, api: ConfessionStoreApi): Promise<boolean> {
+  const store = await api.loadStore(interaction.guildId);
   if (!store.channelId) {
     await interaction.reply({
       content: "An admin needs to run `/confess set-channel` first.",
@@ -168,7 +168,7 @@ async function postConfession(interaction: ChatInputCommandInteraction, api: Con
   }
 
   // Record the confession first so it gets a stable ID.
-  const entry = await api.addConfession(interaction.guildId!, text);
+  const entry = await api.addConfession(interaction.guildId, text);
 
   const embed = new EmbedBuilder()
     .setTitle(`Anonymous Confession #${entry.id}`)

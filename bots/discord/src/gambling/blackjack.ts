@@ -20,6 +20,13 @@ export function freshDeck(): Card[] {
   return deck;
 }
 
+/** Takes the top card. No hand draws past a 52-card deck, so an empty deck is a bug, not a game state. */
+export function draw(deck: Card[]): Card {
+  const card = deck.pop();
+  if (!card) throw new Error("drew from an empty deck");
+  return card;
+}
+
 export function handValue(hand: Card[]): { total: number; soft: boolean } {
   let total = 0;
   let aces = 0;
@@ -69,8 +76,8 @@ export function newGame(userId: string, bet: number): Game {
     userId,
     bet,
     deck,
-    player: [deck.pop()!, deck.pop()!],
-    dealer: [deck.pop()!, deck.pop()!],
+    player: [draw(deck), draw(deck)],
+    dealer: [draw(deck), draw(deck)],
     doubled: false,
     finished: false,
   };
@@ -118,7 +125,7 @@ export function dealerPlay(game: Game): void {
   while (true) {
     const v = handValue(game.dealer);
     if (v.total < 17 || (v.total === 17 && v.soft)) {
-      game.dealer.push(game.deck.pop()!);
+      game.dealer.push(draw(game.deck));
     } else break;
   }
 }
@@ -138,12 +145,12 @@ export async function doubleDown(game: Game): Promise<boolean> {
   const ok = await tryDebit(game.userId, game.bet);
   if (!ok) return false;
   game.doubled = true;
-  game.player.push(game.deck.pop()!);
+  game.player.push(draw(game.deck));
   return true;
 }
 
 export function hit(game: Game): number {
-  game.player.push(game.deck.pop()!);
+  game.player.push(draw(game.deck));
   return handValue(game.player).total;
 }
 

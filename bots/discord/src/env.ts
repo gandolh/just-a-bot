@@ -23,6 +23,11 @@ const schema = z
     JUKEBOX_ATRIUM_URL: optional(z.string().url()),
     JUKEBOX_ATRIUM_USERNAME: optional(z.string().min(1)),
     JUKEBOX_ATRIUM_PASSWORD: optional(z.string().min(1)),
+    // The Jukebox's names from before 2026-10-13. Nothing uses them; they are parsed only so boot can
+    // say they are still set (staleJukeboxVars in jukebox/link.ts).
+    JUKEBOX_WARD_URL: optional(z.string()),
+    JUKEBOX_WARD_USERNAME: optional(z.string()),
+    JUKEBOX_WARD_PASSWORD: optional(z.string()),
   })
   .superRefine((vars, ctx) => {
     const missing = missingJukeboxVars(vars);

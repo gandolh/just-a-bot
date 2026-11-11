@@ -1,5 +1,5 @@
 import { type ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
-import type { Command } from "./types.ts";
+import type { Command, GuildCommandInteraction } from "./types.ts";
 import { setBirthday, removeBirthday, listBirthdays } from "../reminders/birthdays.ts";
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -17,7 +17,8 @@ function parseDate(raw: string): { month: number; day: number } | null {
   // A day past the month's end saved fine and then never fired, since the daily
   // check matches real dates. February allows 29, so a leap-day birthday saves
   // (and fires in leap years).
-  if (day < 1 || day > DAYS_IN_MONTH[month - 1]!) return null;
+  const lastDay = DAYS_IN_MONTH[month - 1];
+  if (lastDay === undefined || day < 1 || day > lastDay) return null;
   return { month, day };
 }
 
@@ -56,7 +57,7 @@ export const birthday: Command = {
   },
 };
 
-async function handleSet(interaction: ChatInputCommandInteraction): Promise<void> {
+async function handleSet(interaction: GuildCommandInteraction): Promise<void> {
   const raw = interaction.options.getString("date", true);
   const parsed = parseDate(raw);
   if (!parsed) {
@@ -68,7 +69,7 @@ async function handleSet(interaction: ChatInputCommandInteraction): Promise<void
   }
   await setBirthday({
     userId: interaction.user.id,
-    guildId: interaction.guildId!,
+    guildId: interaction.guildId,
     channelId: interaction.channelId,
     month: parsed.month,
     day: parsed.day,
@@ -80,8 +81,8 @@ async function handleSet(interaction: ChatInputCommandInteraction): Promise<void
   });
 }
 
-async function handleList(interaction: ChatInputCommandInteraction): Promise<void> {
-  const birthdays = await listBirthdays(interaction.guildId!);
+async function handleList(interaction: GuildCommandInteraction): Promise<void> {
+  const birthdays = await listBirthdays(interaction.guildId);
   if (birthdays.length === 0) {
     await interaction.reply({ content: "No birthdays recorded in this server yet.", ephemeral: true });
     return;
@@ -90,8 +91,8 @@ async function handleList(interaction: ChatInputCommandInteraction): Promise<voi
   await interaction.reply({ content: lines.join("\n"), ephemeral: true });
 }
 
-async function handleRemove(interaction: ChatInputCommandInteraction): Promise<void> {
-  const ok = await removeBirthday(interaction.guildId!, interaction.user.id);
+async function handleRemove(interaction: GuildCommandInteraction): Promise<void> {
+  const ok = await removeBirthday(interaction.guildId, interaction.user.id);
   await interaction.reply({
     content: ok ? "Your birthday has been removed." : "You have no birthday set in this server.",
     ephemeral: true,

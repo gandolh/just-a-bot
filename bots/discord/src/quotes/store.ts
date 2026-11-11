@@ -32,7 +32,8 @@ function pathFor(guildId: string): string {
 }
 
 export async function loadBook(guildId: string): Promise<QuoteBook> {
-  if (cache.has(guildId)) return cache.get(guildId)!;
+  const cached = cache.get(guildId);
+  if (cached) return cached;
   try {
     const raw = await readFile(pathFor(guildId), "utf8");
     const book = JSON.parse(raw) as QuoteBook;

@@ -120,13 +120,19 @@ function packLines(lines: string[]): string[] {
  * without a client. */
 export function buildHelpFields(): APIEmbedField[] {
   const lines = new Map<string, string[]>(Object.keys(GROUPS).map((key) => [key, []]));
+  // Every group has a list from the line above; a category naming no group is a mistake in CATEGORY.
+  const linesOf = (key: string): string[] => {
+    const list = lines.get(key);
+    if (!list) throw new Error(`/help has no group "${key}"`);
+    return list;
+  };
   for (const command of catalog.commands) {
     const key = CATEGORY[command.data.name] ?? "other";
     if (GROUPS[key]?.text) continue;
-    lines.get(key)!.push(...commandLines(command));
+    linesOf(key).push(...commandLines(command));
   }
   for (const menu of catalog.menus) {
-    lines.get("social")!.push(`**${menu.data.name}** — right-click a message → Apps`);
+    linesOf("social").push(`**${menu.data.name}** — right-click a message → Apps`);
   }
 
   const fields: APIEmbedField[] = [];
@@ -138,7 +144,7 @@ export function buildHelpFields(): APIEmbedField[] {
       }
       continue;
     }
-    const values = packLines(lines.get(key)!);
+    const values = packLines(linesOf(key));
     values.forEach((value, i) => fields.push({ name: i === 0 ? name : `${name} (cont.)`, value }));
   }
   return fields.slice(0, MAX_FIELDS);

@@ -30,23 +30,26 @@ function finalize(messageId: string, match: Match): void {
  */
 function armTurnTimer(messageId: string, match: Match, message: Message): void {
   clearTimeout(match.timeoutHandle);
-  match.timeoutHandle = setTimeout(async () => {
-    const active = matches.get(messageId);
-    if (!active || active.game.finished) return;
-    matches.delete(messageId);
-    active.game.finished = true;
+  match.timeoutHandle = setTimeout(() => void forfeitOnTimeout(messageId, message), TIMEOUT_MS);
+}
 
-    const timedOutDisc = active.game.turn;
-    const timedOut = sideLabel(active, timedOutDisc);
-    const winner = sideLabel(active, timedOutDisc === "R" ? "Y" : "R");
-    const statusMsg = `⏱️ ${timedOut} ran out of time — ${winner} wins!`;
+/** The turn's time ran out: whoever's turn it is forfeits. */
+async function forfeitOnTimeout(messageId: string, message: Message): Promise<void> {
+  const active = matches.get(messageId);
+  if (!active || active.game.finished) return;
+  matches.delete(messageId);
+  active.game.finished = true;
 
-    try {
-      await message.edit({ embeds: [buildEmbed(active, statusMsg)], components: [] });
-    } catch {
-      // message may have been deleted
-    }
-  }, TIMEOUT_MS);
+  const timedOutDisc = active.game.turn;
+  const timedOut = sideLabel(active, timedOutDisc);
+  const winner = sideLabel(active, timedOutDisc === "R" ? "Y" : "R");
+  const statusMsg = `⏱️ ${timedOut} ran out of time — ${winner} wins!`;
+
+  try {
+    await message.edit({ embeds: [buildEmbed(active, statusMsg)], components: [] });
+  } catch {
+    // message may have been deleted
+  }
 }
 
 export async function handleConnectFourButton(interaction: ButtonInteraction): Promise<void> {
