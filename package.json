@@ -19,7 +19,8 @@
     "discord:register": "npm run register -w @bots/discord",
     "discord:jukebox-check": "npm run jukebox:check -w @bots/discord",
     "discord:start": "npm run start -w @bots/discord",
-    "test": "npm run test --workspaces --if-present"
+    "test": "npm run test --workspaces --if-present",
+    "test:clean": "node scripts/test-clean.mjs"
   },
   "devDependencies": {
     "@types/node": "22.10.5",
