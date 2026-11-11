@@ -3,12 +3,5 @@
   "web": [],
   "server": [],
   "shared": ["shared/src"],
-  "exceptions": [
-    {
-      "check": "structure",
-      "rule": 3,
-      "path": "shared/src/env.ts",
-      "reason": "The repo's environment reader is named env.ts, not config.ts, and ESLint's env option already names it; this goes when the checker reads the reader's name from the config."
-    }
-  ]
+  "env": ["shared/src/env.ts"]
 }
