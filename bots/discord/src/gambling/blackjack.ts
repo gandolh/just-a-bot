@@ -1,14 +1,14 @@
-import { credit, getBalance, tryDebit } from './wallet.ts';
+import { credit, getBalance, tryDebit } from "./wallet.ts";
 
-export type Suit = '♠' | '♥' | '♦' | '♣';
-export type Rank = 'A' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | '10' | 'J' | 'Q' | 'K';
+export type Suit = "♠" | "♥" | "♦" | "♣";
+export type Rank = "A" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" | "10" | "J" | "Q" | "K";
 export interface Card {
   rank: Rank;
   suit: Suit;
 }
 
-const RANKS: Rank[] = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
-const SUITS: Suit[] = ['♠', '♥', '♦', '♣'];
+const RANKS: Rank[] = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
+const SUITS: Suit[] = ["♠", "♥", "♦", "♣"];
 
 export function freshDeck(): Card[] {
   const deck: Card[] = [];
@@ -24,10 +24,10 @@ export function handValue(hand: Card[]): { total: number; soft: boolean } {
   let total = 0;
   let aces = 0;
   for (const c of hand) {
-    if (c.rank === 'A') {
+    if (c.rank === "A") {
       aces++;
       total += 11;
-    } else if (c.rank === 'K' || c.rank === 'Q' || c.rank === 'J') {
+    } else if (c.rank === "K" || c.rank === "Q" || c.rank === "J") {
       total += 10;
     } else {
       total += Number(c.rank);
@@ -47,8 +47,8 @@ export function isBlackjack(hand: Card[]): boolean {
 }
 
 export function renderHand(hand: Card[], hideHole = false): string {
-  const cards = hand.map((c, i) => (hideHole && i === 1 ? '🂠' : `${c.rank}${c.suit}`));
-  return cards.join(' ');
+  const cards = hand.map((c, i) => (hideHole && i === 1 ? "🂠" : `${c.rank}${c.suit}`));
+  return cards.join(" ");
 }
 
 export interface Game {
@@ -61,13 +61,7 @@ export interface Game {
   finished: boolean;
 }
 
-export type Outcome =
-  | 'player-bust'
-  | 'dealer-bust'
-  | 'player-win'
-  | 'dealer-win'
-  | 'push'
-  | 'blackjack';
+export type Outcome = "player-bust" | "dealer-bust" | "player-win" | "dealer-win" | "push" | "blackjack";
 
 export function newGame(userId: string, bet: number): Game {
   const deck = freshDeck();
@@ -86,37 +80,37 @@ export async function settle(game: Game, outcome: Outcome): Promise<string> {
   game.finished = true;
   const stake = game.doubled ? game.bet * 2 : game.bet;
   let delta = 0;
-  let label = '';
+  let label = "";
   switch (outcome) {
-    case 'player-bust':
+    case "player-bust":
       delta = -stake;
-      label = 'Bust! You lose.';
+      label = "Bust! You lose.";
       break;
-    case 'dealer-bust':
+    case "dealer-bust":
       delta = stake;
-      label = 'Dealer busts. You win!';
+      label = "Dealer busts. You win!";
       break;
-    case 'player-win':
+    case "player-win":
       delta = stake;
-      label = 'You win!';
+      label = "You win!";
       break;
-    case 'dealer-win':
+    case "dealer-win":
       delta = -stake;
-      label = 'Dealer wins.';
+      label = "Dealer wins.";
       break;
-    case 'push':
+    case "push":
       delta = 0;
-      label = 'Push.';
+      label = "Push.";
       break;
-    case 'blackjack':
+    case "blackjack":
       delta = Math.floor(stake * 1.5);
-      label = 'Blackjack! 3:2 payout.';
+      label = "Blackjack! 3:2 payout.";
       break;
   }
   if (delta > 0) await credit(game.userId, stake + delta);
   else if (delta === 0) await credit(game.userId, stake);
   const balance = await getBalance(game.userId);
-  const sign = delta >= 0 ? '+' : '';
+  const sign = delta >= 0 ? "+" : "";
   return `${label} Net: **${sign}${delta.toLocaleString()}**. Balance: **${balance.toLocaleString()}**.`;
 }
 
@@ -134,10 +128,10 @@ export async function finishWithDealer(game: Game): Promise<string> {
   const p = handValue(game.player).total;
   const d = handValue(game.dealer).total;
   game.finished = true;
-  if (d > 21) return settle(game, 'dealer-bust');
-  if (p > d) return settle(game, 'player-win');
-  if (p < d) return settle(game, 'dealer-win');
-  return settle(game, 'push');
+  if (d > 21) return settle(game, "dealer-bust");
+  if (p > d) return settle(game, "player-win");
+  if (p < d) return settle(game, "dealer-win");
+  return settle(game, "push");
 }
 
 export async function doubleDown(game: Game): Promise<boolean> {
@@ -172,22 +166,22 @@ export async function settleHand(
   let label: string;
   if (p > 21) {
     delta = -stake;
-    label = 'busts — loses';
+    label = "busts — loses";
   } else if (playerBJ && !isBlackjack(dealer)) {
     delta = Math.floor(stake * 1.5);
-    label = 'blackjack! 3:2';
+    label = "blackjack! 3:2";
   } else if (d > 21) {
     delta = stake;
-    label = 'wins (dealer bust)';
+    label = "wins (dealer bust)";
   } else if (p > d) {
     delta = stake;
-    label = 'wins';
+    label = "wins";
   } else if (p < d) {
     delta = -stake;
-    label = 'loses';
+    label = "loses";
   } else {
     delta = 0;
-    label = 'push';
+    label = "push";
   }
 
   if (delta > 0) await credit(userId, stake + delta);

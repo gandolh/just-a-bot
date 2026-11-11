@@ -1,33 +1,33 @@
-import { decodeHtml } from './decode.ts';
-import { fallbackQuestions } from './fallback.ts';
+import { decodeHtml } from "./decode.ts";
+import { fallbackQuestions } from "./fallback.ts";
 
 export interface TriviaQuestion {
   question: string;
-  options: string[];   // length 4, shuffled
+  options: string[]; // length 4, shuffled
   correctIdx: number;
   category: string;
-  difficulty: 'easy' | 'medium' | 'hard';
+  difficulty: "easy" | "medium" | "hard";
 }
 
 // Mapping from slash-option values to OpenTDB category IDs
 export const CATEGORIES: Record<string, { label: string; id: number }> = {
-  general:       { label: 'General Knowledge', id: 9 },
-  books:         { label: 'Books',              id: 10 },
-  film:          { label: 'Film',               id: 11 },
-  music:         { label: 'Music',              id: 12 },
-  science:       { label: 'Science & Nature',   id: 17 },
-  computers:     { label: 'Computers',          id: 18 },
-  maths:         { label: 'Mathematics',        id: 19 },
-  sports:        { label: 'Sports',             id: 21 },
-  geography:     { label: 'Geography',          id: 22 },
-  history:       { label: 'History',            id: 23 },
-  animals:       { label: 'Animals',            id: 27 },
-  vehicles:      { label: 'Vehicles',           id: 28 },
-  celebrities:   { label: 'Celebrities',        id: 26 },
-  comics:        { label: 'Comics',             id: 29 },
-  gadgets:       { label: 'Gadgets',            id: 30 },
-  anime:         { label: 'Anime & Manga',      id: 31 },
-  cartoons:      { label: 'Cartoon & Animations', id: 32 },
+  general: { label: "General Knowledge", id: 9 },
+  books: { label: "Books", id: 10 },
+  film: { label: "Film", id: 11 },
+  music: { label: "Music", id: 12 },
+  science: { label: "Science & Nature", id: 17 },
+  computers: { label: "Computers", id: 18 },
+  maths: { label: "Mathematics", id: 19 },
+  sports: { label: "Sports", id: 21 },
+  geography: { label: "Geography", id: 22 },
+  history: { label: "History", id: 23 },
+  animals: { label: "Animals", id: 27 },
+  vehicles: { label: "Vehicles", id: 28 },
+  celebrities: { label: "Celebrities", id: 26 },
+  comics: { label: "Comics", id: 29 },
+  gadgets: { label: "Gadgets", id: 30 },
+  anime: { label: "Anime & Manga", id: 31 },
+  cartoons: { label: "Cartoon & Animations", id: 32 },
 };
 
 function shuffle<T>(arr: T[]): T[] {
@@ -57,7 +57,7 @@ function fromFallback(category?: string, difficulty?: string): TriviaQuestion {
     options: all,
     correctIdx,
     category: item.category,
-    difficulty: item.difficulty as 'easy' | 'medium' | 'hard',
+    difficulty: item.difficulty as "easy" | "medium" | "hard",
   };
 }
 
@@ -77,9 +77,9 @@ interface OpenTDBResponse {
 
 export async function fetchQuestion(category?: string, difficulty?: string): Promise<TriviaQuestion> {
   try {
-    const params = new URLSearchParams({ amount: '1', type: 'multiple' });
-    if (category && CATEGORIES[category]) params.set('category', String(CATEGORIES[category].id));
-    if (difficulty) params.set('difficulty', difficulty);
+    const params = new URLSearchParams({ amount: "1", type: "multiple" });
+    if (category && CATEGORIES[category]) params.set("category", String(CATEGORIES[category].id));
+    if (difficulty) params.set("difficulty", difficulty);
 
     // A hung request never reaches the catch below, and the deferred reply would
     // sit on "thinking…" until Discord's 15-minute window closed. Aborting after
@@ -103,7 +103,7 @@ export async function fetchQuestion(category?: string, difficulty?: string): Pro
       options: all,
       correctIdx,
       category: decodeHtml(r.category),
-      difficulty: r.difficulty as 'easy' | 'medium' | 'hard',
+      difficulty: r.difficulty as "easy" | "medium" | "hard",
     };
   } catch {
     return fromFallback(category, difficulty);

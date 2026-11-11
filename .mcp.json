@@ -3,13 +3,7 @@
     "codegraph": {
       "type": "stdio",
       "command": "codegraph",
-      "args": [
-        "serve",
-        "--mcp",
-        "--no-watch",
-        "--path",
-        "${CODEGRAPH_INDEX_PATH:-.}"
-      ],
+      "args": ["serve", "--mcp", "--no-watch", "--path", "${CODEGRAPH_INDEX_PATH:-.}"],
       "env": {
         "CODEGRAPH_MCP_TOOLS": "explore,impact,callers,node",
         "CODEGRAPH_NO_DOWNLOAD": "1",

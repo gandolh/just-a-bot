@@ -1,4 +1,4 @@
-import { env } from '../../env.ts';
+import { env } from "../../env.ts";
 
 /** Where atrium is, and the Bot account to sign in as. */
 export interface JukeboxConfig {
@@ -8,7 +8,7 @@ export interface JukeboxConfig {
   password: string;
 }
 
-const trimSlash = (url: string) => url.replace(/\/+$/, '');
+const trimSlash = (url: string) => url.replace(/\/+$/, "");
 
 /** The Jukebox's settings, or null when its variables are unset (`env.ts` refuses a partial set). */
 export function jukeboxConfig(): JukeboxConfig | null {

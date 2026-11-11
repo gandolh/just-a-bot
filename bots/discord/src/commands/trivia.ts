@@ -1,12 +1,8 @@
-import {
-  type ButtonInteraction,
-  type ChatInputCommandInteraction,
-  SlashCommandBuilder,
-} from 'discord.js';
-import { fetchQuestion, CATEGORIES } from '../trivia/api.ts';
-import { sessions } from '../trivia/session.ts';
-import { buildEmbed, buildButtons } from '../trivia/render.ts';
-import type { Command } from './types.ts';
+import { type ButtonInteraction, type ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
+import { fetchQuestion, CATEGORIES } from "../trivia/api.ts";
+import { sessions } from "../trivia/session.ts";
+import { buildEmbed, buildButtons } from "../trivia/render.ts";
+import type { Command } from "./types.ts";
 
 const TIMEOUT_MS = 20_000;
 
@@ -24,19 +20,19 @@ async function expireSession(sessionId: string): Promise<void> {
 }
 
 export async function handleTriviaButton(interaction: ButtonInteraction): Promise<void> {
-  const parts = interaction.customId.split(':');
+  const parts = interaction.customId.split(":");
   const sessionId = parts[1];
   const chosenIdx = parseInt(parts[2], 10);
 
   const session = sessions.get(sessionId);
   if (!session) {
-    await interaction.reply({ content: 'This trivia session has expired.', ephemeral: true });
+    await interaction.reply({ content: "This trivia session has expired.", ephemeral: true });
     return;
   }
 
   const now = Date.now();
   if (session.winner !== null || now > session.expiresAt) {
-    await interaction.reply({ content: '⏱️ Too late! This round is already over.', ephemeral: true });
+    await interaction.reply({ content: "⏱️ Too late! This round is already over.", ephemeral: true });
     return;
   }
 
@@ -48,38 +44,36 @@ export async function handleTriviaButton(interaction: ButtonInteraction): Promis
     const row = buildButtons(sessionId, true, session.correctIdx);
     await interaction.update({ embeds: [embed], components: [row] });
   } else {
-    await interaction.reply({ content: 'Not quite. Try again.', ephemeral: true });
+    await interaction.reply({ content: "Not quite. Try again.", ephemeral: true });
   }
 }
 
 export const trivia: Command = {
   data: new SlashCommandBuilder()
-    .setName('trivia')
-    .setDescription('Start a multiple-choice trivia question')
+    .setName("trivia")
+    .setDescription("Start a multiple-choice trivia question")
     .addStringOption((opt) =>
       opt
-        .setName('category')
-        .setDescription('Question category')
+        .setName("category")
+        .setDescription("Question category")
         .setRequired(false)
-        .addChoices(
-          ...Object.entries(CATEGORIES).map(([value, { label }]) => ({ name: label, value })),
-        ),
+        .addChoices(...Object.entries(CATEGORIES).map(([value, { label }]) => ({ name: label, value }))),
     )
     .addStringOption((opt) =>
       opt
-        .setName('difficulty')
-        .setDescription('Question difficulty')
+        .setName("difficulty")
+        .setDescription("Question difficulty")
         .setRequired(false)
         .addChoices(
-          { name: 'Easy',   value: 'easy' },
-          { name: 'Medium', value: 'medium' },
-          { name: 'Hard',   value: 'hard' },
+          { name: "Easy", value: "easy" },
+          { name: "Medium", value: "medium" },
+          { name: "Hard", value: "hard" },
         ),
     ),
 
   async execute(interaction: ChatInputCommandInteraction) {
-    const category   = interaction.options.getString('category')   ?? undefined;
-    const difficulty = interaction.options.getString('difficulty') ?? undefined;
+    const category = interaction.options.getString("category") ?? undefined;
+    const difficulty = interaction.options.getString("difficulty") ?? undefined;
 
     await interaction.deferReply();
 
@@ -91,7 +85,7 @@ export const trivia: Command = {
     const session = {
       id,
       channelId: interaction.channelId,
-      messageId: '',
+      messageId: "",
       question: q.question,
       options: q.options,
       correctIdx: q.correctIdx,

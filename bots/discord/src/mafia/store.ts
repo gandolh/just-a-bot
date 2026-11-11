@@ -1,13 +1,13 @@
-import { readFile, readdir } from 'node:fs/promises';
-import { writeJsonFile } from '@bots/shared';
-import { resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { readFile, readdir } from "node:fs/promises";
+import { writeJsonFile } from "@bots/shared";
+import { resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 
-const here = fileURLToPath(new URL('.', import.meta.url));
-const dataDir = resolve(here, '../../data/mafia');
+const here = fileURLToPath(new URL(".", import.meta.url));
+const dataDir = resolve(here, "../../data/mafia");
 
-export type Role = 'mafia' | 'town' | 'doctor';
-export type Phase = 'lobby' | 'day' | 'night' | 'finished';
+export type Role = "mafia" | "town" | "doctor";
+export type Phase = "lobby" | "day" | "night" | "finished";
 
 export interface Player {
   userId: string;
@@ -23,7 +23,7 @@ export interface DayVote {
 
 export interface NightAction {
   actorId: string;
-  kind: 'kill' | 'save' | 'investigate';
+  kind: "kill" | "save" | "investigate";
   targetId: string;
 }
 
@@ -52,12 +52,12 @@ function pathFor(guildId: string): string {
 export async function loadGame(guildId: string): Promise<MafiaGame | null> {
   if (cache.has(guildId)) return cache.get(guildId) ?? null;
   try {
-    const raw = await readFile(pathFor(guildId), 'utf8');
+    const raw = await readFile(pathFor(guildId), "utf8");
     const game = JSON.parse(raw) as MafiaGame | null;
     cache.set(guildId, game);
     return game;
   } catch (err) {
-    if ((err as NodeJS.ErrnoException).code === 'ENOENT') {
+    if ((err as NodeJS.ErrnoException).code === "ENOENT") {
       cache.set(guildId, null);
       return null;
     }
@@ -92,7 +92,7 @@ export async function createGame(
     threadId,
     starterId,
     starterChannelId,
-    phase: 'lobby',
+    phase: "lobby",
     day: 0,
     players: {},
     votes: [],
@@ -124,13 +124,13 @@ export async function listPersistedGames(): Promise<MafiaGame[]> {
   try {
     files = await readdir(dataDir);
   } catch (err) {
-    if ((err as NodeJS.ErrnoException).code === 'ENOENT') return [];
+    if ((err as NodeJS.ErrnoException).code === "ENOENT") return [];
     throw err;
   }
   const games: MafiaGame[] = [];
   for (const file of files) {
-    if (!file.endsWith('.json')) continue;
-    const game = await loadGame(file.slice(0, -'.json'.length));
+    if (!file.endsWith(".json")) continue;
+    const game = await loadGame(file.slice(0, -".json".length));
     if (game) games.push(game);
   }
   return games;

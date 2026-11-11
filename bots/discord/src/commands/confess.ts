@@ -4,9 +4,9 @@ import {
   EmbedBuilder,
   PermissionFlagsBits,
   SlashCommandBuilder,
-} from 'discord.js';
-import type { Command } from './types.ts';
-import { loadStore, setChannel, addConfession } from '../confessions/store.ts';
+} from "discord.js";
+import type { Command } from "./types.ts";
+import { loadStore, setChannel, addConfession } from "../confessions/store.ts";
 
 const MAX_LENGTH = 1000;
 const COOLDOWN_MS = 60_000;
@@ -14,16 +14,16 @@ const COOLDOWN_MS = 60_000;
 const cooldowns = new Map<string, number>();
 
 const data = new SlashCommandBuilder()
-  .setName('confess')
-  .setDescription('Anonymous confession box')
+  .setName("confess")
+  .setDescription("Anonymous confession box")
   .addSubcommand((s) =>
     s
-      .setName('set-channel')
-      .setDescription('Set the channel where confessions are posted (admin only)')
+      .setName("set-channel")
+      .setDescription("Set the channel where confessions are posted (admin only)")
       .addChannelOption((o) =>
         o
-          .setName('channel')
-          .setDescription('Target channel')
+          .setName("channel")
+          .setDescription("Target channel")
           .setRequired(true)
           .addChannelTypes(
             ChannelType.GuildText,
@@ -35,14 +35,10 @@ const data = new SlashCommandBuilder()
   )
   .addSubcommand((s) =>
     s
-      .setName('submit')
-      .setDescription('Submit an anonymous confession')
+      .setName("submit")
+      .setDescription("Submit an anonymous confession")
       .addStringOption((o) =>
-        o
-          .setName('text')
-          .setDescription('Your confession (max 1000 chars)')
-          .setRequired(true)
-          .setMaxLength(MAX_LENGTH),
+        o.setName("text").setDescription("Your confession (max 1000 chars)").setRequired(true).setMaxLength(MAX_LENGTH),
       ),
   );
 
@@ -50,25 +46,25 @@ export const confess: Command = {
   data,
   async execute(interaction: ChatInputCommandInteraction) {
     if (!interaction.inGuild()) {
-      await interaction.reply({ content: 'Use this in a server.', ephemeral: true });
+      await interaction.reply({ content: "Use this in a server.", ephemeral: true });
       return;
     }
     const sub = interaction.options.getSubcommand();
-    if (sub === 'set-channel') return handleSetChannel(interaction);
-    if (sub === 'submit') return void (await submitConfession(interaction));
+    if (sub === "set-channel") return handleSetChannel(interaction);
+    if (sub === "submit") return void (await submitConfession(interaction));
   },
 };
 
 async function handleSetChannel(interaction: ChatInputCommandInteraction): Promise<void> {
   if (!interaction.memberPermissions?.has(PermissionFlagsBits.ManageGuild)) {
     await interaction.reply({
-      content: 'You need the **Manage Server** permission to configure the confession channel.',
+      content: "You need the **Manage Server** permission to configure the confession channel.",
       ephemeral: true,
     });
     return;
   }
 
-  const channel = interaction.options.getChannel('channel', true);
+  const channel = interaction.options.getChannel("channel", true);
   const allowedTypes: ChannelType[] = [
     ChannelType.GuildText,
     ChannelType.GuildAnnouncement,
@@ -76,7 +72,7 @@ async function handleSetChannel(interaction: ChatInputCommandInteraction): Promi
     ChannelType.PrivateThread,
   ];
   if (!allowedTypes.includes(channel.type)) {
-    await interaction.reply({ content: 'Please select a text channel.', ephemeral: true });
+    await interaction.reply({ content: "Please select a text channel.", ephemeral: true });
     return;
   }
 
@@ -129,13 +125,13 @@ async function postConfession(interaction: ChatInputCommandInteraction, api: Con
   const store = await api.loadStore(interaction.guildId!);
   if (!store.channelId) {
     await interaction.reply({
-      content: 'An admin needs to run `/confess set-channel` first.',
+      content: "An admin needs to run `/confess set-channel` first.",
       ephemeral: true,
     });
     return false;
   }
 
-  const text = interaction.options.getString('text', true);
+  const text = interaction.options.getString("text", true);
   if (text.length > MAX_LENGTH) {
     await interaction.reply({
       content: `Your confession is too long (${text.length} / ${MAX_LENGTH} chars).`,
@@ -145,12 +141,10 @@ async function postConfession(interaction: ChatInputCommandInteraction, api: Con
   }
 
   let fetchError: unknown;
-  const targetChannel = await interaction.client.channels
-    .fetch(store.channelId)
-    .catch((err: unknown) => {
-      fetchError = err;
-      return null;
-    });
+  const targetChannel = await interaction.client.channels.fetch(store.channelId).catch((err: unknown) => {
+    fetchError = err;
+    return null;
+  });
 
   if (!targetChannel) {
     // 50001 Missing Access → the bot can't see the channel (permissions).
@@ -159,14 +153,15 @@ async function postConfession(interaction: ChatInputCommandInteraction, api: Con
     const content =
       code === 50001
         ? "I can't access the confession channel. Give me **View Channel** and **Send Messages** permission there, then try again."
-        : 'The configured confession channel no longer exists. Ask an admin to run `/confess set-channel` again.';
+        : "The configured confession channel no longer exists. Ask an admin to run `/confess set-channel` again.";
     await interaction.reply({ content, ephemeral: true });
     return false;
   }
 
-  if (!targetChannel.isTextBased() || !('send' in targetChannel)) {
+  if (!targetChannel.isTextBased() || !("send" in targetChannel)) {
     await interaction.reply({
-      content: 'The configured confession channel is not a text channel. Ask an admin to run `/confess set-channel` again.',
+      content:
+        "The configured confession channel is not a text channel. Ask an admin to run `/confess set-channel` again.",
       ephemeral: true,
     });
     return false;

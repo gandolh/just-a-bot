@@ -1,19 +1,19 @@
-import type { Character, World } from './world.ts';
-import type { LocationDef } from './locations.ts';
-import { startEncounter } from './combat.ts';
+import type { Character, World } from "./world.ts";
+import type { LocationDef } from "./locations.ts";
+import { startEncounter } from "./combat.ts";
 
 // The outcome of pressing Explore at a location.
 export type ExploreResult =
-  | { kind: 'combat'; mobKind: string; text: string }
-  | { kind: 'loot'; item: string; text: string }
-  | { kind: 'coins'; amount: number; text: string }
-  | { kind: 'flavor'; text: string };
+  | { kind: "combat"; mobKind: string; text: string }
+  | { kind: "loot"; item: string; text: string }
+  | { kind: "coins"; amount: number; text: string }
+  | { kind: "flavor"; text: string };
 
 const FLAVOR = [
-  'You pick your way through the brush and find nothing of note.',
-  'A cold wind passes. The way is quiet.',
-  'You search a while but the trail goes cold.',
-  'Birdsong, then silence. Nothing stirs.',
+  "You pick your way through the brush and find nothing of note.",
+  "A cold wind passes. The way is quiet.",
+  "You search a while but the trail goes cold.",
+  "Birdsong, then silence. Nothing stirs.",
 ];
 
 function pick<T>(arr: T[]): T {
@@ -28,9 +28,9 @@ export function rollExplore(world: World, char: Character, loc: LocationDef): Ex
     if (Math.random() < 0.2) {
       const amount = 1 + Math.floor(Math.random() * 4);
       char.coins += amount;
-      return { kind: 'coins', amount, text: `🪙 You find ${amount} stray coins underfoot.` };
+      return { kind: "coins", amount, text: `🪙 You find ${amount} stray coins underfoot.` };
     }
-    return { kind: 'flavor', text: pick(FLAVOR) };
+    return { kind: "flavor", text: pick(FLAVOR) };
   }
 
   const r = Math.random();
@@ -38,18 +38,22 @@ export function rollExplore(world: World, char: Character, loc: LocationDef): Ex
   if (r < 0.65) {
     const mobKind = pick(loc.mobs);
     startEncounter(char, mobKind);
-    return { kind: 'combat', mobKind, text: '' };
+    return { kind: "combat", mobKind, text: "" };
   }
   if (r < 0.77) {
-    char.inventory.push('healing-potion');
-    return { kind: 'loot', item: 'healing-potion', text: '💰 You find a **Healing Potion** stashed in the undergrowth.' };
+    char.inventory.push("healing-potion");
+    return {
+      kind: "loot",
+      item: "healing-potion",
+      text: "💰 You find a **Healing Potion** stashed in the undergrowth.",
+    };
   }
   if (r < 0.87) {
     const amount = 2 + Math.floor(Math.random() * (loc.danger * 6 + 4));
     char.coins += amount;
-    return { kind: 'coins', amount, text: `🪙 You find a small purse — **${amount}** coins.` };
+    return { kind: "coins", amount, text: `🪙 You find a small purse — **${amount}** coins.` };
   }
-  return { kind: 'flavor', text: pick(FLAVOR) };
+  return { kind: "flavor", text: pick(FLAVOR) };
 }
 
 // A travel-encounter roll: chance scales with the destination's danger. Returns

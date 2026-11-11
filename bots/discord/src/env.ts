@@ -1,21 +1,21 @@
-import { resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { z } from 'zod';
-import { loadEnv } from '@bots/shared';
-import { missingJukeboxVars } from './jukebox/atrium/env-rule.ts';
+import { resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+import { z } from "zod";
+import { loadEnv } from "@bots/shared";
+import { missingJukeboxVars } from "./jukebox/atrium/env-rule.ts";
 
-const here = fileURLToPath(new URL('.', import.meta.url));
-const envPath = resolve(here, '../.env');
+const here = fileURLToPath(new URL(".", import.meta.url));
+const envPath = resolve(here, "../.env");
 
 /** An unset optional variable may arrive as `NAME=` from a copied `.env.example`. */
 const optional = <T extends z.ZodType>(inner: T) =>
-  z.preprocess((value) => (value === '' ? undefined : value), inner.optional());
+  z.preprocess((value) => (value === "" ? undefined : value), inner.optional());
 
 const schema = z
   .object({
     DISCORD_TOKEN: z.string().min(1),
-    CLIENT_ID: z.string().regex(/^\d+$/, 'must be a numeric Discord snowflake'),
-    GUILD_ID: z.string().regex(/^\d+$/, 'must be a numeric Discord snowflake'),
+    CLIENT_ID: z.string().regex(/^\d+$/, "must be a numeric Discord snowflake"),
+    GUILD_ID: z.string().regex(/^\d+$/, "must be a numeric Discord snowflake"),
     // /ask: Wicket, the estate's LLM queue, which holds the Ollama key. Both or /ask says it isn't configured.
     WICKET_URL: optional(z.string().url()),
     WICKET_TOKEN: optional(z.string().min(1)),
@@ -28,9 +28,9 @@ const schema = z
     const missing = missingJukeboxVars(vars);
     if (missing.length > 0) {
       ctx.addIssue({
-        code: 'custom',
+        code: "custom",
         path: [missing[0]],
-        message: `the Jukebox needs all three JUKEBOX_* variables or none; missing: ${missing.join(', ')}`,
+        message: `the Jukebox needs all three JUKEBOX_* variables or none; missing: ${missing.join(", ")}`,
       });
     }
   });

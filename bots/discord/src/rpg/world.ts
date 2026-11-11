@@ -1,14 +1,14 @@
-import { readFile } from 'node:fs/promises';
-import { logger, writeJsonFile } from '@bots/shared';
-import { resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { ITEMS } from './items.ts';
+import { readFile } from "node:fs/promises";
+import { logger, writeJsonFile } from "@bots/shared";
+import { resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+import { ITEMS } from "./items.ts";
 
-const log = logger.scoped('rpg');
-const here = fileURLToPath(new URL('.', import.meta.url));
-const dataDir = resolve(here, '../../data/rpg');
+const log = logger.scoped("rpg");
+const here = fileURLToPath(new URL(".", import.meta.url));
+const dataDir = resolve(here, "../../data/rpg");
 
-export type Terrain = '.' | '#' | '~' | 'f' | '^' | '=';
+export type Terrain = "." | "#" | "~" | "f" | "^" | "=";
 
 export interface Equipment {
   weapon: string | null;
@@ -26,9 +26,9 @@ export interface Bounty {
 
 // A transient combat encounter the player is currently in (not tile-based).
 export interface Encounter {
-  mobKind: string;   // MOB_KINDS slug
+  mobKind: string; // MOB_KINDS slug
   mobHp: number;
-  log: string[];     // recent swing lines
+  log: string[]; // recent swing lines
 }
 
 export interface Character {
@@ -100,7 +100,7 @@ export interface Duel {
   id: string;
   challengerId: string;
   defenderId: string;
-  state: 'pending' | 'active' | 'finished';
+  state: "pending" | "active" | "finished";
   createdAt: string;
   expiresAt: string;
   messageId: string;
@@ -121,7 +121,7 @@ export interface Trade {
   bOffer: TradeOffer;
   aConfirmed: boolean;
   bConfirmed: boolean;
-  state: 'open' | 'completed' | 'cancelled';
+  state: "open" | "completed" | "cancelled";
   messageId: string;
   channelId: string;
   /** Set on load for trades saved before it existed, so an abandoned one ages out. */
@@ -160,73 +160,91 @@ export const TICKS_PER_SECOND = 1;
 
 export const MOB_KINDS: Record<string, MobKind> = {
   slime: {
-    slug: 'slime',
-    name: 'Slime',
-    glyph: '🟢',
-    hp: 8, atk: 2, def: 0, xp: 5,
+    slug: "slime",
+    name: "Slime",
+    glyph: "🟢",
+    hp: 8,
+    atk: 2,
+    def: 0,
+    xp: 5,
     coins: [0, 2],
-    loot: [{ item: 'slime-jelly', chance: 0.3 }],
+    loot: [{ item: "slime-jelly", chance: 0.3 }],
     speedTicks: 5,
     aggroRange: 3,
   },
   goblin: {
-    slug: 'goblin',
-    name: 'Goblin',
-    glyph: '👺',
-    hp: 14, atk: 4, def: 1, xp: 12,
+    slug: "goblin",
+    name: "Goblin",
+    glyph: "👺",
+    hp: 14,
+    atk: 4,
+    def: 1,
+    xp: 12,
     coins: [1, 5],
     loot: [
-      { item: 'rusty-dagger', chance: 0.2 },
-      { item: 'healing-potion', chance: 0.15 },
+      { item: "rusty-dagger", chance: 0.2 },
+      { item: "healing-potion", chance: 0.15 },
     ],
     speedTicks: 4,
     aggroRange: 5,
   },
   wolf: {
-    slug: 'wolf',
-    name: 'Wolf',
-    glyph: '🐺',
-    hp: 18, atk: 5, def: 1, xp: 18,
+    slug: "wolf",
+    name: "Wolf",
+    glyph: "🐺",
+    hp: 18,
+    atk: 5,
+    def: 1,
+    xp: 18,
     coins: [0, 3],
-    loot: [{ item: 'wolf-pelt', chance: 0.4 }],
+    loot: [{ item: "wolf-pelt", chance: 0.4 }],
     speedTicks: 3,
     aggroRange: 6,
   },
   bandit: {
-    slug: 'bandit',
-    name: 'Bandit',
-    glyph: '🗡️',
-    hp: 22, atk: 6, def: 2, xp: 25,
+    slug: "bandit",
+    name: "Bandit",
+    glyph: "🗡️",
+    hp: 22,
+    atk: 6,
+    def: 2,
+    xp: 25,
     coins: [3, 12],
     loot: [
-      { item: 'healing-potion', chance: 0.25 },
-      { item: 'leather-armor', chance: 0.1 },
+      { item: "healing-potion", chance: 0.25 },
+      { item: "leather-armor", chance: 0.1 },
     ],
     speedTicks: 4,
     aggroRange: 5,
   },
   orc: {
-    slug: 'orc',
-    name: 'Orc',
-    glyph: '👹',
-    hp: 32, atk: 8, def: 3, xp: 40,
+    slug: "orc",
+    name: "Orc",
+    glyph: "👹",
+    hp: 32,
+    atk: 8,
+    def: 3,
+    xp: 40,
     coins: [4, 15],
     loot: [
-      { item: 'iron-sword', chance: 0.15 },
-      { item: 'healing-potion', chance: 0.3 },
+      { item: "iron-sword", chance: 0.15 },
+      { item: "healing-potion", chance: 0.3 },
     ],
     speedTicks: 4,
     aggroRange: 5,
   },
   troll: {
-    slug: 'troll',
-    name: 'Troll',
-    glyph: '🧌',
-    hp: 60, atk: 12, def: 4, xp: 100,
+    slug: "troll",
+    name: "Troll",
+    glyph: "🧌",
+    hp: 60,
+    atk: 12,
+    def: 4,
+    xp: 100,
     coins: [10, 40],
     loot: [
-      { item: 'troll-tooth', chance: 0.6 },
-      { item: 'greatsword', chance: 0.1 },
+      { item: "troll-tooth", chance: 0.6 },
+      { item: "greatsword", chance: 0.1 },
     ],
     speedTicks: 5,
     aggroRange: 4,
@@ -235,7 +253,7 @@ export const MOB_KINDS: Record<string, MobKind> = {
 
 /** The longest character name; the creation modal enforces it too. */
 export const MAX_CHARACTER_NAME = 24;
-const FALLBACK_NAME = 'Adventurer';
+const FALLBACK_NAME = "Adventurer";
 
 /**
  * A character name with nothing in it that Discord would turn into a ping or
@@ -246,13 +264,13 @@ const FALLBACK_NAME = 'Adventurer';
  */
 export function cleanCharacterName(raw: string): string {
   const cleaned = raw
-    .replace(/<(?:@[!&]?|#)\d+>/g, '')
-    .replace(/@(?:everyone|here)/gi, '')
-    .replace(/`/g, '')
-    .replace(/\s+/g, ' ')
+    .replace(/<(?:@[!&]?|#)\d+>/g, "")
+    .replace(/@(?:everyone|here)/gi, "")
+    .replace(/`/g, "")
+    .replace(/\s+/g, " ")
     .trim();
   // By code point, so an emoji is never cut in half.
-  return [...cleaned].slice(0, MAX_CHARACTER_NAME).join('').trim();
+  return [...cleaned].slice(0, MAX_CHARACTER_NAME).join("").trim();
 }
 
 const cache = new Map<string, World>();
@@ -291,7 +309,10 @@ function flush(guildId: string): Promise<void> {
   if (!world) return Promise.resolve();
   dirty.delete(guildId);
   const timer = flushTimers.get(guildId);
-  if (timer) { clearTimeout(timer); flushTimers.delete(guildId); }
+  if (timer) {
+    clearTimeout(timer);
+    flushTimers.delete(guildId);
+  }
 
   return writeWorld(pathFor(guildId), JSON.stringify(world)).catch((err: unknown) => {
     dirty.add(guildId);
@@ -316,7 +337,7 @@ function scheduleFlush(guildId: string): void {
     if (dirty.has(guildId)) flush(guildId).catch((err) => log.error(`RPG world flush failed for ${guildId}`, err));
   }, DEBOUNCE_MS);
   // Don't keep the process alive solely for a pending save.
-  if (typeof timer.unref === 'function') timer.unref();
+  if (typeof timer.unref === "function") timer.unref();
   flushTimers.set(guildId, timer);
 }
 
@@ -326,10 +347,10 @@ function scheduleFlush(guildId: string): void {
 export async function flushAllWorlds(): Promise<void> {
   const guilds = [...dirty];
   const results = await Promise.allSettled(guilds.map((g) => flush(g)));
-  const failed = guilds.filter((_, i) => results[i].status === 'rejected');
+  const failed = guilds.filter((_, i) => results[i].status === "rejected");
   if (failed.length > 0) {
-    const reasons = results.flatMap((r) => (r.status === 'rejected' ? [r.reason] : []));
-    throw new AggregateError(reasons, `RPG world flush failed for ${failed.join(', ')}`);
+    const reasons = results.flatMap((r) => (r.status === "rejected" ? [r.reason] : []));
+    throw new AggregateError(reasons, `RPG world flush failed for ${failed.join(", ")}`);
   }
 }
 
@@ -343,7 +364,7 @@ export async function flushWorld(guildId: string): Promise<void> {
 export async function loadWorld(guildId: string): Promise<World | null> {
   if (cache.has(guildId)) return cache.get(guildId)!;
   try {
-    const raw = await readFile(pathFor(guildId), 'utf8');
+    const raw = await readFile(pathFor(guildId), "utf8");
     const world = JSON.parse(raw) as World;
     // Backward-compat defaults for fields added after initial release.
     world.duels ??= {};
@@ -357,15 +378,15 @@ export async function loadWorld(guildId: string): Promise<World | null> {
       if (c.bounty === undefined) c.bounty = null;
       c.away ??= false;
       c.downUntil ??= 0;
-      c.locationId ??= 'plaza';
+      c.locationId ??= "plaza";
       if (c.encounter === undefined) c.encounter = null;
       // Names from before names were cleaned at creation.
-      c.name = cleanCharacterName(c.name ?? '') || FALLBACK_NAME;
+      c.name = cleanCharacterName(c.name ?? "") || FALLBACK_NAME;
     }
     cache.set(guildId, world);
     return world;
   } catch (err) {
-    if ((err as NodeJS.ErrnoException).code === 'ENOENT') return null;
+    if ((err as NodeJS.ErrnoException).code === "ENOENT") return null;
     throw err;
   }
 }
@@ -396,9 +417,7 @@ export async function updateWorld(
 // Drain every cached world's crier queue. Returns the channel + lines to post
 // and clears the queues (persisting the cleared state). The caller does the
 // actual Discord I/O so this module stays free of the client.
-export async function drainCrierQueues(): Promise<
-  { guildId: string; channelId: string; lines: string[] }[]
-> {
+export async function drainCrierQueues(): Promise<{ guildId: string; channelId: string; lines: string[] }[]> {
   const out: { guildId: string; channelId: string; lines: string[] }[] = [];
   for (const [guildId, world] of cache) {
     if (!world.crierChannelId) continue;
@@ -439,16 +458,19 @@ export function generateWorld(guildId: string, width: number, height: number): W
   const rand = rng(hashSeed(guildId));
   const grid: string[] = [];
   for (let r = 0; r < height; r++) {
-    let row = '';
+    let row = "";
     for (let c = 0; c < width; c++) {
       const onEdge = r === 0 || c === 0 || r === height - 1 || c === width - 1;
-      if (onEdge) { row += '#'; continue; }
+      if (onEdge) {
+        row += "#";
+        continue;
+      }
       const n = rand();
-      if (n < 0.04) row += '^';
-      else if (n < 0.10) row += '~';
-      else if (n < 0.22) row += 'f';
-      else if (n < 0.24) row += '#';
-      else row += '.';
+      if (n < 0.04) row += "^";
+      else if (n < 0.1) row += "~";
+      else if (n < 0.22) row += "f";
+      else if (n < 0.24) row += "#";
+      else row += ".";
     }
     grid.push(row);
   }
@@ -459,7 +481,7 @@ export function generateWorld(guildId: string, width: number, height: number): W
     for (let dc = -2; dc <= 2; dc++) {
       const r = sr + dr;
       const c = sc + dc;
-      grid[r] = grid[r].slice(0, c) + '=' + grid[r].slice(c + 1);
+      grid[r] = grid[r].slice(0, c) + "=" + grid[r].slice(c + 1);
     }
   }
   return {
@@ -493,12 +515,12 @@ export function crier(world: World, line: string): void {
 }
 
 export function terrainAt(world: World, row: number, col: number): string {
-  if (row < 0 || row >= world.height || col < 0 || col >= world.width) return '#';
-  return world.grid[row][col] ?? '#';
+  if (row < 0 || row >= world.height || col < 0 || col >= world.width) return "#";
+  return world.grid[row][col] ?? "#";
 }
 
 export function isWalkable(token: string): boolean {
-  return token !== '#' && token !== '^' && token !== '~';
+  return token !== "#" && token !== "^" && token !== "~";
 }
 
 export function entityAt(world: World, row: number, col: number): Character | Mob | null {
@@ -536,11 +558,11 @@ export const SOCIAL_RECORD_TTL_MS = 24 * 60 * 60_000;
 export function pruneDuelsAndTrades(world: World, now = Date.now()): void {
   const old = (iso: string | undefined) => iso !== undefined && now - Date.parse(iso) > SOCIAL_RECORD_TTL_MS;
   for (const [id, duel] of Object.entries(world.duels)) {
-    if (duel.state === 'finished' || old(duel.createdAt)) delete world.duels[id];
+    if (duel.state === "finished" || old(duel.createdAt)) delete world.duels[id];
   }
   for (const [id, trade] of Object.entries(world.trades)) {
     trade.createdAt ??= new Date(now).toISOString();
-    if (trade.state !== 'open' || old(trade.createdAt)) delete world.trades[id];
+    if (trade.state !== "open" || old(trade.createdAt)) delete world.trades[id];
   }
 }
 

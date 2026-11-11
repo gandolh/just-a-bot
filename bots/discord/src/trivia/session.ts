@@ -1,4 +1,4 @@
-import type { ChatInputCommandInteraction } from 'discord.js';
+import type { ChatInputCommandInteraction } from "discord.js";
 
 export interface TriviaSession {
   id: string;
@@ -8,7 +8,7 @@ export interface TriviaSession {
   options: string[];
   correctIdx: number;
   category: string;
-  difficulty: 'easy' | 'medium' | 'hard';
+  difficulty: "easy" | "medium" | "hard";
   startedAt: number;
   expiresAt: number;
   winner: string | null;

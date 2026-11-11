@@ -1,6 +1,6 @@
-import satori from 'satori';
-import { Resvg } from '@resvg/resvg-js';
-import { fonts } from './fonts.ts';
+import satori from "satori";
+import { Resvg } from "@resvg/resvg-js";
+import { fonts } from "./fonts.ts";
 
 export async function renderToPng(
   node: Record<string, unknown>,
@@ -11,6 +11,6 @@ export async function renderToPng(
     height: opts.height,
     fonts,
   });
-  const resvg = new Resvg(svg, { fitTo: { mode: 'width', value: opts.width } });
+  const resvg = new Resvg(svg, { fitTo: { mode: "width", value: opts.width } });
   return resvg.render().asPng();
 }

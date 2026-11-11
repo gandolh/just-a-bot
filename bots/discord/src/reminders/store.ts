@@ -1,9 +1,9 @@
-import { resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { createReminderStore, type BaseReminder } from '@bots/shared';
+import { resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+import { createReminderStore, type BaseReminder } from "@bots/shared";
 
-const here = fileURLToPath(new URL('.', import.meta.url));
-const dataFile = resolve(here, '../../../data/reminders.json');
+const here = fileURLToPath(new URL(".", import.meta.url));
+const dataFile = resolve(here, "../../../data/reminders.json");
 
 export type Reminder = BaseReminder & {
   userId: string;

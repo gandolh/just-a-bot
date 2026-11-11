@@ -1,47 +1,41 @@
-import { type ChatInputCommandInteraction, SlashCommandBuilder } from 'discord.js';
-import { logger } from '@bots/shared';
-import type { Command } from './types.ts';
-import { renderToPng } from '../img/render.ts';
-import { editReplyWithImage } from '../img/upload.ts';
-import { memeTemplate } from '../img/templates/meme.ts';
-import { cardTemplate } from '../img/templates/card.ts';
+import { type ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
+import { logger } from "@bots/shared";
+import type { Command } from "./types.ts";
+import { renderToPng } from "../img/render.ts";
+import { editReplyWithImage } from "../img/upload.ts";
+import { memeTemplate } from "../img/templates/meme.ts";
+import { cardTemplate } from "../img/templates/card.ts";
 
-const log = logger.scoped('img');
+const log = logger.scoped("img");
 
 const data = new SlashCommandBuilder()
-  .setName('img')
-  .setDescription('Generate a PNG image')
+  .setName("img")
+  .setDescription("Generate a PNG image")
   .addSubcommand((s) =>
     s
-      .setName('meme')
-      .setDescription('Classic top/bottom-text meme')
+      .setName("meme")
+      .setDescription("Classic top/bottom-text meme")
+      .addStringOption((o) => o.setName("top").setDescription("Top caption text").setRequired(true).setMaxLength(120))
       .addStringOption((o) =>
-        o.setName('top').setDescription('Top caption text').setRequired(true).setMaxLength(120),
-      )
-      .addStringOption((o) =>
-        o.setName('bottom').setDescription('Bottom caption text').setRequired(true).setMaxLength(120),
+        o.setName("bottom").setDescription("Bottom caption text").setRequired(true).setMaxLength(120),
       )
       .addStringOption((o) =>
         o
-          .setName('template')
-          .setDescription('Meme template (default: classic)')
+          .setName("template")
+          .setDescription("Meme template (default: classic)")
           .addChoices(
-            { name: 'classic', value: 'classic' },
-            { name: 'bonk', value: 'bonk' },
-            { name: 'disaster-girl', value: 'disaster-girl' },
+            { name: "classic", value: "classic" },
+            { name: "bonk", value: "bonk" },
+            { name: "disaster-girl", value: "disaster-girl" },
           ),
       ),
   )
   .addSubcommand((s) =>
     s
-      .setName('card')
-      .setDescription('Generic announcement/quote card')
-      .addStringOption((o) =>
-        o.setName('title').setDescription('Card title').setRequired(true).setMaxLength(120),
-      )
-      .addStringOption((o) =>
-        o.setName('body').setDescription('Card body text').setRequired(true).setMaxLength(300),
-      ),
+      .setName("card")
+      .setDescription("Generic announcement/quote card")
+      .addStringOption((o) => o.setName("title").setDescription("Card title").setRequired(true).setMaxLength(120))
+      .addStringOption((o) => o.setName("body").setDescription("Card body text").setRequired(true).setMaxLength(300)),
   );
 
 /** Render a template to PNG, logging timing and output size. */
@@ -98,24 +92,26 @@ export const img: Command = {
 
     const t0 = performance.now();
     try {
-      if (sub === 'meme') {
-        const top = interaction.options.getString('top', true);
-        const bottom = interaction.options.getString('bottom', true);
-        const template = interaction.options.getString('template') ?? 'classic';
+      if (sub === "meme") {
+        const top = interaction.options.getString("top", true);
+        const bottom = interaction.options.getString("bottom", true);
+        const template = interaction.options.getString("template") ?? "classic";
         const buf = await render(reqId, memeTemplate({ top, bottom, template }), { width: 600, height: 600 });
-        await sendImage(reqId, interaction, buf, 'meme.png');
-      } else if (sub === 'card') {
-        const title = interaction.options.getString('title', true);
-        const body = interaction.options.getString('body', true);
+        await sendImage(reqId, interaction, buf, "meme.png");
+      } else if (sub === "card") {
+        const title = interaction.options.getString("title", true);
+        const body = interaction.options.getString("body", true);
         const buf = await render(reqId, cardTemplate({ title, body }), { width: 600, height: 340 });
-        await sendImage(reqId, interaction, buf, 'card.png');
+        await sendImage(reqId, interaction, buf, "card.png");
       }
       log.info(`[${reqId}] done`, { ms: Math.round(performance.now() - t0) });
     } catch (err) {
       log.error(`[${reqId}] failed after ${Math.round(performance.now() - t0)}ms`, err);
       // Leave the user with a message instead of a perpetual "thinking…" state.
       await interaction
-        .editReply('Sorry, I could not generate that image (the upload to Discord may have timed out). Please try again.')
+        .editReply(
+          "Sorry, I could not generate that image (the upload to Discord may have timed out). Please try again.",
+        )
         .catch(() => {});
     }
   },

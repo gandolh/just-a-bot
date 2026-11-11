@@ -1,9 +1,9 @@
-import type { Client } from 'discord.js';
-import { logger } from '@bots/shared';
-import { getDueReminders, removeReminders } from './store.ts';
-import { getAllBirthdays, updateLastFiredYear } from './birthdays.ts';
+import type { Client } from "discord.js";
+import { logger } from "@bots/shared";
+import { getDueReminders, removeReminders } from "./store.ts";
+import { getAllBirthdays, updateLastFiredYear } from "./birthdays.ts";
 
-const log = logger.scoped('reminders');
+const log = logger.scoped("reminders");
 
 export async function tickReminders(client: Client): Promise<void> {
   const now = new Date();
@@ -14,7 +14,7 @@ export async function tickReminders(client: Client): Promise<void> {
   for (const r of due) {
     try {
       const ch = await client.channels.fetch(r.channelId);
-      if (ch && ch.isTextBased() && 'send' in ch) {
+      if (ch && ch.isTextBased() && "send" in ch) {
         await (ch as { send(msg: string): Promise<unknown> }).send(reminderMessage(r.userId, r.text));
       }
       fired.push(r.id);
@@ -52,10 +52,8 @@ export async function tickBirthdays(client: Client): Promise<void> {
     if (b.lastFiredYear === currentYear) continue;
     try {
       const ch = await client.channels.fetch(b.channelId);
-      if (ch && ch.isTextBased() && 'send' in ch) {
-        await (ch as { send(msg: string): Promise<unknown> }).send(
-          `🎂 Happy birthday <@${b.userId}>!`,
-        );
+      if (ch && ch.isTextBased() && "send" in ch) {
+        await (ch as { send(msg: string): Promise<unknown> }).send(`🎂 Happy birthday <@${b.userId}>!`);
       }
       await updateLastFiredYear(b.guildId, b.userId, currentYear);
     } catch (err) {

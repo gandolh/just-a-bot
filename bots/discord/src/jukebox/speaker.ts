@@ -1,4 +1,4 @@
-import type { Readable } from 'node:stream';
+import type { Readable } from "node:stream";
 import {
   AudioPlayerStatus,
   createAudioPlayer,
@@ -10,11 +10,11 @@ import {
   VoiceConnectionStatus,
   type AudioResource,
   type VoiceConnection,
-} from '@discordjs/voice';
-import { ChannelType, Events, PermissionFlagsBits, type Client, type Guild } from 'discord.js';
-import { logger } from '@bots/shared';
+} from "@discordjs/voice";
+import { ChannelType, Events, PermissionFlagsBits, type Client, type Guild } from "discord.js";
+import { logger } from "@bots/shared";
 
-const log = logger.scoped('jukebox');
+const log = logger.scoped("jukebox");
 
 /**
  * The voice side of the Jukebox, one per guild. The link and the
@@ -95,7 +95,7 @@ export class DiscordSpeaker implements Speaker {
       this.resource = null;
       if (!deliberate) this.handlers.ended?.();
     });
-    this.player.on('error', (err) => this.handlers.error?.(err));
+    this.player.on("error", (err) => this.handlers.error?.(err));
   }
 
   private guild(): Guild | undefined {
@@ -126,7 +126,7 @@ export class DiscordSpeaker implements Speaker {
   connected(): VoiceChannelInfo | null {
     const channelId = this.connection?.joinConfig.channelId;
     if (!this.connection || !channelId || this.connection.state.status === VoiceConnectionStatus.Destroyed) return null;
-    return { id: channelId, name: this.guild()?.channels.cache.get(channelId)?.name ?? '' };
+    return { id: channelId, name: this.guild()?.channels.cache.get(channelId)?.name ?? "" };
   }
 
   async join(channelId: string): Promise<void> {

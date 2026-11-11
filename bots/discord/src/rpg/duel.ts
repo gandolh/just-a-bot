@@ -1,4 +1,4 @@
-import { type Duel, type World, effectiveStats, nextId, levelFor, pruneDuelsAndTrades } from './world.ts';
+import { type Duel, type World, effectiveStats, nextId, levelFor, pruneDuelsAndTrades } from "./world.ts";
 
 const DUEL_EXPIRY_MS = 60_000;
 
@@ -7,7 +7,7 @@ export function pendingDuelBetween(world: World, a: string, b: string): Duel | n
   return (
     Object.values(world.duels).find(
       (duel) =>
-        duel.state === 'pending' &&
+        duel.state === "pending" &&
         !isDuelExpired(duel) &&
         ((duel.challengerId === a && duel.defenderId === b) || (duel.challengerId === b && duel.defenderId === a)),
     ) ?? null
@@ -22,13 +22,13 @@ export function startDuel(
   channelId: string,
 ): Duel {
   pruneDuelsAndTrades(world);
-  const id = nextId(world, 'duel');
+  const id = nextId(world, "duel");
   const now = new Date();
   const duel: Duel = {
     id,
     challengerId,
     defenderId,
-    state: 'pending',
+    state: "pending",
     createdAt: now.toISOString(),
     expiresAt: new Date(now.getTime() + DUEL_EXPIRY_MS).toISOString(),
     messageId,
@@ -41,13 +41,13 @@ export function startDuel(
 
 export function declineDuel(world: World, duelId: string): Duel | null {
   const duel = world.duels[duelId];
-  if (!duel || duel.state !== 'pending') return null;
-  duel.state = 'finished';
+  if (!duel || duel.state !== "pending") return null;
+  duel.state = "finished";
   return duel;
 }
 
 export function isDuelExpired(duel: Duel): boolean {
-  return duel.state === 'pending' && Date.now() > new Date(duel.expiresAt).getTime();
+  return duel.state === "pending" && Date.now() > new Date(duel.expiresAt).getTime();
 }
 
 function roll(sides: number): number {
@@ -81,12 +81,12 @@ export interface DuelRunResult {
 
 export function runDuel(world: World, duelId: string): DuelRunResult | null {
   const duel = world.duels[duelId];
-  if (!duel || duel.state !== 'active') return null;
+  if (!duel || duel.state !== "active") return null;
 
   const a = world.chars[duel.challengerId];
   const b = world.chars[duel.defenderId];
   if (!a || !b) {
-    duel.state = 'finished';
+    duel.state = "finished";
     return null;
   }
 
@@ -108,7 +108,7 @@ export function runDuel(world: World, duelId: string): DuelRunResult | null {
     if (aSwing.hit) {
       bHp -= aSwing.damage;
       log.push(
-        `${a.glyph} **${a.name}** hits ${b.glyph} **${b.name}** for **${aSwing.damage}**${aSwing.crit ? ' 💥 crit!' : ''} (${Math.max(0, bHp)} HP left)`,
+        `${a.glyph} **${a.name}** hits ${b.glyph} **${b.name}** for **${aSwing.damage}**${aSwing.crit ? " 💥 crit!" : ""} (${Math.max(0, bHp)} HP left)`,
       );
     } else {
       log.push(`${a.glyph} **${a.name}** swings at ${b.glyph} **${b.name}** — miss.`);
@@ -120,7 +120,7 @@ export function runDuel(world: World, duelId: string): DuelRunResult | null {
     if (bSwing.hit) {
       aHp -= bSwing.damage;
       log.push(
-        `${b.glyph} **${b.name}** hits ${a.glyph} **${a.name}** for **${bSwing.damage}**${bSwing.crit ? ' 💥 crit!' : ''} (${Math.max(0, aHp)} HP left)`,
+        `${b.glyph} **${b.name}** hits ${a.glyph} **${a.name}** for **${bSwing.damage}**${bSwing.crit ? " 💥 crit!" : ""} (${Math.max(0, aHp)} HP left)`,
       );
     } else {
       log.push(`${b.glyph} **${b.name}** swings at ${a.glyph} **${a.name}** — miss.`);
@@ -147,7 +147,7 @@ export function runDuel(world: World, duelId: string): DuelRunResult | null {
     log.push(`✨ **Level up!** ${winner.name} is now level ${winner.level}.`);
   }
 
-  duel.state = 'finished';
+  duel.state = "finished";
   return {
     winnerId: winner.userId,
     loserId: loser.userId,

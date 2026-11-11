@@ -1,4 +1,4 @@
-import type { ChatInputCommandInteraction } from 'discord.js';
+import type { ChatInputCommandInteraction } from "discord.js";
 
 /**
  * Upload a PNG to an interaction's deferred reply using Node's built-in fetch,
@@ -23,20 +23,20 @@ export async function editReplyWithImage(
 
   const form = new FormData();
   const payload = {
-    content: opts.content ?? '',
+    content: opts.content ?? "",
     attachments: [{ id: 0, filename }],
   };
-  form.append('payload_json', JSON.stringify(payload));
-  form.append('files[0]', new Blob([buf], { type: 'image/png' }), filename);
+  form.append("payload_json", JSON.stringify(payload));
+  form.append("files[0]", new Blob([buf], { type: "image/png" }), filename);
 
   const res = await fetch(url, {
-    method: 'PATCH',
+    method: "PATCH",
     body: form,
     signal: AbortSignal.timeout(opts.timeoutMs ?? 12_000),
   });
 
   if (!res.ok) {
-    const detail = await res.text().catch(() => '');
+    const detail = await res.text().catch(() => "");
     throw new Error(`Discord upload failed: ${res.status} ${res.statusText} ${detail}`.trim());
   }
 }

@@ -4,9 +4,7 @@ export function parseDuration(raw: string): Date | null {
   const n = parseInt(m[1], 10);
   const unit = m[2].toLowerCase();
   const ms =
-    unit === 'm' || unit === 'min' ? n * 60_000 :
-    unit === 'h' || unit === 'hr' ? n * 3_600_000 :
-    n * 86_400_000;
+    unit === "m" || unit === "min" ? n * 60_000 : unit === "h" || unit === "hr" ? n * 3_600_000 : n * 86_400_000;
   return new Date(Date.now() + ms);
 }
 
@@ -21,8 +19,8 @@ export function parseAbsolute(raw: string): Date | null {
       let h = parseInt(tomorrowMatch[1], 10);
       const min = tomorrowMatch[2] ? parseInt(tomorrowMatch[2], 10) : 0;
       const ampm = tomorrowMatch[3]?.toLowerCase();
-      if (ampm === 'pm' && h < 12) h += 12;
-      if (ampm === 'am' && h === 12) h = 0;
+      if (ampm === "pm" && h < 12) h += 12;
+      if (ampm === "am" && h === 12) h = 0;
       base.setUTCHours(h, min, 0, 0);
     } else {
       base.setUTCHours(9, 0, 0, 0);
@@ -32,14 +30,12 @@ export function parseAbsolute(raw: string): Date | null {
 
   const isoMatch = t.match(/^(\d{4})-(\d{2})-(\d{2})(?:\s+(\d{2}):(\d{2}))?$/);
   if (isoMatch) {
-    const [, year, month, day, h = '00', min = '00'] = isoMatch;
-    const d = new Date(`${year}-${month}-${day}T${h.padStart(2, '0')}:${min.padStart(2, '0')}:00.000Z`);
+    const [, year, month, day, h = "00", min = "00"] = isoMatch;
+    const d = new Date(`${year}-${month}-${day}T${h.padStart(2, "0")}:${min.padStart(2, "0")}:00.000Z`);
     // V8 rolls an impossible day forward (2026-02-30 → March 2) instead of
     // rejecting it, so check the date came back as the one that was asked for.
     const exact =
-      d.getUTCFullYear() === Number(year) &&
-      d.getUTCMonth() + 1 === Number(month) &&
-      d.getUTCDate() === Number(day);
+      d.getUTCFullYear() === Number(year) && d.getUTCMonth() + 1 === Number(month) && d.getUTCDate() === Number(day);
     if (!isNaN(d.getTime()) && exact) return d;
   }
 

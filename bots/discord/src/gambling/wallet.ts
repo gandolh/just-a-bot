@@ -1,10 +1,10 @@
-import { readFile } from 'node:fs/promises';
-import { writeJsonFile } from '@bots/shared';
-import { resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { readFile } from "node:fs/promises";
+import { writeJsonFile } from "@bots/shared";
+import { resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 
-const here = fileURLToPath(new URL('.', import.meta.url));
-const dataFile = resolve(here, '../../data/wallets.json');
+const here = fileURLToPath(new URL(".", import.meta.url));
+const dataFile = resolve(here, "../../data/wallets.json");
 
 export const MAX_ADD = 100_000;
 
@@ -15,11 +15,11 @@ let state: WalletState | null = null;
 async function load(): Promise<WalletState> {
   if (state) return state;
   try {
-    const raw = await readFile(dataFile, 'utf8');
+    const raw = await readFile(dataFile, "utf8");
     const parsed: unknown = JSON.parse(raw);
-    state = parsed && typeof parsed === 'object' ? (parsed as WalletState) : {};
+    state = parsed && typeof parsed === "object" ? (parsed as WalletState) : {};
   } catch (err) {
-    if ((err as NodeJS.ErrnoException).code !== 'ENOENT') throw err;
+    if ((err as NodeJS.ErrnoException).code !== "ENOENT") throw err;
     state = {};
   }
   return state;

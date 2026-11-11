@@ -1,4 +1,4 @@
-import type { World } from './world.ts';
+import type { World } from "./world.ts";
 
 // A location is a named place the player can be. Travel happens place-to-place
 // via exits — there is no tile movement. Locations are derived deterministically
@@ -36,59 +36,62 @@ interface LocationTemplate {
 
 const TEMPLATES: LocationTemplate[] = [
   {
-    id: 'plaza',
-    glyph: '🟧',
-    names: ['The Plaza', 'Last Light', 'The Hollow Market', 'Travellers’ Rest'],
-    description: 'A cobbled square ringed by lantern-light. Merchants haggle and the wounded rest here — the only truly safe ground for miles.',
+    id: "plaza",
+    glyph: "🟧",
+    names: ["The Plaza", "Last Light", "The Hollow Market", "Travellers’ Rest"],
+    description:
+      "A cobbled square ringed by lantern-light. Merchants haggle and the wounded rest here — the only truly safe ground for miles.",
     danger: 0,
-    exits: ['meadow', 'forest', 'river'],
+    exits: ["meadow", "forest", "river"],
     mobs: [],
     hub: true,
   },
   {
-    id: 'meadow',
-    glyph: '🟩',
-    names: ['The Green Verge', 'Open Meadow', 'Sunless Fields'],
-    description: 'Tall grass sways over gentle hills. Slimes ooze between the tussocks — a place for green adventurers to cut their teeth.',
+    id: "meadow",
+    glyph: "🟩",
+    names: ["The Green Verge", "Open Meadow", "Sunless Fields"],
+    description:
+      "Tall grass sways over gentle hills. Slimes ooze between the tussocks — a place for green adventurers to cut their teeth.",
     danger: 1,
-    exits: ['plaza', 'forest', 'hills'],
-    mobs: ['slime', 'goblin'],
+    exits: ["plaza", "forest", "hills"],
+    mobs: ["slime", "goblin"],
   },
   {
-    id: 'forest',
-    glyph: '🌲',
-    names: ['The North Woods', 'Tangle Pines', 'Whisperwood'],
-    description: 'Crowded pines swallow the path. Something rustles in the undergrowth — goblins and wolves den in here.',
+    id: "forest",
+    glyph: "🌲",
+    names: ["The North Woods", "Tangle Pines", "Whisperwood"],
+    description:
+      "Crowded pines swallow the path. Something rustles in the undergrowth — goblins and wolves den in here.",
     danger: 2,
-    exits: ['plaza', 'meadow', 'deepwoods'],
-    mobs: ['goblin', 'wolf'],
+    exits: ["plaza", "meadow", "deepwoods"],
+    mobs: ["goblin", "wolf"],
   },
   {
-    id: 'river',
-    glyph: '🟦',
-    names: ['Riverside', 'The Slow Ford', 'Reedwater'],
-    description: 'A broad, slow river. Bandits work the crossings, preying on travellers who linger.',
+    id: "river",
+    glyph: "🟦",
+    names: ["Riverside", "The Slow Ford", "Reedwater"],
+    description: "A broad, slow river. Bandits work the crossings, preying on travellers who linger.",
     danger: 2,
-    exits: ['plaza', 'hills'],
-    mobs: ['wolf', 'bandit'],
+    exits: ["plaza", "hills"],
+    mobs: ["wolf", "bandit"],
   },
   {
-    id: 'hills',
-    glyph: '⛰️',
-    names: ['The Stone Hills', 'Mountain Pass', 'The Broken Climb'],
-    description: 'Bare ridges and scree. Orcs hold the high ground and bandits ambush the switchbacks.',
+    id: "hills",
+    glyph: "⛰️",
+    names: ["The Stone Hills", "Mountain Pass", "The Broken Climb"],
+    description: "Bare ridges and scree. Orcs hold the high ground and bandits ambush the switchbacks.",
     danger: 3,
-    exits: ['meadow', 'river', 'deepwoods'],
-    mobs: ['bandit', 'orc'],
+    exits: ["meadow", "river", "deepwoods"],
+    mobs: ["bandit", "orc"],
   },
   {
-    id: 'deepwoods',
-    glyph: '🌑',
-    names: ['The Deep Woods', 'Gloomhollow', 'The Old Dark'],
-    description: 'The canopy closes overhead and the air goes cold. Orcs roam, and they say a troll dens in the dark.',
+    id: "deepwoods",
+    glyph: "🌑",
+    names: ["The Deep Woods", "Gloomhollow", "The Old Dark"],
+    description: "The canopy closes overhead and the air goes cold. Orcs roam, and they say a troll dens in the dark.",
     danger: 4,
-    exits: ['forest', 'hills'],
-    mobs: ['orc', 'troll'],
+    exits: ["forest", "hills"],
+    mobs: ["orc", "troll"],
   },
 ];
 
@@ -128,4 +131,4 @@ export function getLocation(world: World, id: string): LocationDef | null {
   return buildLocations(world)[id] ?? null;
 }
 
-export const STARTING_LOCATION = 'plaza';
+export const STARTING_LOCATION = "plaza";

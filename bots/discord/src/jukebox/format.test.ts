@@ -1,12 +1,12 @@
-import { test } from 'node:test';
-import assert from 'node:assert/strict';
+import { test } from "node:test";
+import assert from "node:assert/strict";
 import {
   JukeboxForbidden,
   JukeboxNotConfigured,
   JukeboxRequestError,
   JukeboxSignInFailed,
   JukeboxUnavailable,
-} from './atrium/errors.ts';
+} from "./atrium/errors.ts";
 import {
   choiceLabel,
   clip,
@@ -18,8 +18,8 @@ import {
   resolveTrack,
   trackChoices,
   type PlayerView,
-} from './format.ts';
-import type { Track } from './types.ts';
+} from "./format.ts";
+import type { Track } from "./types.ts";
 
 const track = (id: string, title: string, artist: string | null = null, album: string | null = null): Track => ({
   id,
@@ -31,80 +31,92 @@ const track = (id: string, title: string, artist: string | null = null, album: s
 });
 
 const PLAYLIST = [
-  track('1', 'Slow River', 'Ana Marin', 'Low Water'),
-  track('2', 'Harbour Lights', 'Ana Marin', 'Low Water'),
-  track('3', 'Last Train Home', 'Odd Signals', 'Night Lines'),
-  track('4', 'Untitled'),
+  track("1", "Slow River", "Ana Marin", "Low Water"),
+  track("2", "Harbour Lights", "Ana Marin", "Low Water"),
+  track("3", "Last Train Home", "Odd Signals", "Night Lines"),
+  track("4", "Untitled"),
 ];
 
-test('autocomplete matches title, artist or album, case-insensitively, in Playlist order', () => {
-  assert.deepEqual(matchTracks(PLAYLIST, 'ana').map((t) => t.id), ['1', '2']);
-  assert.deepEqual(matchTracks(PLAYLIST, 'NIGHT').map((t) => t.id), ['3']);
-  assert.deepEqual(matchTracks(PLAYLIST, '').map((t) => t.id), ['1', '2', '3', '4']);
+test("autocomplete matches title, artist or album, case-insensitively, in Playlist order", () => {
+  assert.deepEqual(
+    matchTracks(PLAYLIST, "ana").map((t) => t.id),
+    ["1", "2"],
+  );
+  assert.deepEqual(
+    matchTracks(PLAYLIST, "NIGHT").map((t) => t.id),
+    ["3"],
+  );
+  assert.deepEqual(
+    matchTracks(PLAYLIST, "").map((t) => t.id),
+    ["1", "2", "3", "4"],
+  );
 });
 
-test('autocomplete returns at most 25 choices, valued by Track id', () => {
-  const many = Array.from({ length: 40 }, (_, i) => track(String(i), `Song ${i}`, 'Band'));
-  const choices = trackChoices(many, 'song');
+test("autocomplete returns at most 25 choices, valued by Track id", () => {
+  const many = Array.from({ length: 40 }, (_, i) => track(String(i), `Song ${i}`, "Band"));
+  const choices = trackChoices(many, "song");
   assert.equal(choices.length, 25);
-  assert.deepEqual(choices[0], { name: 'Song 0 · Band', value: '0' });
+  assert.deepEqual(choices[0], { name: "Song 0 · Band", value: "0" });
 });
 
 test('a choice label is "Title · Artist", the title alone without an artist, and never over 100 characters', () => {
-  assert.equal(choiceLabel(PLAYLIST[0]), 'Slow River · Ana Marin');
-  assert.equal(choiceLabel(PLAYLIST[3]), 'Untitled');
-  const long = choiceLabel(track('x', 'A'.repeat(90), 'B'.repeat(30)));
+  assert.equal(choiceLabel(PLAYLIST[0]), "Slow River · Ana Marin");
+  assert.equal(choiceLabel(PLAYLIST[3]), "Untitled");
+  const long = choiceLabel(track("x", "A".repeat(90), "B".repeat(30)));
   assert.equal(long.length, 100);
-  assert.ok(long.endsWith('…'));
+  assert.ok(long.endsWith("…"));
 });
 
-test('a typed value that is not an id resolves to its best match', () => {
-  assert.equal(resolveTrack(PLAYLIST, '3')?.title, 'Last Train Home');
-  assert.equal(resolveTrack(PLAYLIST, 'harbour')?.id, '2');
-  assert.equal(resolveTrack(PLAYLIST, 'no such song'), null);
+test("a typed value that is not an id resolves to its best match", () => {
+  assert.equal(resolveTrack(PLAYLIST, "3")?.title, "Last Train Home");
+  assert.equal(resolveTrack(PLAYLIST, "harbour")?.id, "2");
+  assert.equal(resolveTrack(PLAYLIST, "no such song"), null);
 });
 
 const player = (over: Partial<PlayerView> = {}): PlayerView => ({
   online: true,
-  state: 'playing',
-  voiceChannel: { id: '1', name: 'General' },
+  state: "playing",
+  voiceChannel: { id: "1", name: "General" },
   track: PLAYLIST[0],
   positionMs: 61_000,
   positionAt: new Date(1_000_000).toISOString(),
   shuffle: false,
-  repeat: 'off',
+  repeat: "off",
   queue: [],
   upcoming: [],
   failure: null,
   ...over,
 });
 
-test('elapsed time moves on while playing and holds while paused', () => {
+test("elapsed time moves on while playing and holds while paused", () => {
   assert.equal(elapsedSeconds(player(), 1_000_000 + 4_000), 65);
-  assert.equal(elapsedSeconds(player({ state: 'paused' }), 1_000_000 + 4_000), 61);
-  assert.equal(elapsedSeconds(player({ positionMs: 500_000 }), 1_000_000), 200, 'capped at the Track length');
+  assert.equal(elapsedSeconds(player({ state: "paused" }), 1_000_000 + 4_000), 61);
+  assert.equal(elapsedSeconds(player({ positionMs: 500_000 }), 1_000_000), 200, "capped at the Track length");
 });
 
-test('now playing shows title, artist, album and elapsed over total', () => {
-  assert.equal(nowPlayingText(player(), 1_000_000), '**Slow River** — Ana Marin · Low Water\n`1:01 / 3:20`');
-  assert.equal(nowPlayingText(player({ state: 'paused' }), 1_000_000), '**Slow River** — Ana Marin · Low Water\n`1:01 / 3:20` (paused)');
-  assert.equal(nowPlayingText(player({ state: 'idle', track: null }), 0), 'Nothing is playing.');
-  assert.equal(nowPlayingText(player({ online: false }), 0), 'The player is offline.');
+test("now playing shows title, artist, album and elapsed over total", () => {
+  assert.equal(nowPlayingText(player(), 1_000_000), "**Slow River** — Ana Marin · Low Water\n`1:01 / 3:20`");
+  assert.equal(
+    nowPlayingText(player({ state: "paused" }), 1_000_000),
+    "**Slow River** — Ana Marin · Low Water\n`1:01 / 3:20` (paused)",
+  );
+  assert.equal(nowPlayingText(player({ state: "idle", track: null }), 0), "Nothing is playing.");
+  assert.equal(nowPlayingText(player({ online: false }), 0), "The player is offline.");
 });
 
 test("atrium's failure shows when it stopped after songs that would not play", () => {
-  const failure = '5 songs in a row would not play, the last “Slow River”.';
+  const failure = "5 songs in a row would not play, the last “Slow River”.";
   assert.equal(
-    nowPlayingText(player({ state: 'idle', track: null, failure }), 0),
-    'Nothing is playing. Playback stopped: 5 songs in a row would not play, the last “Slow River”.',
+    nowPlayingText(player({ state: "idle", track: null, failure }), 0),
+    "Nothing is playing. Playback stopped: 5 songs in a row would not play, the last “Slow River”.",
   );
 });
 
-test('the queue lists ten entries with who added them, and counts the rest', () => {
+test("the queue lists ten entries with who added them, and counts the rest", () => {
   const queue = Array.from({ length: 13 }, (_, i) => ({
     id: i,
-    track: track(String(i), `Song ${i}`, 'Band'),
-    addedBy: { kind: 'discord' as const, name: i % 2 ? 'Dana' : 'Default' },
+    track: track(String(i), `Song ${i}`, "Band"),
+    addedBy: { kind: "discord" as const, name: i % 2 ? "Dana" : "Default" },
   }));
   const text = queueText(player({ queue }), 1_000_000);
   assert.match(text, /^Now: \*\*Slow River\*\*/);
@@ -115,34 +127,40 @@ test('the queue lists ten entries with who added them, and counts the rest', () 
   assert.match(queueText(player(), 0), /The queue is empty/);
 });
 
-test('ten long entries still fit in one Discord message', () => {
+test("ten long entries still fit in one Discord message", () => {
   const long = (c: string) => c.repeat(300);
   const queue = Array.from({ length: 10 }, (_, i) => ({
     id: i,
-    track: track(String(i), long('t'), long('a'), long('b')),
-    addedBy: { kind: 'discord' as const, name: long('n') },
+    track: track(String(i), long("t"), long("a"), long("b")),
+    addedBy: { kind: "discord" as const, name: long("n") },
   }));
-  const text = queueText(player({ track: track('x', long('T'), long('A'), long('B')), queue }), 1_000_000);
+  const text = queueText(player({ track: track("x", long("T"), long("A"), long("B")), queue }), 1_000_000);
   assert.ok(text.length <= 2000, `${text.length} characters`);
   assert.match(text, /\*\*t{59}…\*\* — a{39}… · b{39}… \(added by n{31}…\)/);
-  assert.match(text, /…and \d+ more$/, 'the entries left out are counted');
-  const listed = text.split('\n').filter((line) => /^\d+\. /.test(line)).length;
+  assert.match(text, /…and \d+ more$/, "the entries left out are counted");
+  const listed = text.split("\n").filter((line) => /^\d+\. /.test(line)).length;
   assert.equal(listed + Number(text.match(/…and (\d+) more$/)![1]), 10);
 });
 
-test('clip cuts with an ellipsis and never splits an emoji', () => {
-  assert.equal(clip('short', 10), 'short');
-  assert.equal(clip('abcdefghij', 5), 'abcd…');
-  assert.equal(clip('🎵🎵🎵', 2), '🎵…');
+test("clip cuts with an ellipsis and never splits an emoji", () => {
+  assert.equal(clip("short", 10), "short");
+  assert.equal(clip("abcdefghij", 5), "abcd…");
+  assert.equal(clip("🎵🎵🎵", 2), "🎵…");
 });
 
-test('each failure gets its reply', () => {
+test("each failure gets its reply", () => {
   assert.equal(errorReply(new JukeboxNotConfigured()), "The Jukebox isn't set up on this bot.");
   const signIn = "The Jukebox can't sign in to atrium. The owner has to check its account.";
-  assert.equal(errorReply(new JukeboxSignInFailed('x')), signIn);
-  assert.equal(errorReply(new JukeboxForbidden('JUKEBOX_ROLE_FORBIDDEN')), signIn);
-  assert.equal(errorReply(new JukeboxUnavailable('x')), 'Atrium is unreachable right now.');
-  assert.equal(errorReply(new JukeboxRequestError(409, 'PLAYER_OFFLINE')), 'The player is offline.');
-  assert.equal(errorReply(new JukeboxRequestError(400, 'NOT_A_TRACK')), "That isn't a song in the library. Pick one from the list.");
-  assert.equal(errorReply(new JukeboxRequestError(409, 'NOT_IN_VOICE')), "I'm not in a voice channel. Use `/jukebox join` from yours first.");
+  assert.equal(errorReply(new JukeboxSignInFailed("x")), signIn);
+  assert.equal(errorReply(new JukeboxForbidden("JUKEBOX_ROLE_FORBIDDEN")), signIn);
+  assert.equal(errorReply(new JukeboxUnavailable("x")), "Atrium is unreachable right now.");
+  assert.equal(errorReply(new JukeboxRequestError(409, "PLAYER_OFFLINE")), "The player is offline.");
+  assert.equal(
+    errorReply(new JukeboxRequestError(400, "NOT_A_TRACK")),
+    "That isn't a song in the library. Pick one from the list.",
+  );
+  assert.equal(
+    errorReply(new JukeboxRequestError(409, "NOT_IN_VOICE")),
+    "I'm not in a voice channel. Use `/jukebox join` from yours first.",
+  );
 });

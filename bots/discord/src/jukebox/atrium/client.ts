@@ -1,7 +1,7 @@
-import { jukeboxConfig } from './config.ts';
-import { JukeboxForbidden, JukeboxNotConfigured, JukeboxSignInFailed } from './errors.ts';
-import { AtriumClient, type AtriumInit } from './request.ts';
-import { AtriumSession } from './session.ts';
+import { jukeboxConfig } from "./config.ts";
+import { JukeboxForbidden, JukeboxNotConfigured, JukeboxSignInFailed } from "./errors.ts";
+import { AtriumClient, type AtriumInit } from "./request.ts";
+import { AtriumSession } from "./session.ts";
 
 export {
   JukeboxForbidden,
@@ -9,9 +9,9 @@ export {
   JukeboxRequestError,
   JukeboxSignInFailed,
   JukeboxUnavailable,
-} from './errors.ts';
-export { AtriumClient, type AtriumInit } from './request.ts';
-export { clearSpentSessionFile } from './session.ts';
+} from "./errors.ts";
+export { AtriumClient, type AtriumInit } from "./request.ts";
+export { clearSpentSessionFile } from "./session.ts";
 
 let shared: AtriumClient | undefined;
 

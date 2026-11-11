@@ -4,10 +4,10 @@ import {
   type ChatInputCommandInteraction,
   GuildMember,
   SlashCommandBuilder,
-} from 'discord.js';
-import type { Command } from './types.ts';
-import { atriumFetch, JukeboxNotConfigured } from '../jukebox/atrium/client.ts';
-import { isJukeboxConfigured } from '../jukebox/atrium/config.ts';
+} from "discord.js";
+import type { Command } from "./types.ts";
+import { atriumFetch, JukeboxNotConfigured } from "../jukebox/atrium/client.ts";
+import { isJukeboxConfigured } from "../jukebox/atrium/config.ts";
 import {
   errorReply,
   nowPlayingText,
@@ -16,8 +16,8 @@ import {
   resolveTrack,
   trackChoices,
   type PlayerView,
-} from '../jukebox/format.ts';
-import type { Track } from '../jukebox/types.ts';
+} from "../jukebox/format.ts";
+import type { Track } from "../jukebox/types.ts";
 
 /**
  * `/jukebox`: the Discord remote for atrium's Jukebox. Atrium's
@@ -35,51 +35,55 @@ const TRACKS_CACHE_MS = 60_000;
 const MAX_ADDED_BY = 64;
 
 const data = new SlashCommandBuilder()
-  .setName('jukebox')
+  .setName("jukebox")
   .setDescription("Play atrium's music in a voice channel")
   .addSubcommand((sub) =>
     sub
-      .setName('play')
-      .setDescription('Add a song to the queue, and start playing if nothing is')
+      .setName("play")
+      .setDescription("Add a song to the queue, and start playing if nothing is")
       .addStringOption((o) =>
-        o.setName('track').setDescription('Song title, artist or album').setRequired(true).setAutocomplete(true),
+        o.setName("track").setDescription("Song title, artist or album").setRequired(true).setAutocomplete(true),
       )
-      .addBooleanOption((o) => o.setName('next').setDescription('Play it next instead of at the end of the queue')),
+      .addBooleanOption((o) => o.setName("next").setDescription("Play it next instead of at the end of the queue")),
   )
-  .addSubcommand((sub) => sub.setName('skip').setDescription('Skip to the next song'))
-  .addSubcommand((sub) => sub.setName('previous').setDescription('Go back to the previous song'))
-  .addSubcommand((sub) => sub.setName('pause').setDescription('Pause'))
-  .addSubcommand((sub) => sub.setName('resume').setDescription('Resume'))
-  .addSubcommand((sub) => sub.setName('stop').setDescription('Stop playing (the queue stays)'))
-  .addSubcommand((sub) => sub.setName('join').setDescription('Bring the bot into your voice channel'))
-  .addSubcommand((sub) => sub.setName('leave').setDescription('Send the bot out of the voice channel'))
+  .addSubcommand((sub) => sub.setName("skip").setDescription("Skip to the next song"))
+  .addSubcommand((sub) => sub.setName("previous").setDescription("Go back to the previous song"))
+  .addSubcommand((sub) => sub.setName("pause").setDescription("Pause"))
+  .addSubcommand((sub) => sub.setName("resume").setDescription("Resume"))
+  .addSubcommand((sub) => sub.setName("stop").setDescription("Stop playing (the queue stays)"))
+  .addSubcommand((sub) => sub.setName("join").setDescription("Bring the bot into your voice channel"))
+  .addSubcommand((sub) => sub.setName("leave").setDescription("Send the bot out of the voice channel"))
   .addSubcommand((sub) =>
     sub
-      .setName('shuffle')
-      .setDescription('Turn shuffle on or off')
-      .addBooleanOption((o) => o.setName('on').setDescription('Shuffle on?').setRequired(true)),
+      .setName("shuffle")
+      .setDescription("Turn shuffle on or off")
+      .addBooleanOption((o) => o.setName("on").setDescription("Shuffle on?").setRequired(true)),
   )
   .addSubcommand((sub) =>
     sub
-      .setName('repeat')
-      .setDescription('Repeat nothing, this song, or the whole playlist')
+      .setName("repeat")
+      .setDescription("Repeat nothing, this song, or the whole playlist")
       .addStringOption((o) =>
         o
-          .setName('mode')
-          .setDescription('What to repeat')
+          .setName("mode")
+          .setDescription("What to repeat")
           .setRequired(true)
-          .addChoices({ name: 'off', value: 'off' }, { name: 'one song', value: 'one' }, { name: 'the playlist', value: 'all' }),
+          .addChoices(
+            { name: "off", value: "off" },
+            { name: "one song", value: "one" },
+            { name: "the playlist", value: "all" },
+          ),
       ),
   )
-  .addSubcommand((sub) => sub.setName('nowplaying').setDescription("What's playing, and how far along"))
-  .addSubcommand((sub) => sub.setName('queue').setDescription("What's playing and what's queued"));
+  .addSubcommand((sub) => sub.setName("nowplaying").setDescription("What's playing, and how far along"))
+  .addSubcommand((sub) => sub.setName("queue").setDescription("What's playing and what's queued"));
 
 let trackCache: { at: number; tracks: Track[] } | null = null;
 
 /** The Playlist, cached for a minute: autocomplete fires on every keystroke. */
 async function tracks(): Promise<Track[]> {
   if (trackCache && Date.now() - trackCache.at < TRACKS_CACHE_MS) return trackCache.tracks;
-  const fresh = await atriumFetch<Track[]>('/jukebox/tracks', { timeoutMs: CALL_TIMEOUT_MS });
+  const fresh = await atriumFetch<Track[]>("/jukebox/tracks", { timeoutMs: CALL_TIMEOUT_MS });
   trackCache = { at: Date.now(), tracks: fresh };
   return fresh;
 }
@@ -92,7 +96,7 @@ function getPlayer(guildId: string): Promise<PlayerView> {
 
 function control(guildId: string, body: Record<string, unknown>): Promise<PlayerView> {
   return atriumFetch<PlayerView>(`${playerPath(guildId)}/control`, {
-    method: 'POST',
+    method: "POST",
     json: body,
     timeoutMs: CALL_TIMEOUT_MS,
   });
@@ -100,7 +104,7 @@ function control(guildId: string, body: Record<string, unknown>): Promise<Player
 
 function settings(guildId: string, body: { shuffle?: boolean; repeat?: string }): Promise<PlayerView> {
   return atriumFetch<PlayerView>(`${playerPath(guildId)}/settings`, {
-    method: 'PATCH',
+    method: "PATCH",
     json: body,
     timeoutMs: CALL_TIMEOUT_MS,
   });
@@ -112,7 +116,9 @@ function settings(guildId: string, body: { shuffle?: boolean; repeat?: string })
  * Speak and that is not full. `joinable` and `speakable` are discord.js's own
  * checks; atrium's page lists only channels with Connect and Speak.
  */
-function invokerChannel(interaction: ChatInputCommandInteraction): { id: string; name: string; usable: boolean } | null {
+function invokerChannel(
+  interaction: ChatInputCommandInteraction,
+): { id: string; name: string; usable: boolean } | null {
   const member = interaction.member;
   const channel = member instanceof GuildMember ? member.voice.channel : null;
   if (!channel) return null;
@@ -120,8 +126,7 @@ function invokerChannel(interaction: ChatInputCommandInteraction): { id: string;
   return { id: channel.id, name: channel.name, usable };
 }
 
-const cantJoin = (name: string) =>
-  `I can't join **${name}**. I need Connect and Speak there, and room in the channel.`;
+const cantJoin = (name: string) => `I can't join **${name}**. I need Connect and Speak there, and room in the channel.`;
 
 function invokerName(interaction: ChatInputCommandInteraction): string {
   const member = interaction.member;
@@ -136,7 +141,10 @@ export interface Answer {
 }
 
 /** The parts of an interaction `answer` uses. */
-export type Answerable = Pick<ChatInputCommandInteraction, 'reply' | 'deferReply' | 'editReply' | 'followUp' | 'deleteReply'>;
+export type Answerable = Pick<
+  ChatInputCommandInteraction,
+  "reply" | "deferReply" | "editReply" | "followUp" | "deleteReply"
+>;
 
 /**
  * Run the work and answer within Discord's 3 seconds. A slow call (a first
@@ -185,7 +193,7 @@ export const jukebox: Command = {
 
   async execute(interaction) {
     if (!interaction.inGuild()) {
-      await interaction.reply({ content: 'Use this in a server.', ephemeral: true });
+      await interaction.reply({ content: "Use this in a server.", ephemeral: true });
       return;
     }
     const guildId = interaction.guildId;
@@ -195,67 +203,67 @@ export const jukebox: Command = {
       if (!isJukeboxConfigured()) throw new JukeboxNotConfigured();
 
       switch (sub) {
-        case 'play': {
-          const picked = resolveTrack(await tracks(), interaction.options.getString('track', true));
+        case "play": {
+          const picked = resolveTrack(await tracks(), interaction.options.getString("track", true));
           if (!picked) return tell("That isn't a song in the library. Pick one from the list.");
           let player = await getPlayer(guildId);
-          if (!player.online) return tell('The player is offline.');
+          if (!player.online) return tell("The player is offline.");
           if (!player.voiceChannel) {
             const channel = invokerChannel(interaction);
-            if (!channel) return tell('Join a voice channel first, or use `/jukebox join`.');
+            if (!channel) return tell("Join a voice channel first, or use `/jukebox join`.");
             if (!channel.usable) return tell(cantJoin(channel.name));
-            player = await control(guildId, { action: 'join', channelId: channel.id });
+            player = await control(guildId, { action: "join", channelId: channel.id });
           }
-          const next = interaction.options.getBoolean('next') ?? false;
+          const next = interaction.options.getBoolean("next") ?? false;
           player = await atriumFetch<PlayerView>(`${playerPath(guildId)}/queue`, {
-            method: 'POST',
-            json: { bookId: picked.id, at: next ? 'next' : 'end', addedBy: { name: invokerName(interaction) } },
+            method: "POST",
+            json: { bookId: picked.id, at: next ? "next" : "end", addedBy: { name: invokerName(interaction) } },
             timeoutMs: CALL_TIMEOUT_MS,
           });
-          if (player.state === 'idle') await control(guildId, { action: 'play' });
+          if (player.state === "idle") await control(guildId, { action: "play" });
           return say(next ? `*${picked.title}* plays next.` : `Added *${picked.title}* to the queue.`);
         }
-        case 'skip':
-          await control(guildId, { action: 'next' });
-          return say('Skipped.');
-        case 'previous':
-          await control(guildId, { action: 'previous' });
-          return say('Back to the previous song.');
-        case 'pause':
-          await control(guildId, { action: 'pause' });
-          return say('Paused.');
-        case 'resume':
-          await control(guildId, { action: 'resume' });
-          return say('Resumed.');
-        case 'stop':
-          await control(guildId, { action: 'stop' });
-          return say('Stopped.');
-        case 'join': {
+        case "skip":
+          await control(guildId, { action: "next" });
+          return say("Skipped.");
+        case "previous":
+          await control(guildId, { action: "previous" });
+          return say("Back to the previous song.");
+        case "pause":
+          await control(guildId, { action: "pause" });
+          return say("Paused.");
+        case "resume":
+          await control(guildId, { action: "resume" });
+          return say("Resumed.");
+        case "stop":
+          await control(guildId, { action: "stop" });
+          return say("Stopped.");
+        case "join": {
           const channel = invokerChannel(interaction);
-          if (!channel) return tell('Join a voice channel first.');
+          if (!channel) return tell("Join a voice channel first.");
           if (!channel.usable) return tell(cantJoin(channel.name));
-          await control(guildId, { action: 'join', channelId: channel.id });
+          await control(guildId, { action: "join", channelId: channel.id });
           return say(`Joining **${channel.name}**.`);
         }
-        case 'leave':
-          await control(guildId, { action: 'leave' });
-          return say('Left the voice channel.');
-        case 'shuffle': {
-          const on = interaction.options.getBoolean('on', true);
+        case "leave":
+          await control(guildId, { action: "leave" });
+          return say("Left the voice channel.");
+        case "shuffle": {
+          const on = interaction.options.getBoolean("on", true);
           await settings(guildId, { shuffle: on });
-          return say(on ? 'Shuffle is on.' : 'Shuffle is off.');
+          return say(on ? "Shuffle is on." : "Shuffle is off.");
         }
-        case 'repeat': {
-          const mode = interaction.options.getString('mode', true) as 'off' | 'one' | 'all';
+        case "repeat": {
+          const mode = interaction.options.getString("mode", true) as "off" | "one" | "all";
           await settings(guildId, { repeat: mode });
           return say(repeatText(mode));
         }
-        case 'nowplaying':
+        case "nowplaying":
           return tell(nowPlayingText(await getPlayer(guildId), Date.now()));
-        case 'queue':
+        case "queue":
           return tell(queueText(await getPlayer(guildId), Date.now()));
         default:
-          return tell('Unknown subcommand.');
+          return tell("Unknown subcommand.");
       }
     });
   },

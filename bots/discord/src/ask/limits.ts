@@ -8,8 +8,8 @@ export const ASK_COOLDOWN_MS = 30_000;
 
 export type AskSlot =
   | { ok: true; done: () => void }
-  | { ok: false; reason: 'busy' }
-  | { ok: false; reason: 'cooldown'; waitSeconds: number };
+  | { ok: false; reason: "busy" }
+  | { ok: false; reason: "cooldown"; waitSeconds: number };
 
 /**
  * One question in flight per member, and a cooldown between questions. A slot
@@ -30,11 +30,11 @@ export class AskLimiter {
   }
 
   claim(memberKey: string): AskSlot {
-    if (this.inFlight.has(memberKey)) return { ok: false, reason: 'busy' };
+    if (this.inFlight.has(memberKey)) return { ok: false, reason: "busy" };
     const last = this.lastAskedAt.get(memberKey);
     const at = this.now();
     if (last !== undefined && at - last < this.cooldownMs) {
-      return { ok: false, reason: 'cooldown', waitSeconds: Math.ceil((last + this.cooldownMs - at) / 1000) };
+      return { ok: false, reason: "cooldown", waitSeconds: Math.ceil((last + this.cooldownMs - at) / 1000) };
     }
     this.inFlight.add(memberKey);
     this.lastAskedAt.set(memberKey, at);

@@ -6,7 +6,7 @@
  * A pure module so the rule can be tested without loading `env.ts`, which
  * reads the real `.env` and requires the Discord token.
  */
-export const JUKEBOX_ENV_VARS = ['JUKEBOX_ATRIUM_URL', 'JUKEBOX_ATRIUM_USERNAME', 'JUKEBOX_ATRIUM_PASSWORD'] as const;
+export const JUKEBOX_ENV_VARS = ["JUKEBOX_ATRIUM_URL", "JUKEBOX_ATRIUM_USERNAME", "JUKEBOX_ATRIUM_PASSWORD"] as const;
 
 export type JukeboxEnvVar = (typeof JUKEBOX_ENV_VARS)[number];
 
@@ -17,7 +17,7 @@ export function missingJukeboxVars(vars: Partial<Record<JukeboxEnvVar, string | 
 }
 
 /** Variables from before 2026-10-13, when the account was Ward's. Nothing reads them now. */
-export const STALE_JUKEBOX_VARS = ['JUKEBOX_WARD_URL', 'JUKEBOX_WARD_USERNAME', 'JUKEBOX_WARD_PASSWORD'] as const;
+export const STALE_JUKEBOX_VARS = ["JUKEBOX_WARD_URL", "JUKEBOX_WARD_USERNAME", "JUKEBOX_WARD_PASSWORD"] as const;
 
 /**
  * The old names still set. The bot would otherwise go quietly off after the

@@ -1,5 +1,5 @@
-import { getAllBalances } from '../gambling/wallet.ts';
-import { loadWorld } from '../rpg/world.ts';
+import { getAllBalances } from "../gambling/wallet.ts";
+import { loadWorld } from "../rpg/world.ts";
 
 export interface LeaderboardEntry {
   userId: string;
@@ -7,18 +7,18 @@ export interface LeaderboardEntry {
   label?: string;
 }
 
-export type Category = 'coins' | 'rpg-xp' | 'rpg-kills' | 'rpg-coins';
+export type Category = "coins" | "rpg-xp" | "rpg-kills" | "rpg-coins";
 
 export async function getLeaderboard(category: Category, guildId: string): Promise<LeaderboardEntry[]> {
   switch (category) {
-    case 'coins': {
+    case "coins": {
       const balances = await getAllBalances();
       return Object.entries(balances)
         .map(([userId, score]) => ({ userId, score }))
         .sort((a, b) => b.score - a.score)
         .slice(0, 10);
     }
-    case 'rpg-xp': {
+    case "rpg-xp": {
       const world = await loadWorld(guildId);
       if (!world) return [];
       return Object.values(world.chars)
@@ -26,7 +26,7 @@ export async function getLeaderboard(category: Category, guildId: string): Promi
         .sort((a, b) => b.score - a.score)
         .slice(0, 10);
     }
-    case 'rpg-kills': {
+    case "rpg-kills": {
       const world = await loadWorld(guildId);
       if (!world) return [];
       return Object.values(world.chars)
@@ -34,7 +34,7 @@ export async function getLeaderboard(category: Category, guildId: string): Promi
         .sort((a, b) => b.score - a.score)
         .slice(0, 10);
     }
-    case 'rpg-coins': {
+    case "rpg-coins": {
       const world = await loadWorld(guildId);
       if (!world) return [];
       return Object.values(world.chars)

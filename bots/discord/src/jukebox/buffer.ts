@@ -1,13 +1,13 @@
-import { spawn } from 'node:child_process';
-import { createReadStream } from 'node:fs';
-import { mkdir, rename, rm } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
-import { join } from 'node:path';
-import { PassThrough, type Readable } from 'node:stream';
-import { pipeline } from 'node:stream/promises';
-import { logger } from '@bots/shared';
+import { spawn } from "node:child_process";
+import { createReadStream } from "node:fs";
+import { mkdir, rename, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { PassThrough, type Readable } from "node:stream";
+import { pipeline } from "node:stream/promises";
+import { logger } from "@bots/shared";
 
-const log = logger.scoped('jukebox');
+const log = logger.scoped("jukebox");
 
 /**
  * The per-guild disk buffer. Each Track is converted once, MP3 to
@@ -21,13 +21,13 @@ const log = logger.scoped('jukebox');
  * file and feeds ffmpeg's stdin.
  */
 
-export const BUFFER_ROOT = join(tmpdir(), 'jukebox');
+export const BUFFER_ROOT = join(tmpdir(), "jukebox");
 /** The current Track plus this many of `upcoming`. */
 export const PREFETCH = 2;
 /** How long a Track that failed to buffer is left alone while it stays upcoming. */
 export const RETRY_FAILED_AFTER_MS = 5 * 60_000;
 
-const OGG_OPUS = ['-vn', '-c:a', 'libopus', '-b:a', '96k', '-ar', '48000', '-ac', '2', '-f', 'ogg'];
+const OGG_OPUS = ["-vn", "-c:a", "libopus", "-b:a", "96k", "-ar", "48000", "-ac", "2", "-f", "ogg"];
 
 export interface BufferPlan {
   /** Buffered and still wanted. */
@@ -137,17 +137,17 @@ export class TrackBuffer {
     }
     const abort = new AbortController();
     const input = await this.fetchTrack(trackId, abort.signal);
-    const ffmpeg = spawn('ffmpeg', ['-hide_banner', '-loglevel', 'error', '-i', 'pipe:0', ...OGG_OPUS, 'pipe:1'], {
-      stdio: ['pipe', 'pipe', 'pipe'],
+    const ffmpeg = spawn("ffmpeg", ["-hide_banner", "-loglevel", "error", "-i", "pipe:0", ...OGG_OPUS, "pipe:1"], {
+      stdio: ["pipe", "pipe", "pipe"],
     });
     let failed = false;
-    let stderr = '';
-    ffmpeg.stderr.on('data', (chunk) => (stderr = (stderr + chunk).slice(-500)));
-    ffmpeg.on('error', (err) => {
+    let stderr = "";
+    ffmpeg.stderr.on("data", (chunk) => (stderr = (stderr + chunk).slice(-500)));
+    ffmpeg.on("error", (err) => {
       failed = true;
       log.warn(`ffmpeg could not start for ${trackId}: ${err.message}`);
     });
-    ffmpeg.on('close', (code, signal) => {
+    ffmpeg.on("close", (code, signal) => {
       if (code !== 0 && signal === null) {
         failed = true;
         log.warn(`ffmpeg failed on ${trackId} (${code}): ${stderr.trim()}`);
@@ -155,7 +155,7 @@ export class TrackBuffer {
     });
     pipeline(input, ffmpeg.stdin).catch((err: Error) => {
       // The player stopping early closes ffmpeg's stdin; that is not a failure.
-      if (!abort.signal.aborted && (err as NodeJS.ErrnoException).code !== 'EPIPE') {
+      if (!abort.signal.aborted && (err as NodeJS.ErrnoException).code !== "EPIPE") {
         failed = true;
         log.warn(`downloading ${trackId} failed: ${err.message}`);
       }
@@ -164,9 +164,9 @@ export class TrackBuffer {
     // stop the download and ffmpeg with it.
     const out = new PassThrough();
     ffmpeg.stdout.pipe(out);
-    out.on('close', () => {
+    out.on("close", () => {
       abort.abort();
-      ffmpeg.kill('SIGKILL');
+      ffmpeg.kill("SIGKILL");
     });
     return { stream: out, live: true, failed: () => failed };
   }
@@ -179,19 +179,19 @@ export class TrackBuffer {
     try {
       await mkdir(this.dir, { recursive: true });
       const input = await this.fetchTrack(trackId, abort.signal);
-      const ffmpeg = spawn('ffmpeg', ['-hide_banner', '-loglevel', 'error', '-y', '-i', 'pipe:0', ...OGG_OPUS, part], {
-        stdio: ['pipe', 'ignore', 'pipe'],
+      const ffmpeg = spawn("ffmpeg", ["-hide_banner", "-loglevel", "error", "-y", "-i", "pipe:0", ...OGG_OPUS, part], {
+        stdio: ["pipe", "ignore", "pipe"],
       });
-      const onAbort = () => ffmpeg.kill('SIGKILL');
-      abort.signal.addEventListener('abort', onAbort, { once: true });
-      let stderr = '';
-      ffmpeg.stderr.on('data', (chunk) => (stderr = (stderr + chunk).slice(-500)));
+      const onAbort = () => ffmpeg.kill("SIGKILL");
+      abort.signal.addEventListener("abort", onAbort, { once: true });
+      let stderr = "";
+      ffmpeg.stderr.on("data", (chunk) => (stderr = (stderr + chunk).slice(-500)));
       const exited = new Promise<number | null>((resolve, reject) => {
-        ffmpeg.on('error', reject);
-        ffmpeg.on('close', resolve);
+        ffmpeg.on("error", reject);
+        ffmpeg.on("close", resolve);
       });
       await Promise.all([pipeline(input, ffmpeg.stdin).catch(() => {}), exited]).then(([, code]) => {
-        if (abort.signal.aborted) throw new Error('cancelled');
+        if (abort.signal.aborted) throw new Error("cancelled");
         if (code !== 0) throw new Error(`ffmpeg exited ${code}: ${stderr.trim()}`);
       });
       await rename(part, this.file(trackId));
@@ -202,7 +202,9 @@ export class TrackBuffer {
       await rm(part, { force: true });
       if (!abort.signal.aborted) {
         this.failed.set(trackId, this.now());
-        log.warn(`buffering ${trackId} failed: ${(err as Error).message}; left alone for ${RETRY_FAILED_AFTER_MS / 60_000} minutes while it stays next`);
+        log.warn(
+          `buffering ${trackId} failed: ${(err as Error).message}; left alone for ${RETRY_FAILED_AFTER_MS / 60_000} minutes while it stays next`,
+        );
       }
     } finally {
       if (this.fetching.get(trackId) === abort) this.fetching.delete(trackId);

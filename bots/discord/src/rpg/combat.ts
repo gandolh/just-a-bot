@@ -1,13 +1,6 @@
-import {
-  type Character,
-  MOB_KINDS,
-  type World,
-  crier,
-  effectiveStats,
-  levelFor,
-} from './world.ts';
-import { ITEMS } from './items.ts';
-import { type BountyClaim, onKill } from './bounty.ts';
+import { type Character, MOB_KINDS, type World, crier, effectiveStats, levelFor } from "./world.ts";
+import { ITEMS } from "./items.ts";
+import { type BountyClaim, onKill } from "./bounty.ts";
 
 // Encounter combat is turn-based and location-based (no tiles). Each "round" the
 // player swings at the encounter mob; if it survives, it swings back.
@@ -59,9 +52,9 @@ export function startEncounter(char: Character, mobKind: string): void {
 // kill the player.
 export function fightRound(world: World, char: Character): RoundResult {
   const enc = char.encounter;
-  if (!enc) return { playerLog: 'No foe to fight.' };
+  if (!enc) return { playerLog: "No foe to fight." };
   const kind = MOB_KINDS[enc.mobKind];
-  const glyph = kind?.glyph ?? '👹';
+  const glyph = kind?.glyph ?? "👹";
   const name = kind?.name ?? enc.mobKind;
   const eff = effectiveStats(char);
 
@@ -70,7 +63,7 @@ export function fightRound(world: World, char: Character): RoundResult {
   let playerLog: string;
   if (a.hit) {
     enc.mobHp -= a.damage;
-    playerLog = `${char.glyph} You hit the ${glyph} ${name} for **${a.damage}**${a.crit ? ' 💥 crit!' : ''}`;
+    playerLog = `${char.glyph} You hit the ${glyph} ${name} for **${a.damage}**${a.crit ? " 💥 crit!" : ""}`;
   } else {
     playerLog = `${char.glyph} You swing at the ${glyph} ${name} — miss.`;
   }
@@ -86,7 +79,7 @@ export function fightRound(world: World, char: Character): RoundResult {
   let mobLog: string;
   if (c.hit) {
     char.hp -= c.damage;
-    mobLog = `${glyph} The ${name} strikes you for **${c.damage}**${c.crit ? ' 💥 crit!' : ''}`;
+    mobLog = `${glyph} The ${name} strikes you for **${c.damage}**${c.crit ? " 💥 crit!" : ""}`;
   } else {
     mobLog = `${glyph} The ${name} lunges — miss.`;
   }
@@ -102,12 +95,12 @@ export function fightRound(world: World, char: Character): RoundResult {
 // parting shot (and may down you).
 export function fleeEncounter(world: World, char: Character): { escaped: boolean; log: string; died?: boolean } {
   const enc = char.encounter;
-  if (!enc) return { escaped: true, log: 'There is nothing to flee.' };
+  if (!enc) return { escaped: true, log: "There is nothing to flee." };
   const kind = MOB_KINDS[enc.mobKind];
   char.encounter = null;
   // 70% clean getaway; otherwise a parting hit.
   if (Math.random() < 0.7) {
-    return { escaped: true, log: '🏃 You slip away to safety.' };
+    return { escaped: true, log: "🏃 You slip away to safety." };
   }
   const eff = effectiveStats(char);
   const c = computeHit(kind?.atk ?? 1, eff.def);
@@ -115,11 +108,14 @@ export function fleeEncounter(world: World, char: Character): { escaped: boolean
     char.hp -= c.damage;
     if (char.hp <= 0) {
       handleDeath(world, char);
-      return { escaped: true, log: `🏃 You flee, but the ${kind?.name ?? 'foe'} fells you as you turn!`, died: true };
+      return { escaped: true, log: `🏃 You flee, but the ${kind?.name ?? "foe"} fells you as you turn!`, died: true };
     }
-    return { escaped: true, log: `🏃 You flee — the ${kind?.name ?? 'foe'} catches you for **${c.damage}** on the way out.` };
+    return {
+      escaped: true,
+      log: `🏃 You flee — the ${kind?.name ?? "foe"} catches you for **${c.damage}** on the way out.`,
+    };
   }
-  return { escaped: true, log: '🏃 You break away, narrowly dodging a parting blow.' };
+  return { escaped: true, log: "🏃 You break away, narrowly dodging a parting blow." };
 }
 
 function awardKill(world: World, char: Character, mobKind: string): KillResult {
@@ -150,11 +146,11 @@ function awardKill(world: World, char: Character, mobKind: string): KillResult {
     crier(world, `✨ ${char.glyph} **${char.name}** reached level **${afterLevel}**!`);
   }
 
-  if (kind.slug === 'troll') {
+  if (kind.slug === "troll") {
     crier(world, `🧌 ${char.glyph} **${char.name}** felled a **Troll**!`);
   }
   for (const item of drops) {
-    if (item === 'greatsword') {
+    if (item === "greatsword") {
       crier(world, `🪓 ${char.glyph} **${char.name}** found a **${ITEMS[item]?.label ?? item}**!`);
     }
   }
@@ -172,5 +168,5 @@ function handleDeath(world: World, char: Character): void {
   const dropped = Math.floor(char.coins / 2);
   char.coins -= dropped;
   // Wake up safe at the hub.
-  char.locationId = 'plaza';
+  char.locationId = "plaza";
 }

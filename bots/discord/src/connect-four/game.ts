@@ -1,4 +1,4 @@
-export type Disc = 'R' | 'Y';
+export type Disc = "R" | "Y";
 export type Cell = Disc | null;
 
 export const COLS = 7;
@@ -7,7 +7,7 @@ export const ROWS = 6;
 export interface C4Game {
   board: Cell[][];
   turn: Disc;
-  winner: Disc | 'draw' | null;
+  winner: Disc | "draw" | null;
   finished: boolean;
   winningCells: Array<[number, number]> | null;
 }
@@ -15,7 +15,7 @@ export interface C4Game {
 export function newC4Game(): C4Game {
   return {
     board: Array.from({ length: ROWS }, () => Array<Cell>(COLS).fill(null)),
-    turn: 'R',
+    turn: "R",
     winner: null,
     finished: false,
     winningCells: null,
@@ -24,10 +24,10 @@ export function newC4Game(): C4Game {
 
 function checkWinner(board: Cell[][]): { winner: Disc; cells: Array<[number, number]> } | null {
   const directions: Array<[number, number]> = [
-    [0, 1],   // horizontal
-    [1, 0],   // vertical
-    [1, 1],   // diagonal down-right
-    [1, -1],  // diagonal down-left
+    [0, 1], // horizontal
+    [1, 0], // vertical
+    [1, 1], // diagonal down-right
+    [1, -1], // diagonal down-left
   ];
 
   for (let r = 0; r < ROWS; r++) {
@@ -72,10 +72,10 @@ export function dropDisc(game: C4Game, col: number): boolean {
     game.winningCells = win.cells;
     game.finished = true;
   } else if (game.board[0].every((cell) => cell !== null)) {
-    game.winner = 'draw';
+    game.winner = "draw";
     game.finished = true;
   } else {
-    game.turn = game.turn === 'R' ? 'Y' : 'R';
+    game.turn = game.turn === "R" ? "Y" : "R";
   }
   return true;
 }

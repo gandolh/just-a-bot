@@ -1,15 +1,21 @@
-import { Readable } from 'node:stream';
-import type { ReadableStream as WebReadableStream } from 'node:stream/web';
-import { logger } from '@bots/shared';
-import { atriumFetch, atriumStream, clearSpentSessionFile, isPermanentJukeboxError, JukeboxForbidden } from './atrium/client.ts';
-import { isJukeboxConfigured } from './atrium/config.ts';
-import { staleJukeboxVars } from './atrium/env-rule.ts';
-import { TrackBuffer, wipeBuffers } from './buffer.ts';
-import { GuildPlayer, type PlayerApi } from './player.ts';
-import type { JukeboxHost } from './speaker.ts';
-import type { BotCommand, JukeboxPlay, Track } from './types.ts';
+import { Readable } from "node:stream";
+import type { ReadableStream as WebReadableStream } from "node:stream/web";
+import { logger } from "@bots/shared";
+import {
+  atriumFetch,
+  atriumStream,
+  clearSpentSessionFile,
+  isPermanentJukeboxError,
+  JukeboxForbidden,
+} from "./atrium/client.ts";
+import { isJukeboxConfigured } from "./atrium/config.ts";
+import { staleJukeboxVars } from "./atrium/env-rule.ts";
+import { TrackBuffer, wipeBuffers } from "./buffer.ts";
+import { GuildPlayer, type PlayerApi } from "./player.ts";
+import type { JukeboxHost } from "./speaker.ts";
+import type { BotCommand, JukeboxPlay, Track } from "./types.ts";
 
-const log = logger.scoped('jukebox');
+const log = logger.scoped("jukebox");
 
 /**
  * The link to atrium. The bot binds no port, so it holds one
@@ -48,7 +54,7 @@ interface CommandsAnswer {
 const sleep = (ms: number, signal: AbortSignal) =>
   new Promise<void>((resolve) => {
     const timer = setTimeout(resolve, ms);
-    signal.addEventListener('abort', () => (clearTimeout(timer), resolve()), { once: true });
+    signal.addEventListener("abort", () => (clearTimeout(timer), resolve()), { once: true });
   });
 
 /**
@@ -60,10 +66,12 @@ export function startJukeboxLink(host: JukeboxHost): JukeboxLink | null {
   void clearSpentSessionFile();
   const stale = staleJukeboxVars(process.env);
   if (stale.length > 0) {
-    log.warn(`${stale.join(', ')} ${stale.length === 1 ? 'is' : 'are'} no longer read (brief 29); rename them as .env.example shows`);
+    log.warn(
+      `${stale.join(", ")} ${stale.length === 1 ? "is" : "are"} no longer read (brief 29); rename them as .env.example shows`,
+    );
   }
   if (!isJukeboxConfigured()) {
-    log.info('Jukebox not configured (no JUKEBOX_* variables); the link is off');
+    log.info("Jukebox not configured (no JUKEBOX_* variables); the link is off");
     return null;
   }
 
@@ -75,11 +83,11 @@ export function startJukeboxLink(host: JukeboxHost): JukeboxLink | null {
   const api: PlayerApi = {
     advance: (guildId, playId, reason) =>
       atriumFetch<{ play: JukeboxPlay | null; stale?: true }>(`/jukebox/bot/players/${guildId}/advance`, {
-        method: 'POST',
+        method: "POST",
         json: { playId, reason },
       }),
     control: async (guildId, action) => {
-      await atriumFetch(`/jukebox/players/${guildId}/control`, { method: 'POST', json: { action } });
+      await atriumFetch(`/jukebox/players/${guildId}/control`, { method: "POST", json: { action } });
     },
     report: (guildId) => void report(guildId),
   };
@@ -106,8 +114,8 @@ export function startJukeboxLink(host: JukeboxHost): JukeboxLink | null {
       const player = players.get(guildId);
       if (!player) return;
       try {
-        const answer = await atriumFetch<{ upcoming: Track[] }>('/jukebox/bot/status', {
-          method: 'POST',
+        const answer = await atriumFetch<{ upcoming: Track[] }>("/jukebox/bot/status", {
+          method: "POST",
           json: player.status(),
         });
         if (!stopped) player.setUpcoming(answer.upcoming);
@@ -132,7 +140,7 @@ export function startJukeboxLink(host: JukeboxHost): JukeboxLink | null {
     if (isPermanentJukeboxError(err)) {
       const hint =
         err instanceof JukeboxForbidden
-          ? `atrium refused the Bot account (${err.code ?? 'no code'}); check its atrium user has the jukebox role`
+          ? `atrium refused the Bot account (${err.code ?? "no code"}); check its atrium user has the jukebox role`
           : (err as Error).message;
       log.error(`Jukebox link stopped: ${hint}`);
       return false;
@@ -154,9 +162,9 @@ export function startJukeboxLink(host: JukeboxHost): JukeboxLink | null {
     let cursor: number | null = null;
     while (cursor === null && !stopped) {
       try {
-        cursor = (await atriumFetch<CommandsAnswer>('/jukebox/bot/commands', { signal: stopping.signal })).cursor;
+        cursor = (await atriumFetch<CommandsAnswer>("/jukebox/bot/commands", { signal: stopping.signal })).cursor;
       } catch (err) {
-        if (stopped || !survive(err, 'taking the command cursor')) return;
+        if (stopped || !survive(err, "taking the command cursor")) return;
         await waitBackoff();
       }
     }
@@ -169,22 +177,25 @@ export function startJukeboxLink(host: JukeboxHost): JukeboxLink | null {
 
     while (!stopped) {
       try {
-        const answer: CommandsAnswer = await atriumFetch<CommandsAnswer>(`/jukebox/bot/commands?after=${cursor}&wait=${POLL_WAIT_S}`, {
-          timeoutMs: POLL_TIMEOUT_MS,
-          signal: stopping.signal,
-        });
-        if (backoff !== 0) log.info('Jukebox link back');
+        const answer: CommandsAnswer = await atriumFetch<CommandsAnswer>(
+          `/jukebox/bot/commands?after=${cursor}&wait=${POLL_WAIT_S}`,
+          {
+            timeoutMs: POLL_TIMEOUT_MS,
+            signal: stopping.signal,
+          },
+        );
+        if (backoff !== 0) log.info("Jukebox link back");
         backoff = 0;
         for (const command of answer.commands) playerFor(command.guildId).apply(command);
         cursor = answer.cursor;
       } catch (err) {
-        if (stopped || !survive(err, 'waiting for commands')) return;
+        if (stopped || !survive(err, "waiting for commands")) return;
         await waitBackoff();
       }
     }
   }
 
-  void run().catch((err) => log.error('Jukebox link crashed', err));
+  void run().catch((err) => log.error("Jukebox link crashed", err));
 
   return {
     async stop() {

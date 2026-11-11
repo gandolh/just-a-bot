@@ -1,23 +1,18 @@
-import { type Trade, type TradeOffer, type World, nextId, pruneDuelsAndTrades } from './world.ts';
+import { type Trade, type TradeOffer, type World, nextId, pruneDuelsAndTrades } from "./world.ts";
 
 /** An open trade between these two, either way round. */
 export function openTradeBetween(world: World, a: string, b: string): Trade | null {
   return (
     Object.values(world.trades).find(
-      (trade) => trade.state === 'open' && ((trade.aId === a && trade.bId === b) || (trade.aId === b && trade.bId === a)),
+      (trade) =>
+        trade.state === "open" && ((trade.aId === a && trade.bId === b) || (trade.aId === b && trade.bId === a)),
     ) ?? null
   );
 }
 
-export function startTrade(
-  world: World,
-  aId: string,
-  bId: string,
-  messageId: string,
-  channelId: string,
-): Trade {
+export function startTrade(world: World, aId: string, bId: string, messageId: string, channelId: string): Trade {
   pruneDuelsAndTrades(world);
-  const id = nextId(world, 'trade');
+  const id = nextId(world, "trade");
   const trade: Trade = {
     id,
     aId,
@@ -26,7 +21,7 @@ export function startTrade(
     bOffer: { coins: 0, items: [] },
     aConfirmed: false,
     bConfirmed: false,
-    state: 'open',
+    state: "open",
     messageId,
     channelId,
     createdAt: new Date().toISOString(),
@@ -35,18 +30,18 @@ export function startTrade(
   return trade;
 }
 
-export function sideOf(trade: Trade, userId: string): 'a' | 'b' | null {
-  if (trade.aId === userId) return 'a';
-  if (trade.bId === userId) return 'b';
+export function sideOf(trade: Trade, userId: string): "a" | "b" | null {
+  if (trade.aId === userId) return "a";
+  if (trade.bId === userId) return "b";
   return null;
 }
 
-function offerOf(trade: Trade, side: 'a' | 'b'): TradeOffer {
-  return side === 'a' ? trade.aOffer : trade.bOffer;
+function offerOf(trade: Trade, side: "a" | "b"): TradeOffer {
+  return side === "a" ? trade.aOffer : trade.bOffer;
 }
 
-export function adjustCoins(trade: Trade, side: 'a' | 'b', delta: number, world: World): boolean {
-  const userId = side === 'a' ? trade.aId : trade.bId;
+export function adjustCoins(trade: Trade, side: "a" | "b", delta: number, world: World): boolean {
+  const userId = side === "a" ? trade.aId : trade.bId;
   const char = world.chars[userId];
   if (!char) return false;
   const offer = offerOf(trade, side);
@@ -59,13 +54,8 @@ export function adjustCoins(trade: Trade, side: 'a' | 'b', delta: number, world:
   return true;
 }
 
-export function toggleItem(
-  trade: Trade,
-  side: 'a' | 'b',
-  item: string,
-  world: World,
-): boolean {
-  const userId = side === 'a' ? trade.aId : trade.bId;
+export function toggleItem(trade: Trade, side: "a" | "b", item: string, world: World): boolean {
+  const userId = side === "a" ? trade.aId : trade.bId;
   const char = world.chars[userId];
   if (!char) return false;
   const offer = offerOf(trade, side);
@@ -84,13 +74,13 @@ export function toggleItem(
   return true;
 }
 
-export function confirmSide(trade: Trade, side: 'a' | 'b'): void {
-  if (side === 'a') trade.aConfirmed = true;
+export function confirmSide(trade: Trade, side: "a" | "b"): void {
+  if (side === "a") trade.aConfirmed = true;
   else trade.bConfirmed = true;
 }
 
 export function cancelTrade(trade: Trade): void {
-  trade.state = 'cancelled';
+  trade.state = "cancelled";
   trade.aConfirmed = false;
   trade.bConfirmed = false;
 }
@@ -101,12 +91,12 @@ export interface ExecuteTradeResult {
 }
 
 export function executeTrade(world: World, trade: Trade): ExecuteTradeResult {
-  if (trade.state !== 'open') return { ok: false, reason: 'Trade is no longer open.' };
-  if (!trade.aConfirmed || !trade.bConfirmed) return { ok: false, reason: 'Both sides must confirm.' };
+  if (trade.state !== "open") return { ok: false, reason: "Trade is no longer open." };
+  if (!trade.aConfirmed || !trade.bConfirmed) return { ok: false, reason: "Both sides must confirm." };
 
   const a = world.chars[trade.aId];
   const b = world.chars[trade.bId];
-  if (!a || !b) return { ok: false, reason: 'One or both players have left the world.' };
+  if (!a || !b) return { ok: false, reason: "One or both players have left the world." };
 
   // Validate that each side still owns what they offered.
   if (a.coins < trade.aOffer.coins) return { ok: false, reason: `${a.name} no longer has enough coins.` };
@@ -129,7 +119,7 @@ export function executeTrade(world: World, trade: Trade): ExecuteTradeResult {
   moveItems(a.inventory, b.inventory, trade.aOffer.items);
   moveItems(b.inventory, a.inventory, trade.bOffer.items);
 
-  trade.state = 'completed';
+  trade.state = "completed";
   return { ok: true };
 }
 

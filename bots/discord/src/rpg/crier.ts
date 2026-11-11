@@ -1,8 +1,8 @@
-import type { Client } from 'discord.js';
-import { logger } from '@bots/shared';
-import { drainCrierQueues } from './world.ts';
+import type { Client } from "discord.js";
+import { logger } from "@bots/shared";
+import { drainCrierQueues } from "./world.ts";
 
-const log = logger.scoped('rpg-crier');
+const log = logger.scoped("rpg-crier");
 
 export interface CrierMessage {
   content: string;
@@ -15,7 +15,7 @@ export interface CrierMessage {
  * parses no mentions at all on top of that.
  */
 export function crierMessage(lines: readonly string[]): CrierMessage {
-  return { content: `📜 **Town crier**\n${lines.join('\n')}`, allowedMentions: { parse: [] } };
+  return { content: `📜 **Town crier**\n${lines.join("\n")}`, allowedMentions: { parse: [] } };
 }
 
 // The town crier: periodically announce notable world events (level-ups, boss
@@ -26,7 +26,7 @@ export async function tickCrier(client: Client): Promise<void> {
   for (const batch of batches) {
     try {
       const ch = await client.channels.fetch(batch.channelId);
-      if (ch && ch.isTextBased() && 'send' in ch) {
+      if (ch && ch.isTextBased() && "send" in ch) {
         // Keep messages short — at most a handful of lines per cycle.
         const lines = batch.lines.slice(-8);
         await (ch as { send(msg: CrierMessage): Promise<unknown> }).send(crierMessage(lines));

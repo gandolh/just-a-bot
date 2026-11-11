@@ -1,10 +1,10 @@
-import { readFile } from 'node:fs/promises';
-import { writeJsonFile } from '@bots/shared';
-import { resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { readFile } from "node:fs/promises";
+import { writeJsonFile } from "@bots/shared";
+import { resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 
-const here = fileURLToPath(new URL('.', import.meta.url));
-const dataFile = resolve(here, '../../data/timezones.json');
+const here = fileURLToPath(new URL(".", import.meta.url));
+const dataFile = resolve(here, "../../data/timezones.json");
 
 type TimezoneState = Record<string, string>;
 
@@ -16,11 +16,11 @@ let writeChain: Promise<void> = Promise.resolve();
 
 async function read(): Promise<TimezoneState> {
   try {
-    const raw = await readFile(dataFile, 'utf8');
+    const raw = await readFile(dataFile, "utf8");
     const parsed: unknown = JSON.parse(raw);
-    return parsed && typeof parsed === 'object' ? (parsed as TimezoneState) : {};
+    return parsed && typeof parsed === "object" ? (parsed as TimezoneState) : {};
   } catch (err) {
-    if ((err as NodeJS.ErrnoException).code !== 'ENOENT') throw err;
+    if ((err as NodeJS.ErrnoException).code !== "ENOENT") throw err;
     return {};
   }
 }

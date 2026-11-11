@@ -1,9 +1,9 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } from 'discord.js';
-import { type C4Game, COLS, isColumnPlayable } from './game.ts';
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } from "discord.js";
+import { type C4Game, COLS, isColumnPlayable } from "./game.ts";
 
-export const DISC_R = '🔴';
-export const DISC_Y = '🟡';
-export const DISC_EMPTY = '⚫';
+export const DISC_R = "🔴";
+export const DISC_Y = "🟡";
+export const DISC_EMPTY = "⚫";
 
 export interface Match {
   game: C4Game;
@@ -20,14 +20,14 @@ export function userTag(id: string): string {
 }
 
 /** Display label for a side — a mention, or "🤖 Bot" when it's the AI. */
-export function sideLabel(match: Match, disc: 'R' | 'Y'): string {
-  const id = disc === 'R' ? match.redUserId : match.yellowUserId;
-  if (match.vsBot && disc === 'Y') return '🤖 Bot';
+export function sideLabel(match: Match, disc: "R" | "Y"): string {
+  const id = disc === "R" ? match.redUserId : match.yellowUserId;
+  if (match.vsBot && disc === "Y") return "🤖 Bot";
   return userTag(id);
 }
 
 export function currentPlayerId(match: Match): string {
-  return match.game.turn === 'R' ? match.redUserId : match.yellowUserId;
+  return match.game.turn === "R" ? match.redUserId : match.yellowUserId;
 }
 
 export function buildEmbed(match: Match, statusOverride?: string): EmbedBuilder {
@@ -39,29 +39,29 @@ export function buildEmbed(match: Match, statusOverride?: string): EmbedBuilder 
         .map((cell, c) => {
           if (!cell) return DISC_EMPTY;
           const isWinning = game.winningCells?.some(([wr, wc]) => wr === r && wc === c) ?? false;
-          if (isWinning) return cell === 'R' ? '🟥' : '🟨';
-          return cell === 'R' ? DISC_R : DISC_Y;
+          if (isWinning) return cell === "R" ? "🟥" : "🟨";
+          return cell === "R" ? DISC_R : DISC_Y;
         })
-        .join(''),
+        .join(""),
     )
-    .join('\n');
+    .join("\n");
 
   let status: string;
   if (statusOverride) {
     status = statusOverride;
-  } else if (game.winner === 'draw') {
-    status = '🤝 Draw!';
+  } else if (game.winner === "draw") {
+    status = "🤝 Draw!";
   } else if (game.winner) {
-    const disc = game.winner === 'R' ? DISC_R : DISC_Y;
+    const disc = game.winner === "R" ? DISC_R : DISC_Y;
     status = `🏆 ${sideLabel(match, game.winner)} ${disc} wins!`;
   } else {
-    const disc = game.turn === 'R' ? DISC_R : DISC_Y;
+    const disc = game.turn === "R" ? DISC_R : DISC_Y;
     status = `${disc} ${sideLabel(match, game.turn)}'s turn`;
   }
 
   return new EmbedBuilder()
-    .setTitle('Connect Four')
-    .setDescription(`${sideLabel(match, 'R')} ${DISC_R}  vs  ${DISC_Y} ${sideLabel(match, 'Y')}\n\n${rows}`)
+    .setTitle("Connect Four")
+    .setDescription(`${sideLabel(match, "R")} ${DISC_R}  vs  ${DISC_Y} ${sideLabel(match, "Y")}\n\n${rows}`)
     .setFooter({ text: status });
 }
 

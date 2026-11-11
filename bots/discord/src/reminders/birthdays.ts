@@ -1,10 +1,10 @@
-import { readFile } from 'node:fs/promises';
-import { writeJsonFile } from '@bots/shared';
-import { resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { readFile } from "node:fs/promises";
+import { writeJsonFile } from "@bots/shared";
+import { resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 
-const here = fileURLToPath(new URL('.', import.meta.url));
-const dataFile = resolve(here, '../../../data/birthdays.json');
+const here = fileURLToPath(new URL(".", import.meta.url));
+const dataFile = resolve(here, "../../../data/birthdays.json");
 
 export type Birthday = {
   userId: string;
@@ -26,13 +26,11 @@ function key(guildId: string, userId: string): string {
 async function load(): Promise<BirthdaysState> {
   if (state) return state;
   try {
-    const raw = await readFile(dataFile, 'utf8');
+    const raw = await readFile(dataFile, "utf8");
     const parsed: unknown = JSON.parse(raw);
-    state = parsed && typeof parsed === 'object' && !Array.isArray(parsed)
-      ? (parsed as BirthdaysState)
-      : {};
+    state = parsed && typeof parsed === "object" && !Array.isArray(parsed) ? (parsed as BirthdaysState) : {};
   } catch (err) {
-    if ((err as NodeJS.ErrnoException).code !== 'ENOENT') throw err;
+    if ((err as NodeJS.ErrnoException).code !== "ENOENT") throw err;
     state = {};
   }
   return state;

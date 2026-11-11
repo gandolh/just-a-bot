@@ -1,21 +1,19 @@
-import { SlashCommandBuilder } from 'discord.js';
-import { addCoins, getBalance, MAX_ADD } from '../gambling/wallet.ts';
-import type { Command } from './types.ts';
+import { SlashCommandBuilder } from "discord.js";
+import { addCoins, getBalance, MAX_ADD } from "../gambling/wallet.ts";
+import type { Command } from "./types.ts";
 
 export const coins: Command = {
   data: new SlashCommandBuilder()
-    .setName('coins')
-    .setDescription('Manage your hypothetical gambling coins')
-    .addSubcommand((sub) =>
-      sub.setName('balance').setDescription('Show your current coin balance'),
-    )
+    .setName("coins")
+    .setDescription("Manage your hypothetical gambling coins")
+    .addSubcommand((sub) => sub.setName("balance").setDescription("Show your current coin balance"))
     .addSubcommand((sub) =>
       sub
-        .setName('add')
+        .setName("add")
         .setDescription(`Add coins to your account (0 - ${MAX_ADD.toLocaleString()})`)
         .addIntegerOption((opt) =>
           opt
-            .setName('amount')
+            .setName("amount")
             .setDescription(`Amount of coins to add (0 - ${MAX_ADD.toLocaleString()})`)
             .setRequired(true)
             .setMinValue(0)
@@ -26,7 +24,7 @@ export const coins: Command = {
     const sub = interaction.options.getSubcommand(true);
     const userId = interaction.user.id;
 
-    if (sub === 'balance') {
+    if (sub === "balance") {
       const balance = await getBalance(userId);
       await interaction.reply({
         content: `You have **${balance.toLocaleString()}** coins.`,
@@ -35,8 +33,8 @@ export const coins: Command = {
       return;
     }
 
-    if (sub === 'add') {
-      const amount = interaction.options.getInteger('amount', true);
+    if (sub === "add") {
+      const amount = interaction.options.getInteger("amount", true);
       if (!Number.isInteger(amount) || amount < 0 || amount > MAX_ADD) {
         await interaction.reply({
           content: `Pick an amount between 0 and ${MAX_ADD.toLocaleString()}.`,

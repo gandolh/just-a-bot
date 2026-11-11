@@ -1,6 +1,6 @@
-import { ApplicationCommandOptionType, EmbedBuilder, SlashCommandBuilder } from 'discord.js';
-import type { APIApplicationCommandOption, APIEmbedField } from 'discord.js';
-import type { Command, ContextMenuCommand } from './types.ts';
+import { ApplicationCommandOptionType, EmbedBuilder, SlashCommandBuilder } from "discord.js";
+import type { APIApplicationCommandOption, APIEmbedField } from "discord.js";
+import type { Command, ContextMenuCommand } from "./types.ts";
 
 /**
  * `/help` is built from the registered commands, not written by hand. The
@@ -27,40 +27,56 @@ interface Group {
 
 /** Display order. A registered command missing from `CATEGORY` lands in Other. */
 const GROUPS: Record<string, Group> = {
-  gambling: { title: 'Gambling', emoji: '🎰' },
-  games: { title: 'Games', emoji: '🎮' },
+  gambling: { title: "Gambling", emoji: "🎰" },
+  games: { title: "Games", emoji: "🎮" },
   rpg: {
-    title: 'RPG',
-    emoji: '🐉',
+    title: "RPG",
+    emoji: "🐉",
     text: [
-      'A shared text adventure per server. Explore places, fight, loot, level up.',
-      '',
-      '**`/rpg start`** — enter the world (creates your character the first time). You appear at a place with buttons for what to do and where to go.',
-      '**`/rpg exit`** — step away; your character stays safe until you return.',
-      '',
-      '🔍 Explore to find foes and loot, travel between places (further = deadlier), 🏪 shop at the Plaza, and 👥 duel/trade anyone sharing your location.',
-      'Die → you wake at the Plaza, lighter of coin. Equipment is never lost.',
-    ].join('\n'),
+      "A shared text adventure per server. Explore places, fight, loot, level up.",
+      "",
+      "**`/rpg start`** — enter the world (creates your character the first time). You appear at a place with buttons for what to do and where to go.",
+      "**`/rpg exit`** — step away; your character stays safe until you return.",
+      "",
+      "🔍 Explore to find foes and loot, travel between places (further = deadlier), 🏪 shop at the Plaza, and 👥 duel/trade anyone sharing your location.",
+      "Die → you wake at the Plaza, lighter of coin. Equipment is never lost.",
+    ].join("\n"),
   },
-  social: { title: 'Social', emoji: '💬' },
-  music: { title: 'Music', emoji: '🎵' },
-  ai: { title: 'AI and images', emoji: '🤖' },
-  leaderboards: { title: 'Leaderboards', emoji: '🏆' },
-  misc: { title: 'Misc', emoji: '🛠️' },
-  other: { title: 'Other', emoji: '📦' },
+  social: { title: "Social", emoji: "💬" },
+  music: { title: "Music", emoji: "🎵" },
+  ai: { title: "AI and images", emoji: "🤖" },
+  leaderboards: { title: "Leaderboards", emoji: "🏆" },
+  misc: { title: "Misc", emoji: "🛠️" },
+  other: { title: "Other", emoji: "📦" },
 };
 
 const CATEGORY: Record<string, keyof typeof GROUPS> = {
-  coins: 'gambling', give: 'gambling', slots: 'gambling', blackjack: 'gambling',
-  blackjack2: 'gambling', dice: 'gambling', dice2: 'gambling',
-  wordle: 'games', tictactoe: 'games', c4: 'games', c42: 'games',
-  mafia: 'games', hangman: 'games', trivia: 'games',
-  rpg: 'rpg',
-  quote: 'social', confess: 'social', birthday: 'social', remindme: 'social', clock: 'social',
-  jukebox: 'music',
-  ask: 'ai', img: 'ai',
-  top: 'leaderboards',
-  ping: 'misc', help: 'misc',
+  coins: "gambling",
+  give: "gambling",
+  slots: "gambling",
+  blackjack: "gambling",
+  blackjack2: "gambling",
+  dice: "gambling",
+  dice2: "gambling",
+  wordle: "games",
+  tictactoe: "games",
+  c4: "games",
+  c42: "games",
+  mafia: "games",
+  hangman: "games",
+  trivia: "games",
+  rpg: "rpg",
+  quote: "social",
+  confess: "social",
+  birthday: "social",
+  remindme: "social",
+  clock: "social",
+  jukebox: "music",
+  ask: "ai",
+  img: "ai",
+  top: "leaderboards",
+  ping: "misc",
+  help: "misc",
 };
 
 /** One line per runnable form: a line per subcommand, or one for the command. */
@@ -86,7 +102,7 @@ const MAX_FIELDS = 25;
 /** Pack lines into as few field values as fit under the per-field limit. */
 function packLines(lines: string[]): string[] {
   const values: string[] = [];
-  let current = '';
+  let current = "";
   for (const line of lines) {
     const next = current ? `${current}\n${line}` : line;
     if (next.length > FIELD_VALUE_MAX && current) {
@@ -105,19 +121,19 @@ function packLines(lines: string[]): string[] {
 export function buildHelpFields(): APIEmbedField[] {
   const lines = new Map<string, string[]>(Object.keys(GROUPS).map((key) => [key, []]));
   for (const command of catalog.commands) {
-    const key = CATEGORY[command.data.name] ?? 'other';
+    const key = CATEGORY[command.data.name] ?? "other";
     if (GROUPS[key]?.text) continue;
     lines.get(key)!.push(...commandLines(command));
   }
   for (const menu of catalog.menus) {
-    lines.get('social')!.push(`**${menu.data.name}** — right-click a message → Apps`);
+    lines.get("social")!.push(`**${menu.data.name}** — right-click a message → Apps`);
   }
 
   const fields: APIEmbedField[] = [];
   for (const [key, group] of Object.entries(GROUPS)) {
     const name = `${group.emoji} ${group.title}`;
     if (group.text) {
-      if (catalog.commands.some((c) => (CATEGORY[c.data.name] ?? 'other') === key)) {
+      if (catalog.commands.some((c) => (CATEGORY[c.data.name] ?? "other") === key)) {
         fields.push({ name, value: group.text });
       }
       continue;
@@ -129,14 +145,12 @@ export function buildHelpFields(): APIEmbedField[] {
 }
 
 export const help: Command = {
-  data: new SlashCommandBuilder()
-    .setName('help')
-    .setDescription('Show all available commands'),
+  data: new SlashCommandBuilder().setName("help").setDescription("Show all available commands"),
   async execute(interaction) {
     const embed = new EmbedBuilder()
-      .setTitle('just-a-bot — commands')
+      .setTitle("just-a-bot — commands")
       .setColor(0x5865f2)
-      .setDescription('Coins are hypothetical. No real payments are made.')
+      .setDescription("Coins are hypothetical. No real payments are made.")
       .addFields(buildHelpFields());
 
     await interaction.reply({ embeds: [embed], ephemeral: true });

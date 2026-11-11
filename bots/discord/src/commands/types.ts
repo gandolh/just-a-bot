@@ -6,13 +6,10 @@ import type {
   SlashCommandBuilder,
   SlashCommandOptionsOnlyBuilder,
   SlashCommandSubcommandsOnlyBuilder,
-} from 'discord.js';
+} from "discord.js";
 
 export interface Command {
-  data:
-    | SlashCommandBuilder
-    | SlashCommandOptionsOnlyBuilder
-    | SlashCommandSubcommandsOnlyBuilder;
+  data: SlashCommandBuilder | SlashCommandOptionsOnlyBuilder | SlashCommandSubcommandsOnlyBuilder;
   execute(interaction: ChatInputCommandInteraction): Promise<void>;
   autocomplete?(interaction: AutocompleteInteraction): Promise<void>;
 }

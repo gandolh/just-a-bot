@@ -1,10 +1,10 @@
-import { logger } from '@bots/shared';
-import { AloneWatch } from './alone.ts';
-import type { OpenTrack, TrackBuffer } from './buffer.ts';
-import type { Speaker } from './speaker.ts';
-import type { BotCommand, JukeboxPlay, StatusReport, Track } from './types.ts';
+import { logger } from "@bots/shared";
+import { AloneWatch } from "./alone.ts";
+import type { OpenTrack, TrackBuffer } from "./buffer.ts";
+import type { Speaker } from "./speaker.ts";
+import type { BotCommand, JukeboxPlay, StatusReport, Track } from "./types.ts";
 
-const log = logger.scoped('jukebox');
+const log = logger.scoped("jukebox");
 
 /**
  * Whether a `play` should replace what is playing. Atrium raises `playId`
@@ -18,8 +18,12 @@ export function shouldApplyPlay(current: number | null, incoming: number): boole
 
 /** The atrium calls a guild's player makes. The link supplies them. */
 export interface PlayerApi {
-  advance(guildId: string, playId: number, reason: 'ended' | 'error'): Promise<{ play: JukeboxPlay | null; stale?: true }>;
-  control(guildId: string, action: 'pause' | 'leave'): Promise<void>;
+  advance(
+    guildId: string,
+    playId: number,
+    reason: "ended" | "error",
+  ): Promise<{ play: JukeboxPlay | null; stale?: true }>;
+  control(guildId: string, action: "pause" | "leave"): Promise<void>;
   report(guildId: string): void;
 }
 
@@ -31,7 +35,7 @@ export interface PlayerApi {
  */
 export class GuildPlayer {
   private playId: number | null = null;
-  private state: 'idle' | 'playing' | 'paused' = 'idle';
+  private state: "idle" | "playing" | "paused" = "idle";
   private track: Track | null = null;
   private upcoming: Track[] = [];
   private current: OpenTrack | null = null;
@@ -43,13 +47,13 @@ export class GuildPlayer {
   private readonly alone: AloneWatch;
   readonly guildId: string;
   private readonly speaker: Speaker;
-  private readonly buffer: Pick<TrackBuffer, 'update' | 'open' | 'clear'>;
+  private readonly buffer: Pick<TrackBuffer, "update" | "open" | "clear">;
   private readonly api: PlayerApi;
 
   constructor(
     guildId: string,
     speaker: Speaker,
-    buffer: Pick<TrackBuffer, 'update' | 'open' | 'clear'>,
+    buffer: Pick<TrackBuffer, "update" | "open" | "clear">,
     api: PlayerApi,
   ) {
     this.guildId = guildId;
@@ -57,21 +61,27 @@ export class GuildPlayer {
     this.buffer = buffer;
     this.api = api;
     this.alone = new AloneWatch({
-      pause: () => void this.api.control(this.guildId, 'pause').catch((err) => log.warn(`pausing an empty channel failed: ${err.message}`)),
-      leave: () => void this.api.control(this.guildId, 'leave').catch((err) => log.warn(`leaving an empty channel failed: ${err.message}`)),
+      pause: () =>
+        void this.api
+          .control(this.guildId, "pause")
+          .catch((err) => log.warn(`pausing an empty channel failed: ${err.message}`)),
+      leave: () =>
+        void this.api
+          .control(this.guildId, "leave")
+          .catch((err) => log.warn(`leaving an empty channel failed: ${err.message}`)),
     });
     // Both events read the play when they fire, not when the chain gets to
     // them: by then a newer play may have started.
     speaker.setHandlers({
       ended: () => {
         const playId = this.sounding;
-        const reason = this.current?.failed() ? 'error' : 'ended';
+        const reason = this.current?.failed() ? "error" : "ended";
         this.enqueue(() => this.finished(reason, playId));
       },
       error: (err) => {
         log.warn(`playback failed in ${this.guildId}: ${err.message}`);
         const playId = this.sounding;
-        this.enqueue(() => this.finished('error', playId));
+        this.enqueue(() => this.finished("error", playId));
       },
       listeners: (humans) => this.alone.update(humans),
       channels: () => this.api.report(this.guildId),
@@ -97,7 +107,7 @@ export class GuildPlayer {
   }
 
   get playing(): boolean {
-    return this.state === 'playing';
+    return this.state === "playing";
   }
 
   /** Run a command after the ones before it. */
@@ -108,16 +118,21 @@ export class GuildPlayer {
   /** What plays next, from a status answer. */
   setUpcoming(upcoming: Track[]): void {
     this.upcoming = upcoming;
-    this.buffer.update(this.track?.id ?? null, upcoming.map((t) => t.id));
+    this.buffer.update(
+      this.track?.id ?? null,
+      upcoming.map((t) => t.id),
+    );
   }
 
   private enqueue(work: () => Promise<void>): void {
-    this.chain = this.chain.then(work).catch((err: Error) => log.error(`jukebox command failed in ${this.guildId}`, err));
+    this.chain = this.chain
+      .then(work)
+      .catch((err: Error) => log.error(`jukebox command failed in ${this.guildId}`, err));
   }
 
   private async run(command: BotCommand): Promise<void> {
     switch (command.kind) {
-      case 'join':
+      case "join":
         try {
           await this.speaker.join(command.channelId);
         } catch (err) {
@@ -127,31 +142,31 @@ export class GuildPlayer {
           this.lostVoice();
         }
         break;
-      case 'leave':
+      case "leave":
         this.speaker.leave();
         this.alone.reset();
         this.idle();
         break;
-      case 'play':
+      case "play":
         await this.start(command);
         return; // `start` reports.
-      case 'pause':
-        if (this.state === 'playing') {
+      case "pause":
+        if (this.state === "playing") {
           this.speaker.pause();
-          this.state = 'paused';
+          this.state = "paused";
         }
         break;
-      case 'resume':
-        if (this.state === 'paused') {
+      case "resume":
+        if (this.state === "paused") {
           this.speaker.resume();
-          this.state = 'playing';
+          this.state = "playing";
         }
         break;
-      case 'stop':
+      case "stop":
         this.speaker.stop();
         this.idle();
         break;
-      case 'upcoming':
+      case "upcoming":
         this.setUpcoming(command.upcoming);
         return; // Nothing atrium needs to hear.
     }
@@ -164,15 +179,18 @@ export class GuildPlayer {
    */
   private lostVoice(): void {
     this.alone.reset();
-    this.state = 'idle';
+    this.state = "idle";
   }
 
   private idle(): void {
-    this.state = 'idle';
+    this.state = "idle";
     this.track = null;
     this.current = null;
     this.sounding = null;
-    this.buffer.update(null, this.upcoming.map((t) => t.id));
+    this.buffer.update(
+      null,
+      this.upcoming.map((t) => t.id),
+    );
   }
 
   /** Start a play from a command or an `advance` answer, if it is newer than the current one. */
@@ -189,19 +207,22 @@ export class GuildPlayer {
       this.api.report(this.guildId);
       return;
     }
-    this.buffer.update(play.track.id, play.upcoming.map((t) => t.id));
+    this.buffer.update(
+      play.track.id,
+      play.upcoming.map((t) => t.id),
+    );
     try {
       this.current = await this.buffer.open(play.track.id);
       this.speaker.play(this.current.stream);
       this.sounding = play.playId;
-      this.state = 'playing';
-      log.info(`playing "${play.track.title}" in ${this.guildId} (${this.current.live ? 'live' : 'buffered'})`);
+      this.state = "playing";
+      log.info(`playing "${play.track.title}" in ${this.guildId} (${this.current.live ? "live" : "buffered"})`);
     } catch (err) {
       log.warn(`could not open "${play.track.title}": ${(err as Error).message}`);
-      this.state = 'idle';
+      this.state = "idle";
       this.api.report(this.guildId);
       // Atrium could not hand over the file; ask for the next one.
-      await this.finished('error', play.playId);
+      await this.finished("error", play.playId);
       return;
     }
     this.api.report(this.guildId);
@@ -217,14 +238,14 @@ export class GuildPlayer {
    * command chain so a newer command is never held up; a newer `play` makes
    * the retry moot.
    */
-  private async finished(reason: 'ended' | 'error', playId: number | null, attempt = 0): Promise<void> {
+  private async finished(reason: "ended" | "error", playId: number | null, attempt = 0): Promise<void> {
     if (playId === null || playId !== this.playId) return;
     if (attempt === 0) {
       if (this.advancedPlayId === playId) return;
       this.advancedPlayId = playId;
     }
-    this.state = 'idle';
-    let answer: Awaited<ReturnType<PlayerApi['advance']>>;
+    this.state = "idle";
+    let answer: Awaited<ReturnType<PlayerApi["advance"]>>;
     try {
       answer = await this.api.advance(this.guildId, playId, reason);
     } catch (err) {
@@ -232,7 +253,7 @@ export class GuildPlayer {
       log.warn(`asking atrium for the next Track failed (${(err as Error).message}); retrying in ${delay / 1000} s`);
       setTimeout(() => {
         // Not if a newer play started, or a stop or leave cleared the Track meanwhile.
-        if (this.playId === playId && this.state === 'idle' && this.track !== null) {
+        if (this.playId === playId && this.state === "idle" && this.track !== null) {
           this.enqueue(() => this.finished(reason, playId, attempt + 1));
         }
       }, delay).unref();
@@ -248,7 +269,7 @@ export class GuildPlayer {
   async shutdown(): Promise<void> {
     this.alone.reset();
     this.speaker.leave();
-    this.state = 'idle';
+    this.state = "idle";
     await this.buffer.clear();
   }
 }

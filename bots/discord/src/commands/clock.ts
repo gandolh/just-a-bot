@@ -3,16 +3,16 @@ import {
   type ChatInputCommandInteraction,
   EmbedBuilder,
   SlashCommandBuilder,
-} from 'discord.js';
-import type { Command } from './types.ts';
-import { getAllTimezones, removeTimezone, setTimezone } from '../clock/timezones.ts';
+} from "discord.js";
+import type { Command } from "./types.ts";
+import { getAllTimezones, removeTimezone, setTimezone } from "../clock/timezones.ts";
 
-const ALL_TIMEZONES: string[] = Intl.supportedValuesOf('timeZone');
+const ALL_TIMEZONES: string[] = Intl.supportedValuesOf("timeZone");
 
 function formatLocalTime(tz: string): string {
   const now = new Date();
-  const timeStr = new Intl.DateTimeFormat('en-US', {
-    timeStyle: 'short',
+  const timeStr = new Intl.DateTimeFormat("en-US", {
+    timeStyle: "short",
     timeZone: tz,
   }).format(now);
 
@@ -21,10 +21,10 @@ function formatLocalTime(tz: string): string {
   // *host's* offset, so a UTC server printed UTC+00:00 for every zone.
   const offsetMin = getUtcOffsetMinutes(tz);
 
-  const sign = offsetMin >= 0 ? '+' : '-';
+  const sign = offsetMin >= 0 ? "+" : "-";
   const absMin = Math.abs(offsetMin);
-  const hh = String(Math.floor(absMin / 60)).padStart(2, '0');
-  const mm = String(absMin % 60).padStart(2, '0');
+  const hh = String(Math.floor(absMin / 60)).padStart(2, "0");
+  const mm = String(absMin % 60).padStart(2, "0");
 
   return `${timeStr} — UTC${sign}${hh}:${mm}`;
 }
@@ -32,36 +32,38 @@ function formatLocalTime(tz: string): string {
 function getUtcOffsetMinutes(tz: string): number {
   const now = new Date();
   const utcMs = now.getTime() + now.getTimezoneOffset() * 60_000;
-  const localStr = new Intl.DateTimeFormat('en-CA', {
+  const localStr = new Intl.DateTimeFormat("en-CA", {
     timeZone: tz,
-    year: 'numeric', month: '2-digit', day: '2-digit',
-    hour: '2-digit', minute: '2-digit', second: '2-digit',
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
     hour12: false,
   }).format(now);
-  const localMs = new Date(localStr.replace(/(\d+)-(\d+)-(\d+),? (\d+):(\d+):(\d+)/, '$1-$2-$3T$4:$5:$6')).getTime();
+  const localMs = new Date(localStr.replace(/(\d+)-(\d+)-(\d+),? (\d+):(\d+):(\d+)/, "$1-$2-$3T$4:$5:$6")).getTime();
   return Math.round((localMs - utcMs) / 60_000);
 }
 
 const data = new SlashCommandBuilder()
-  .setName('clock')
-  .setDescription('World clock — see what time it is for everyone')
+  .setName("clock")
+  .setDescription("World clock — see what time it is for everyone")
   .addSubcommand((sub) =>
     sub
-      .setName('set')
-      .setDescription('Register your timezone')
+      .setName("set")
+      .setDescription("Register your timezone")
       .addStringOption((o) =>
         o
-          .setName('timezone')
-          .setDescription('IANA timezone name, e.g. America/New_York')
+          .setName("timezone")
+          .setDescription("IANA timezone name, e.g. America/New_York")
           .setRequired(true)
           .setAutocomplete(true),
       ),
   )
+  .addSubcommand((sub) => sub.setName("unset").setDescription("Remove your registered timezone"))
   .addSubcommand((sub) =>
-    sub.setName('unset').setDescription('Remove your registered timezone'),
-  )
-  .addSubcommand((sub) =>
-    sub.setName('show').setDescription('Show current local time for all registered members in this server'),
+    sub.setName("show").setDescription("Show current local time for all registered members in this server"),
   );
 
 export const clock: Command = {
@@ -70,8 +72,8 @@ export const clock: Command = {
   async execute(interaction: ChatInputCommandInteraction) {
     const sub = interaction.options.getSubcommand();
 
-    if (sub === 'set') {
-      const tz = interaction.options.getString('timezone', true);
+    if (sub === "set") {
+      const tz = interaction.options.getString("timezone", true);
       if (!ALL_TIMEZONES.includes(tz)) {
         await interaction.reply({
           content: `Unknown timezone **${tz}**. Use a valid IANA name like \`America/New_York\` or \`Europe/Bucharest\`.`,
@@ -87,15 +89,15 @@ export const clock: Command = {
       return;
     }
 
-    if (sub === 'unset') {
+    if (sub === "unset") {
       await removeTimezone(interaction.user.id);
-      await interaction.reply({ content: 'Your timezone has been removed.', ephemeral: true });
+      await interaction.reply({ content: "Your timezone has been removed.", ephemeral: true });
       return;
     }
 
     // sub === 'show'
     if (!interaction.inGuild()) {
-      await interaction.reply({ content: 'Use this in a server.', ephemeral: true });
+      await interaction.reply({ content: "Use this in a server.", ephemeral: true });
       return;
     }
 
@@ -105,17 +107,15 @@ export const clock: Command = {
 
     if (registeredIds.length === 0) {
       await interaction.reply({
-        content: 'No one in this server has set a timezone. Try `/clock set timezone:Continent/City`.',
+        content: "No one in this server has set a timezone. Try `/clock set timezone:Continent/City`.",
         ephemeral: true,
       });
       return;
     }
 
-    const members = await guild?.members.fetch({ user: registeredIds }).catch(() => null) ?? null;
+    const members = (await guild?.members.fetch({ user: registeredIds }).catch(() => null)) ?? null;
 
-    const guildEntries = registeredIds
-      .filter((id) => members?.has(id))
-      .map((id) => ({ userId: id, tz: all[id] }));
+    const guildEntries = registeredIds.filter((id) => members?.has(id)).map((id) => ({ userId: id, tz: all[id] }));
 
     if (guildEntries.length === 0) {
       // People have registered, but none could be resolved as members of this
@@ -131,8 +131,8 @@ export const clock: Command = {
 
       const fallbackEmbed = new EmbedBuilder()
         .setColor(0x3498db)
-        .setTitle('🕐 World Clock')
-        .setDescription(fallbackLines.join('\n\n'))
+        .setTitle("🕐 World Clock")
+        .setDescription(fallbackLines.join("\n\n"))
         .setFooter({ text: new Date().toUTCString() });
 
       await interaction.reply({ embeds: [fallbackEmbed] });
@@ -142,14 +142,14 @@ export const clock: Command = {
     guildEntries.sort((a, b) => getUtcOffsetMinutes(a.tz) - getUtcOffsetMinutes(b.tz));
 
     const lines = guildEntries.map((e) => {
-      const displayName = members?.get(e.userId)?.displayName ?? 'Unknown';
+      const displayName = members?.get(e.userId)?.displayName ?? "Unknown";
       return `**${displayName}** (${e.tz})\n${formatLocalTime(e.tz)}`;
     });
 
     const embed = new EmbedBuilder()
       .setColor(0x3498db)
-      .setTitle('🕐 World Clock')
-      .setDescription(lines.join('\n\n'))
+      .setTitle("🕐 World Clock")
+      .setDescription(lines.join("\n\n"))
       .setFooter({ text: new Date().toUTCString() });
 
     await interaction.reply({ embeds: [embed] });

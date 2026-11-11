@@ -25,13 +25,13 @@ export interface JukeboxPlay {
 }
 
 export type BotCommand = { id: number; guildId: string } & (
-  | { kind: 'join'; channelId: string }
-  | { kind: 'leave' }
-  | ({ kind: 'play' } & JukeboxPlay)
-  | { kind: 'pause' }
-  | { kind: 'resume' }
-  | { kind: 'stop' }
-  | { kind: 'upcoming'; upcoming: Track[] }
+  | { kind: "join"; channelId: string }
+  | { kind: "leave" }
+  | ({ kind: "play" } & JukeboxPlay)
+  | { kind: "pause" }
+  | { kind: "resume" }
+  | { kind: "stop" }
+  | { kind: "upcoming"; upcoming: Track[] }
 );
 
 /** `POST /jukebox/bot/status` body. */
@@ -41,6 +41,6 @@ export interface StatusReport {
   voiceChannel: VoiceChannelRef | null;
   voiceChannels: VoiceChannelRef[];
   playId: number;
-  state: 'idle' | 'playing' | 'paused';
+  state: "idle" | "playing" | "paused";
   positionMs: number;
 }

@@ -1,11 +1,11 @@
-import { readFile } from 'node:fs/promises';
-import { writeJsonFile } from '@bots/shared';
-import { resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { randomUUID } from 'node:crypto';
+import { readFile } from "node:fs/promises";
+import { writeJsonFile } from "@bots/shared";
+import { resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+import { randomUUID } from "node:crypto";
 
-const here = fileURLToPath(new URL('.', import.meta.url));
-const dataDir = resolve(here, '../../data/quotes');
+const here = fileURLToPath(new URL(".", import.meta.url));
+const dataDir = resolve(here, "../../data/quotes");
 
 export interface Quote {
   id: string;
@@ -34,12 +34,12 @@ function pathFor(guildId: string): string {
 export async function loadBook(guildId: string): Promise<QuoteBook> {
   if (cache.has(guildId)) return cache.get(guildId)!;
   try {
-    const raw = await readFile(pathFor(guildId), 'utf8');
+    const raw = await readFile(pathFor(guildId), "utf8");
     const book = JSON.parse(raw) as QuoteBook;
     cache.set(guildId, book);
     return book;
   } catch (err) {
-    if ((err as NodeJS.ErrnoException).code === 'ENOENT') {
+    if ((err as NodeJS.ErrnoException).code === "ENOENT") {
       const book: QuoteBook = { guildId, quotes: [] };
       cache.set(guildId, book);
       return book;
@@ -58,10 +58,7 @@ export function newQuoteId(): string {
   return randomUUID().slice(0, 8);
 }
 
-export async function appendQuote(
-  guildId: string,
-  data: Omit<Quote, 'id' | 'guildId' | 'savedAt'>,
-): Promise<Quote> {
+export async function appendQuote(guildId: string, data: Omit<Quote, "id" | "guildId" | "savedAt">): Promise<Quote> {
   const book = await loadBook(guildId);
   const quote: Quote = {
     id: newQuoteId(),

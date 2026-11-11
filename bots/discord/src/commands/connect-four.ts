@@ -3,17 +3,11 @@ import {
   type ChatInputCommandInteraction,
   type Message,
   SlashCommandBuilder,
-} from 'discord.js';
-import { dropDisc, newC4Game } from '../connect-four/game.ts';
-import { chooseMove } from '../connect-four/ai.ts';
-import {
-  type Match,
-  buildColumnButtons,
-  buildEmbed,
-  currentPlayerId,
-  sideLabel,
-} from '../connect-four/view.ts';
-import type { Command } from './types.ts';
+} from "discord.js";
+import { dropDisc, newC4Game } from "../connect-four/game.ts";
+import { chooseMove } from "../connect-four/ai.ts";
+import { type Match, buildColumnButtons, buildEmbed, currentPlayerId, sideLabel } from "../connect-four/view.ts";
+import type { Command } from "./types.ts";
 
 const TIMEOUT_MS = 90_000;
 
@@ -21,7 +15,7 @@ const TIMEOUT_MS = 90_000;
 const matches = new Map<string, Match>();
 
 /** Bot is always Yellow in solo mode. */
-const BOT_ID = 'bot';
+const BOT_ID = "bot";
 
 function finalize(messageId: string, match: Match): void {
   clearTimeout(match.timeoutHandle);
@@ -44,7 +38,7 @@ function armTurnTimer(messageId: string, match: Match, message: Message): void {
 
     const timedOutDisc = active.game.turn;
     const timedOut = sideLabel(active, timedOutDisc);
-    const winner = sideLabel(active, timedOutDisc === 'R' ? 'Y' : 'R');
+    const winner = sideLabel(active, timedOutDisc === "R" ? "Y" : "R");
     const statusMsg = `⏱️ ${timedOut} ran out of time — ${winner} wins!`;
 
     try {
@@ -58,27 +52,27 @@ function armTurnTimer(messageId: string, match: Match, message: Message): void {
 export async function handleConnectFourButton(interaction: ButtonInteraction): Promise<void> {
   const match = matches.get(interaction.message.id);
   if (!match) {
-    await interaction.reply({ content: 'This game has expired.', ephemeral: true });
+    await interaction.reply({ content: "This game has expired.", ephemeral: true });
     return;
   }
   if (match.game.finished) {
-    await interaction.reply({ content: 'Game already finished.', ephemeral: true });
+    await interaction.reply({ content: "Game already finished.", ephemeral: true });
     return;
   }
   if (interaction.user.id !== currentPlayerId(match)) {
-    await interaction.reply({ content: 'Not your turn.', ephemeral: true });
+    await interaction.reply({ content: "Not your turn.", ephemeral: true });
     return;
   }
 
-  const col = parseInt(interaction.customId.split(':')[1], 10);
+  const col = parseInt(interaction.customId.split(":")[1], 10);
   const ok = dropDisc(match.game, col);
   if (!ok) {
-    await interaction.reply({ content: 'That column is full.', ephemeral: true });
+    await interaction.reply({ content: "That column is full.", ephemeral: true });
     return;
   }
 
   // Solo mode: after the human moves and the game continues, let the bot reply.
-  if (match.vsBot && !match.game.finished && match.game.turn === 'Y') {
+  if (match.vsBot && !match.game.finished && match.game.turn === "Y") {
     const botCol = chooseMove(match.game);
     if (botCol >= 0) dropDisc(match.game, botCol);
   }
@@ -124,9 +118,7 @@ async function startMatch(
 }
 
 export const connectFour: Command = {
-  data: new SlashCommandBuilder()
-    .setName('c4')
-    .setDescription('Play Connect Four against the bot'),
+  data: new SlashCommandBuilder().setName("c4").setDescription("Play Connect Four against the bot"),
 
   async execute(interaction: ChatInputCommandInteraction) {
     // Human is Red and moves first; bot is Yellow.
@@ -136,14 +128,12 @@ export const connectFour: Command = {
 
 export const connectFour2: Command = {
   data: new SlashCommandBuilder()
-    .setName('c42')
-    .setDescription('Challenge someone to a game of Connect Four')
-    .addUserOption((opt) =>
-      opt.setName('opponent').setDescription('The user you want to challenge').setRequired(true),
-    ),
+    .setName("c42")
+    .setDescription("Challenge someone to a game of Connect Four")
+    .addUserOption((opt) => opt.setName("opponent").setDescription("The user you want to challenge").setRequired(true)),
 
   async execute(interaction: ChatInputCommandInteraction) {
-    const opponent = interaction.options.getUser('opponent', true);
+    const opponent = interaction.options.getUser("opponent", true);
 
     if (opponent.id === interaction.user.id) {
       await interaction.reply({ content: "You can't challenge yourself.", ephemeral: true });

@@ -5,7 +5,7 @@ import {
   ButtonStyle,
   type ChatInputCommandInteraction,
   SlashCommandBuilder,
-} from 'discord.js';
+} from "discord.js";
 import {
   type Card,
   dealerPlay,
@@ -14,9 +14,9 @@ import {
   isBlackjack,
   renderHand,
   settleHand,
-} from '../gambling/blackjack.ts';
-import { credit, getBalance, tryDebit } from '../gambling/wallet.ts';
-import type { Command } from './types.ts';
+} from "../gambling/blackjack.ts";
+import { credit, getBalance, tryDebit } from "../gambling/wallet.ts";
+import type { Command } from "./types.ts";
 
 interface Seat {
   userId: string;
@@ -45,14 +45,8 @@ function rows(table: Table): ActionRowBuilder<ButtonBuilder>[] {
   if (!table.started) {
     return [
       new ActionRowBuilder<ButtonBuilder>().addComponents(
-        new ButtonBuilder()
-          .setCustomId('bj2:join')
-          .setLabel('Accept & ante')
-          .setStyle(ButtonStyle.Success),
-        new ButtonBuilder()
-          .setCustomId('bj2:decline')
-          .setLabel('Decline')
-          .setStyle(ButtonStyle.Danger),
+        new ButtonBuilder().setCustomId("bj2:join").setLabel("Accept & ante").setStyle(ButtonStyle.Success),
+        new ButtonBuilder().setCustomId("bj2:decline").setLabel("Decline").setStyle(ButtonStyle.Danger),
       ),
     ];
   }
@@ -61,18 +55,18 @@ function rows(table: Table): ActionRowBuilder<ButtonBuilder>[] {
   return [
     new ActionRowBuilder<ButtonBuilder>().addComponents(
       new ButtonBuilder()
-        .setCustomId('bj2:hit')
-        .setLabel('Hit')
+        .setCustomId("bj2:hit")
+        .setLabel("Hit")
         .setStyle(ButtonStyle.Primary)
         .setDisabled(table.finished),
       new ButtonBuilder()
-        .setCustomId('bj2:stand')
-        .setLabel('Stand')
+        .setCustomId("bj2:stand")
+        .setLabel("Stand")
         .setStyle(ButtonStyle.Secondary)
         .setDisabled(table.finished),
       new ButtonBuilder()
-        .setCustomId('bj2:double')
-        .setLabel('Double')
+        .setCustomId("bj2:double")
+        .setLabel("Double")
         .setStyle(ButtonStyle.Success)
         .setDisabled(table.finished || !canDouble),
     ),
@@ -84,35 +78,33 @@ function view(table: Table): { content: string; components: ActionRowBuilder<But
 
   if (!table.started) {
     lines.push(
-      '',
+      "",
       `<@${table.challengerId}> challenged <@${table.opponentId}>.`,
       `<@${table.opponentId}>, accept to ante **${table.bet.toLocaleString()}** coins and deal.`,
     );
-    return { content: lines.join('\n'), components: rows(table) };
+    return { content: lines.join("\n"), components: rows(table) };
   }
 
-  const dealerVal = table.finished ? handValue(table.dealer).total : '?';
+  const dealerVal = table.finished ? handValue(table.dealer).total : "?";
   lines.push(`Dealer: ${renderHand(table.dealer, !table.finished)}  (${dealerVal})`);
-  lines.push('');
+  lines.push("");
 
   for (let i = 0; i < table.seats.length; i++) {
     const s = table.seats[i];
     const v = handValue(s.hand);
-    const marker = !table.finished && i === table.turn ? '▶ ' : '  ';
-    const doubled = s.doubled ? ' (doubled)' : '';
-    lines.push(
-      `${marker}**${s.name}**${doubled}: ${renderHand(s.hand)}  (${v.total}${v.soft ? ' soft' : ''})`,
-    );
+    const marker = !table.finished && i === table.turn ? "▶ " : "  ";
+    const doubled = s.doubled ? " (doubled)" : "";
+    lines.push(`${marker}**${s.name}**${doubled}: ${renderHand(s.hand)}  (${v.total}${v.soft ? " soft" : ""})`);
   }
 
   if (table.finished && table.results) {
-    lines.push('', table.results);
+    lines.push("", table.results);
   } else {
     const s = table.seats[table.turn];
-    lines.push('', `It's <@${s.userId}>'s turn.`);
+    lines.push("", `It's <@${s.userId}>'s turn.`);
   }
 
-  return { content: lines.join('\n'), components: rows(table) };
+  return { content: lines.join("\n"), components: rows(table) };
 }
 
 /** Advance past any seats that are already done; settle the table if all are. */
@@ -124,7 +116,7 @@ async function advanceOrFinish(table: Table): Promise<void> {
 
   // All players have acted — dealer plays once and we settle each seat.
   dealerPlay({
-    userId: '',
+    userId: "",
     bet: table.bet,
     deck: table.deck,
     player: [],
@@ -138,28 +130,28 @@ async function advanceOrFinish(table: Table): Promise<void> {
   for (const s of table.seats) {
     const stake = s.doubled ? table.bet * 2 : table.bet;
     const { delta, label } = await settleHand(s.userId, stake, s.hand, table.dealer);
-    const sign = delta >= 0 ? '+' : '';
+    const sign = delta >= 0 ? "+" : "";
     resultLines.push(`**${s.name}** ${label} (${sign}${delta.toLocaleString()})`);
   }
-  table.results = resultLines.join('\n');
+  table.results = resultLines.join("\n");
 }
 
 export async function handleBlackjack2Button(interaction: ButtonInteraction): Promise<void> {
   const table = tables.get(interaction.message.id);
   if (!table) {
-    await interaction.reply({ content: 'This game has expired.', ephemeral: true });
+    await interaction.reply({ content: "This game has expired.", ephemeral: true });
     return;
   }
 
-  const action = interaction.customId.split(':')[1];
+  const action = interaction.customId.split(":")[1];
 
   // --- Lobby phase ---
   if (!table.started) {
     if (interaction.user.id !== table.opponentId) {
-      await interaction.reply({ content: 'This invite is for someone else.', ephemeral: true });
+      await interaction.reply({ content: "This invite is for someone else.", ephemeral: true });
       return;
     }
-    if (action === 'decline') {
+    if (action === "decline") {
       await credit(table.challengerId, table.bet); // refund challenger's ante
       tables.delete(interaction.message.id);
       await interaction.update({
@@ -168,7 +160,7 @@ export async function handleBlackjack2Button(interaction: ButtonInteraction): Pr
       });
       return;
     }
-    if (action === 'join') {
+    if (action === "join") {
       const ok = await tryDebit(table.opponentId, table.bet);
       if (!ok) {
         const bal = await getBalance(table.opponentId);
@@ -199,7 +191,7 @@ export async function handleBlackjack2Button(interaction: ButtonInteraction): Pr
 
   // --- Play phase ---
   if (table.finished) {
-    await interaction.reply({ content: 'This game is already finished.', ephemeral: true });
+    await interaction.reply({ content: "This game is already finished.", ephemeral: true });
     return;
   }
 
@@ -209,22 +201,22 @@ export async function handleBlackjack2Button(interaction: ButtonInteraction): Pr
     return;
   }
 
-  if (action === 'hit') {
+  if (action === "hit") {
     seat.hand.push(table.deck.pop()!);
     if (handValue(seat.hand).total >= 21) seat.done = true; // bust or 21 ends the turn
-  } else if (action === 'stand') {
+  } else if (action === "stand") {
     seat.done = true;
-  } else if (action === 'double') {
+  } else if (action === "double") {
     if (seat.hand.length !== 2 || seat.doubled) {
       await interaction.reply({
-        content: 'You can only double on your first action.',
+        content: "You can only double on your first action.",
         ephemeral: true,
       });
       return;
     }
     const ok = await tryDebit(seat.userId, table.bet);
     if (!ok) {
-      await interaction.reply({ content: 'Not enough coins to double.', ephemeral: true });
+      await interaction.reply({ content: "Not enough coins to double.", ephemeral: true });
       return;
     }
     seat.doubled = true;
@@ -243,25 +235,23 @@ export async function handleBlackjack2Button(interaction: ButtonInteraction): Pr
 
 export const blackjack2: Command = {
   data: new SlashCommandBuilder()
-    .setName('blackjack2')
-    .setDescription('Play a hand of blackjack against another player (shared dealer)')
-    .addUserOption((opt) =>
-      opt.setName('opponent').setDescription('Who to challenge').setRequired(true),
-    )
+    .setName("blackjack2")
+    .setDescription("Play a hand of blackjack against another player (shared dealer)")
+    .addUserOption((opt) => opt.setName("opponent").setDescription("Who to challenge").setRequired(true))
     .addIntegerOption((opt) =>
-      opt.setName('bet').setDescription('Coins each player wagers').setRequired(true).setMinValue(1),
+      opt.setName("bet").setDescription("Coins each player wagers").setRequired(true).setMinValue(1),
     ),
   async execute(interaction: ChatInputCommandInteraction) {
-    const opponent = interaction.options.getUser('opponent', true);
-    const bet = interaction.options.getInteger('bet', true);
+    const opponent = interaction.options.getUser("opponent", true);
+    const bet = interaction.options.getInteger("bet", true);
     const challengerId = interaction.user.id;
 
     if (opponent.bot) {
-      await interaction.reply({ content: 'You can only challenge a real player.', ephemeral: true });
+      await interaction.reply({ content: "You can only challenge a real player.", ephemeral: true });
       return;
     }
     if (opponent.id === challengerId) {
-      await interaction.reply({ content: 'You can not challenge yourself.', ephemeral: true });
+      await interaction.reply({ content: "You can not challenge yourself.", ephemeral: true });
       return;
     }
 

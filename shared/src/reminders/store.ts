@@ -1,5 +1,5 @@
-import { readFile } from 'node:fs/promises';
-import { writeJsonFile } from '../json-file.ts';
+import { readFile } from "node:fs/promises";
+import { writeJsonFile } from "../json-file.ts";
 
 export type BaseReminder = {
   id: string;
@@ -22,11 +22,11 @@ export function createReminderStore<R extends BaseReminder>(dataFile: string): R
   async function load(): Promise<R[]> {
     if (state) return state;
     try {
-      const raw = await readFile(dataFile, 'utf8');
+      const raw = await readFile(dataFile, "utf8");
       const parsed: unknown = JSON.parse(raw);
       state = Array.isArray(parsed) ? (parsed as R[]) : [];
     } catch (err) {
-      if ((err as NodeJS.ErrnoException).code !== 'ENOENT') throw err;
+      if ((err as NodeJS.ErrnoException).code !== "ENOENT") throw err;
       state = [];
     }
     return state;

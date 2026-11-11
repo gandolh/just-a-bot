@@ -1,13 +1,9 @@
-import {
-  JukeboxForbidden,
-  JukeboxRequestError,
-  JukeboxUnavailable,
-} from './errors.ts';
-import type { AtriumSession } from './session.ts';
+import { JukeboxForbidden, JukeboxRequestError, JukeboxUnavailable } from "./errors.ts";
+import type { AtriumSession } from "./session.ts";
 
 const DEFAULT_TIMEOUT_MS = 10_000;
 
-export interface AtriumInit extends Omit<RequestInit, 'signal' | 'body'> {
+export interface AtriumInit extends Omit<RequestInit, "signal" | "body"> {
   /** JSON-encoded and sent with a JSON content type. */
   json?: unknown;
   /**
@@ -69,8 +65,8 @@ export class AtriumClient {
         response = await this.fetchImpl(`${this.config.atriumUrl}${path}`, {
           ...rest,
           headers: {
-            accept: 'application/json',
-            ...(json === undefined ? {} : { 'content-type': 'application/json' }),
+            accept: "application/json",
+            ...(json === undefined ? {} : { "content-type": "application/json" }),
             ...(headers as Record<string, string> | undefined),
             cookie,
           },
@@ -96,7 +92,7 @@ export class AtriumClient {
       }
       if (response.status === 403) throw new JukeboxForbidden(code);
       if (response.status === 503 || response.status >= 500) {
-        throw new JukeboxUnavailable(`atrium answered ${response.status}${code ? ` ${code}` : ''} for ${path}`);
+        throw new JukeboxUnavailable(`atrium answered ${response.status}${code ? ` ${code}` : ""} for ${path}`);
       }
       throw new JukeboxRequestError(response.status, code);
     }

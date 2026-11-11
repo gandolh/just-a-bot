@@ -1,4 +1,4 @@
-import { type C4Game, type Cell, type Disc, COLS, ROWS, dropDisc, isColumnPlayable, newC4Game } from './game.ts';
+import { type C4Game, type Cell, type Disc, COLS, ROWS, dropDisc, isColumnPlayable, newC4Game } from "./game.ts";
 
 const MAX_DEPTH = 6; // plies of lookahead
 const WIN_SCORE = 1_000_000;
@@ -16,7 +16,7 @@ function cloneGame(game: C4Game): C4Game {
 
 /** Count windows of 4 and score them for `me` (higher = better for `me`). */
 function evaluate(board: Cell[][], me: Disc): number {
-  const opp: Disc = me === 'R' ? 'Y' : 'R';
+  const opp: Disc = me === "R" ? "Y" : "R";
   let score = 0;
 
   // Center column preference — central control wins more games.
@@ -32,11 +32,17 @@ function evaluate(board: Cell[][], me: Disc): number {
     if (mine > 0 && theirs > 0) return; // contested, no value
     if (mine === 3 && empty === 1) score += 50;
     else if (mine === 2 && empty === 2) score += 10;
-    else if (theirs === 3 && empty === 1) score -= 80; // block threats aggressively
+    else if (theirs === 3 && empty === 1)
+      score -= 80; // block threats aggressively
     else if (theirs === 2 && empty === 2) score -= 8;
   };
 
-  const directions: Array<[number, number]> = [[0, 1], [1, 0], [1, 1], [1, -1]];
+  const directions: Array<[number, number]> = [
+    [0, 1],
+    [1, 0],
+    [1, 1],
+    [1, -1],
+  ];
   for (let r = 0; r < ROWS; r++) {
     for (let c = 0; c < COLS; c++) {
       for (const [dr, dc] of directions) {
@@ -64,17 +70,10 @@ function orderedColumns(game: C4Game): number[] {
   return cols;
 }
 
-function minimax(
-  game: C4Game,
-  depth: number,
-  alpha: number,
-  beta: number,
-  maximizing: boolean,
-  me: Disc,
-): number {
+function minimax(game: C4Game, depth: number, alpha: number, beta: number, maximizing: boolean, me: Disc): number {
   if (game.finished) {
     if (game.winner === me) return WIN_SCORE - (MAX_DEPTH - depth); // prefer faster wins
-    if (game.winner === 'draw' || game.winner === null) return 0;
+    if (game.winner === "draw" || game.winner === null) return 0;
     return -WIN_SCORE + (MAX_DEPTH - depth); // prefer slower losses
   }
   if (depth === 0) return evaluate(game.board, me);

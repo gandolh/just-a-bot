@@ -1,6 +1,6 @@
-import { logger } from '@bots/shared';
+import { logger } from "@bots/shared";
 
-const log = logger.scoped('shutdown');
+const log = logger.scoped("shutdown");
 
 /**
  * Run every store's flush to the end, whatever the others do, and log each
@@ -14,7 +14,7 @@ export async function drainStores(flushes: Record<string, () => Promise<void>>):
   const results = await Promise.allSettled(names.map((name) => flushes[name]()));
   const failed: string[] = [];
   results.forEach((result, i) => {
-    if (result.status === 'rejected') {
+    if (result.status === "rejected") {
       failed.push(names[i]);
       log.error(`Flushing ${names[i]} on shutdown failed`, result.reason);
     }

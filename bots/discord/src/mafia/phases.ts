@@ -1,15 +1,9 @@
-import type { Client } from 'discord.js';
-import { listPersistedGames, loadGame, updateGame } from './store.ts';
-import type { MafiaGame, Player } from './store.ts';
-import { alivePlayers, aliveByRole, checkWin } from './roles.ts';
-import {
-  dayEmbed,
-  eliminatedEmbed,
-  nightEmbed,
-  nightResultEmbed,
-  winEmbed,
-} from './render.ts';
-import { postToThread, sendNightActionDms } from './dm.ts';
+import type { Client } from "discord.js";
+import { listPersistedGames, loadGame, updateGame } from "./store.ts";
+import type { MafiaGame, Player } from "./store.ts";
+import { alivePlayers, aliveByRole, checkWin } from "./roles.ts";
+import { dayEmbed, eliminatedEmbed, nightEmbed, nightResultEmbed, winEmbed } from "./render.ts";
+import { postToThread, sendNightActionDms } from "./dm.ts";
 
 const DAY_MS = 5 * 60_000;
 const NIGHT_MS = 2 * 60_000;
@@ -38,28 +32,37 @@ const resolving = new Set<string>();
 
 function armDayTimer(client: Client, guildId: string, ms: number): void {
   clearTimer(dayTimers, guildId);
-  dayTimers.set(guildId, setTimeout(() => {
-    dayTimers.delete(guildId);
-    void resolveDay(client, guildId);
-  }, ms));
+  dayTimers.set(
+    guildId,
+    setTimeout(() => {
+      dayTimers.delete(guildId);
+      void resolveDay(client, guildId);
+    }, ms),
+  );
 }
 
 function armNightTimer(client: Client, guildId: string, ms: number): void {
   clearTimer(nightTimers, guildId);
-  nightTimers.set(guildId, setTimeout(() => {
-    nightTimers.delete(guildId);
-    void resolveNight(client, guildId);
-  }, ms));
+  nightTimers.set(
+    guildId,
+    setTimeout(() => {
+      nightTimers.delete(guildId);
+      void resolveNight(client, guildId);
+    }, ms),
+  );
 }
 
 /** Arm (or re-arm) a lobby's expiry. `fire` must check it still has the same
  * game — see `lobbyExpire` in `commands/mafia.ts`. */
 export function armLobbyTimer(guildId: string, ms: number, fire: () => void): void {
   clearTimer(lobbyTimers, guildId);
-  lobbyTimers.set(guildId, setTimeout(() => {
-    lobbyTimers.delete(guildId);
-    fire();
-  }, ms));
+  lobbyTimers.set(
+    guildId,
+    setTimeout(() => {
+      lobbyTimers.delete(guildId);
+      fire();
+    }, ms),
+  );
 }
 
 export function clearLobbyTimer(guildId: string): void {
@@ -68,7 +71,7 @@ export function clearLobbyTimer(guildId: string): void {
 
 export async function startDay(client: Client, guildId: string): Promise<void> {
   const game = await updateGame(guildId, (g) => {
-    g.phase = 'day';
+    g.phase = "day";
     g.day += 1;
     g.votes = [];
     g.phaseDeadline = new Date(Date.now() + DAY_MS).toISOString();
@@ -81,7 +84,7 @@ export async function startDay(client: Client, guildId: string): Promise<void> {
 
 export async function resolveDay(client: Client, guildId: string): Promise<void> {
   const game = await loadGame(guildId);
-  if (!game || game.phase !== 'day') return;
+  if (!game || game.phase !== "day") return;
   const claim = `${guildId}:day`;
   if (resolving.has(claim)) return;
   resolving.add(claim);
@@ -94,7 +97,6 @@ export async function resolveDay(client: Client, guildId: string): Promise<void>
 }
 
 async function resolveClaimedDay(client: Client, guildId: string, game: MafiaGame): Promise<void> {
-
   const alive = alivePlayers(game);
   const threshold = Math.floor(alive.length / 2) + 1;
 
@@ -107,7 +109,10 @@ async function resolveClaimedDay(client: Client, guildId: string, game: MafiaGam
   for (const [targetId, count] of tally.entries()) {
     if (count >= threshold) {
       const p = game.players[targetId];
-      if (p && p.alive) { eliminated = p; break; }
+      if (p && p.alive) {
+        eliminated = p;
+        break;
+      }
     }
   }
 
@@ -130,7 +135,7 @@ async function resolveClaimedDay(client: Client, guildId: string, game: MafiaGam
     await postToThread(client, game, { embeds: [eliminatedEmbed(eliminated, game)] });
   } else {
     await postToThread(client, game, {
-      content: '🗳️ No majority reached — the day ends without an elimination.',
+      content: "🗳️ No majority reached — the day ends without an elimination.",
     });
   }
 
@@ -148,7 +153,7 @@ async function resolveClaimedDay(client: Client, guildId: string, game: MafiaGam
 
 export async function startNight(client: Client, guildId: string): Promise<void> {
   const game = await updateGame(guildId, (g) => {
-    g.phase = 'night';
+    g.phase = "night";
     g.nightActions = [];
     g.phaseDeadline = new Date(Date.now() + NIGHT_MS).toISOString();
   });
@@ -161,7 +166,7 @@ export async function startNight(client: Client, guildId: string): Promise<void>
 
 export async function resolveNight(client: Client, guildId: string): Promise<void> {
   const game = await loadGame(guildId);
-  if (!game || game.phase !== 'night') return;
+  if (!game || game.phase !== "night") return;
   const claim = `${guildId}:night`;
   if (resolving.has(claim)) return;
   resolving.add(claim);
@@ -174,9 +179,8 @@ export async function resolveNight(client: Client, guildId: string): Promise<voi
 }
 
 async function resolveClaimedNight(client: Client, guildId: string, game: MafiaGame): Promise<void> {
-
-  const killAction = game.nightActions.find((a) => a.kind === 'kill');
-  const saveAction = game.nightActions.find((a) => a.kind === 'save');
+  const killAction = game.nightActions.find((a) => a.kind === "kill");
+  const saveAction = game.nightActions.find((a) => a.kind === "save");
 
   let killed: Player | null = null;
   let savedMessage = false;
@@ -213,16 +217,12 @@ async function resolveClaimedNight(client: Client, guildId: string, game: MafiaG
   await startDay(client, guildId);
 }
 
-export async function endGame(
-  client: Client,
-  guildId: string,
-  winner: 'town' | 'mafia',
-): Promise<void> {
+export async function endGame(client: Client, guildId: string, winner: "town" | "mafia"): Promise<void> {
   clearTimer(dayTimers, guildId);
   clearTimer(nightTimers, guildId);
 
   const game = await updateGame(guildId, (g) => {
-    g.phase = 'finished';
+    g.phase = "finished";
     g.history.push(`Game ended: ${winner} wins on day ${g.day}.`);
   });
   if (!game) return;
@@ -248,14 +248,14 @@ export async function rearmMafiaTimers(client: Client): Promise<void> {
 
   for (const game of await listPersistedGames()) {
     const { guildId } = game;
-    if (game.phase === 'lobby') {
-      const { armLobbyExpiry } = await import('../commands/mafia.ts');
+    if (game.phase === "lobby") {
+      const { armLobbyExpiry } = await import("../commands/mafia.ts");
       armLobbyExpiry(client, game, remaining(game.lobbyExpiresAt, 0));
-    } else if (game.phase === 'day') {
+    } else if (game.phase === "day") {
       const ms = remaining(game.phaseDeadline, DAY_MS);
       if (ms === 0) void resolveDay(client, guildId);
       else armDayTimer(client, guildId, ms);
-    } else if (game.phase === 'night') {
+    } else if (game.phase === "night") {
       const ms = remaining(game.phaseDeadline, NIGHT_MS);
       if (ms === 0) void resolveNight(client, guildId);
       else armNightTimer(client, guildId, ms);
@@ -273,18 +273,17 @@ function clearTimer(map: Map<string, ReturnType<typeof setTimeout>>, key: string
 
 export async function checkNightComplete(client: Client, guildId: string): Promise<void> {
   const game = await loadGame(guildId);
-  if (!game || game.phase !== 'night') return;
+  if (!game || game.phase !== "night") return;
 
-  const aliveMafia = aliveByRole(game, 'mafia');
-  const aliveDoctor = aliveByRole(game, 'doctor');
+  const aliveMafia = aliveByRole(game, "mafia");
+  const aliveDoctor = aliveByRole(game, "doctor");
 
   const mafiaVoted = aliveMafia.every((p) =>
-    game.nightActions.some((a) => a.actorId === p.userId && a.kind === 'kill'),
+    game.nightActions.some((a) => a.actorId === p.userId && a.kind === "kill"),
   );
-  const doctorSaved = aliveDoctor.length === 0 ||
-    aliveDoctor.every((p) =>
-      game.nightActions.some((a) => a.actorId === p.userId && a.kind === 'save'),
-    );
+  const doctorSaved =
+    aliveDoctor.length === 0 ||
+    aliveDoctor.every((p) => game.nightActions.some((a) => a.actorId === p.userId && a.kind === "save"));
 
   if (mafiaVoted && doctorSaved) {
     await resolveNight(client, guildId);

@@ -1,10 +1,10 @@
-import { readFile } from 'node:fs/promises';
-import { writeJsonFile } from '@bots/shared';
-import { resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { readFile } from "node:fs/promises";
+import { writeJsonFile } from "@bots/shared";
+import { resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 
-const here = fileURLToPath(new URL('.', import.meta.url));
-const dataDir = resolve(here, '../../data/confessions');
+const here = fileURLToPath(new URL(".", import.meta.url));
+const dataDir = resolve(here, "../../data/confessions");
 
 export interface ConfessionEntry {
   id: number;
@@ -27,12 +27,12 @@ function pathFor(guildId: string): string {
 export async function loadStore(guildId: string): Promise<ConfessionStore> {
   if (cache.has(guildId)) return cache.get(guildId)!;
   try {
-    const raw = await readFile(pathFor(guildId), 'utf8');
+    const raw = await readFile(pathFor(guildId), "utf8");
     const store = JSON.parse(raw) as ConfessionStore;
     cache.set(guildId, store);
     return store;
   } catch (err) {
-    if ((err as NodeJS.ErrnoException).code === 'ENOENT') {
+    if ((err as NodeJS.ErrnoException).code === "ENOENT") {
       const store: ConfessionStore = { channelId: null, nextId: 1, confessions: [] };
       cache.set(guildId, store);
       return store;
@@ -53,10 +53,7 @@ export async function setChannel(guildId: string, channelId: string): Promise<vo
   await persist(guildId, store);
 }
 
-export async function addConfession(
-  guildId: string,
-  text: string,
-): Promise<ConfessionEntry> {
+export async function addConfession(guildId: string, text: string): Promise<ConfessionEntry> {
   const store = await loadStore(guildId);
   const entry: ConfessionEntry = {
     id: store.nextId,

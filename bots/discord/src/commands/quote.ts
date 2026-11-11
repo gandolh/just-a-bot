@@ -12,84 +12,76 @@ import {
   type MessageContextMenuCommandInteraction,
   PermissionsBitField,
   SlashCommandBuilder,
-} from 'discord.js';
-import type { Command, ContextMenuCommand } from './types.ts';
-import {
-  appendQuote,
-  getQuote,
-  loadBook,
-  removeQuote,
-} from '../quotes/store.ts';
+} from "discord.js";
+import type { Command, ContextMenuCommand } from "./types.ts";
+import { appendQuote, getQuote, loadBook, removeQuote } from "../quotes/store.ts";
 
-const MESSAGE_LINK_RE =
-  /https?:\/\/(?:www\.)?discord(?:app)?\.com\/channels\/(\d+)\/(\d+)\/(\d+)/;
+const MESSAGE_LINK_RE = /https?:\/\/(?:www\.)?discord(?:app)?\.com\/channels\/(\d+)\/(\d+)\/(\d+)/;
 
 const PAGE_SIZE = 10;
 
 const data = new SlashCommandBuilder()
-  .setName('quote')
-  .setDescription('Save and recall memorable server messages')
+  .setName("quote")
+  .setDescription("Save and recall memorable server messages")
   .addSubcommand((s) =>
     s
-      .setName('add')
-      .setDescription('Save a message by its Discord link')
-      .addStringOption((o) =>
-        o.setName('link').setDescription('Discord message link').setRequired(true),
-      ),
+      .setName("add")
+      .setDescription("Save a message by its Discord link")
+      .addStringOption((o) => o.setName("link").setDescription("Discord message link").setRequired(true)),
   )
-  .addSubcommand((s) => s.setName('random').setDescription('Post a random quote from this server'))
+  .addSubcommand((s) => s.setName("random").setDescription("Post a random quote from this server"))
   .addSubcommand((s) =>
     s
-      .setName('search')
-      .setDescription('Find the most recent quote containing text')
-      .addStringOption((o) =>
-        o.setName('text').setDescription('Search query').setRequired(true),
-      ),
+      .setName("search")
+      .setDescription("Find the most recent quote containing text")
+      .addStringOption((o) => o.setName("text").setDescription("Search query").setRequired(true)),
   )
   .addSubcommand((s) =>
     s
-      .setName('by')
-      .setDescription('Random quote from a specific author')
-      .addUserOption((o) => o.setName('user').setDescription('Author').setRequired(true)),
+      .setName("by")
+      .setDescription("Random quote from a specific author")
+      .addUserOption((o) => o.setName("user").setDescription("Author").setRequired(true)),
   )
-  .addSubcommand((s) => s.setName('list').setDescription('Paginated list of all quotes'))
+  .addSubcommand((s) => s.setName("list").setDescription("Paginated list of all quotes"))
   .addSubcommand((s) =>
     s
-      .setName('remove')
-      .setDescription('Remove a quote by ID')
-      .addStringOption((o) =>
-        o.setName('id').setDescription('Quote ID').setRequired(true),
-      ),
+      .setName("remove")
+      .setDescription("Remove a quote by ID")
+      .addStringOption((o) => o.setName("id").setDescription("Quote ID").setRequired(true)),
   );
 
 export const quote: Command = {
   data,
   async execute(interaction: ChatInputCommandInteraction) {
     if (!interaction.inGuild()) {
-      await interaction.reply({ content: 'Use this in a server.', ephemeral: true });
+      await interaction.reply({ content: "Use this in a server.", ephemeral: true });
       return;
     }
     const sub = interaction.options.getSubcommand();
     switch (sub) {
-      case 'add': return handleAdd(interaction);
-      case 'random': return handleRandom(interaction);
-      case 'search': return handleSearch(interaction);
-      case 'by': return handleBy(interaction);
-      case 'list': return handleList(interaction, 0);
-      case 'remove': return handleRemove(interaction);
+      case "add":
+        return handleAdd(interaction);
+      case "random":
+        return handleRandom(interaction);
+      case "search":
+        return handleSearch(interaction);
+      case "by":
+        return handleBy(interaction);
+      case "list":
+        return handleList(interaction, 0);
+      case "remove":
+        return handleRemove(interaction);
     }
   },
 };
 
-const saveQuoteData = new ContextMenuCommandBuilder()
-  .setName('Save Quote')
-  .setType(ApplicationCommandType.Message);
+const saveQuoteData = new ContextMenuCommandBuilder().setName("Save Quote").setType(ApplicationCommandType.Message);
 
 export const saveQuoteMenu: ContextMenuCommand = {
   data: saveQuoteData,
   async execute(interaction: MessageContextMenuCommandInteraction) {
     if (!interaction.inGuild()) {
-      await interaction.reply({ content: 'Use this in a server.', ephemeral: true });
+      await interaction.reply({ content: "Use this in a server.", ephemeral: true });
       return;
     }
     const msg = interaction.targetMessage;
@@ -134,15 +126,15 @@ export async function canQuoteFrom(channel: Channel, userId: string): Promise<bo
 }
 
 async function handleAdd(interaction: ChatInputCommandInteraction): Promise<void> {
-  const link = interaction.options.getString('link', true);
+  const link = interaction.options.getString("link", true);
   const match = MESSAGE_LINK_RE.exec(link);
   if (!match) {
-    await interaction.reply({ content: 'That does not look like a valid Discord message link.', ephemeral: true });
+    await interaction.reply({ content: "That does not look like a valid Discord message link.", ephemeral: true });
     return;
   }
   const [, linkGuildId, channelId, messageId] = match;
   if (linkGuildId !== interaction.guildId) {
-    await interaction.reply({ content: 'That message is from a different server.', ephemeral: true });
+    await interaction.reply({ content: "That message is from a different server.", ephemeral: true });
     return;
   }
 
@@ -160,7 +152,7 @@ async function handleAdd(interaction: ChatInputCommandInteraction): Promise<void
   try {
     msg = await channel.messages.fetch(messageId);
   } catch {
-    await interaction.editReply('Could not fetch that message. Check the link and bot permissions.');
+    await interaction.editReply("Could not fetch that message. Check the link and bot permissions.");
     return;
   }
 
@@ -180,7 +172,10 @@ async function handleAdd(interaction: ChatInputCommandInteraction): Promise<void
 async function handleRandom(interaction: ChatInputCommandInteraction): Promise<void> {
   const book = await loadBook(interaction.guildId!);
   if (book.quotes.length === 0) {
-    await interaction.reply({ content: 'No quotes saved yet. Use `/quote add` or right-click a message.', ephemeral: true });
+    await interaction.reply({
+      content: "No quotes saved yet. Use `/quote add` or right-click a message.",
+      ephemeral: true,
+    });
     return;
   }
   const q = book.quotes[Math.floor(Math.random() * book.quotes.length)];
@@ -188,7 +183,7 @@ async function handleRandom(interaction: ChatInputCommandInteraction): Promise<v
 }
 
 async function handleSearch(interaction: ChatInputCommandInteraction): Promise<void> {
-  const text = interaction.options.getString('text', true).toLowerCase();
+  const text = interaction.options.getString("text", true).toLowerCase();
   const book = await loadBook(interaction.guildId!);
   const match = [...book.quotes].reverse().find((q) => q.content.toLowerCase().includes(text));
   if (!match) {
@@ -199,7 +194,7 @@ async function handleSearch(interaction: ChatInputCommandInteraction): Promise<v
 }
 
 async function handleBy(interaction: ChatInputCommandInteraction): Promise<void> {
-  const user = interaction.options.getUser('user', true);
+  const user = interaction.options.getUser("user", true);
   const book = await loadBook(interaction.guildId!);
   const pool = book.quotes.filter((q) => q.authorId === user.id);
   if (pool.length === 0) {
@@ -210,16 +205,13 @@ async function handleBy(interaction: ChatInputCommandInteraction): Promise<void>
   await interaction.reply({ embeds: [buildQuoteEmbed(q)] });
 }
 
-async function handleList(
-  interaction: ChatInputCommandInteraction | ButtonInteraction,
-  page: number,
-): Promise<void> {
+async function handleList(interaction: ChatInputCommandInteraction | ButtonInteraction, page: number): Promise<void> {
   const guildId = interaction.guildId!;
   const book = await loadBook(guildId);
 
   if (book.quotes.length === 0) {
-    const content = 'No quotes saved yet.';
-    if ('deferReply' in interaction && typeof interaction.deferReply === 'function') {
+    const content = "No quotes saved yet.";
+    if ("deferReply" in interaction && typeof interaction.deferReply === "function") {
       await (interaction as ChatInputCommandInteraction).reply({ content, ephemeral: true });
     } else {
       await (interaction as ButtonInteraction).reply({ content, ephemeral: true });
@@ -236,19 +228,19 @@ async function handleList(
     .setTitle(`Quote Book — Page ${safePage + 1} / ${totalPages}`)
     .setDescription(
       slice
-        .map((q) => `\`${q.id}\` **${q.authorTag}**: ${q.content.slice(0, 80)}${q.content.length > 80 ? '…' : ''}`)
-        .join('\n'),
+        .map((q) => `\`${q.id}\` **${q.authorTag}**: ${q.content.slice(0, 80)}${q.content.length > 80 ? "…" : ""}`)
+        .join("\n"),
     );
 
   const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
     new ButtonBuilder()
       .setCustomId(`quote:list:${safePage - 1}`)
-      .setLabel('← Prev')
+      .setLabel("← Prev")
       .setStyle(ButtonStyle.Secondary)
       .setDisabled(safePage === 0),
     new ButtonBuilder()
       .setCustomId(`quote:list:${safePage + 1}`)
-      .setLabel('Next →')
+      .setLabel("Next →")
       .setStyle(ButtonStyle.Secondary)
       .setDisabled(safePage >= totalPages - 1),
   );
@@ -263,7 +255,7 @@ async function handleList(
 }
 
 async function handleRemove(interaction: ChatInputCommandInteraction): Promise<void> {
-  const id = interaction.options.getString('id', true);
+  const id = interaction.options.getString("id", true);
   const q = await getQuote(interaction.guildId!, id);
   if (!q) {
     await interaction.reply({ content: `No quote with ID \`${id}\` found.`, ephemeral: true });
@@ -271,11 +263,13 @@ async function handleRemove(interaction: ChatInputCommandInteraction): Promise<v
   }
 
   const canRemove =
-    interaction.user.id === q.savedBy ||
-    interaction.memberPermissions?.has(PermissionsBitField.Flags.ManageMessages);
+    interaction.user.id === q.savedBy || interaction.memberPermissions?.has(PermissionsBitField.Flags.ManageMessages);
 
   if (!canRemove) {
-    await interaction.reply({ content: 'Only the person who saved this quote or a moderator can remove it.', ephemeral: true });
+    await interaction.reply({
+      content: "Only the person who saved this quote or a moderator can remove it.",
+      ephemeral: true,
+    });
     return;
   }
 
@@ -284,15 +278,22 @@ async function handleRemove(interaction: ChatInputCommandInteraction): Promise<v
 }
 
 export async function handleQuoteListButton(interaction: ButtonInteraction): Promise<void> {
-  const parts = interaction.customId.split(':');
+  const parts = interaction.customId.split(":");
   const page = parseInt(parts[2], 10);
   await handleList(interaction, page);
 }
 
-function buildQuoteEmbed(q: { content: string; authorTag: string; savedBy: string; savedAt: string; attachments: string[]; id: string }): EmbedBuilder {
+function buildQuoteEmbed(q: {
+  content: string;
+  authorTag: string;
+  savedBy: string;
+  savedAt: string;
+  attachments: string[];
+  id: string;
+}): EmbedBuilder {
   const embed = new EmbedBuilder()
     .setColor(0x5865f2)
-    .setDescription(q.content || '*(no text)*')
+    .setDescription(q.content || "*(no text)*")
     .setFooter({ text: `— ${q.authorTag} · saved by <@${q.savedBy}> · ID: ${q.id}` })
     .setTimestamp(new Date(q.savedAt));
 

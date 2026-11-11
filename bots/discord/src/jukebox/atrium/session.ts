@@ -1,10 +1,10 @@
-import { rm } from 'node:fs/promises';
-import { resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { logger } from '@bots/shared';
-import { JukeboxSignInFailed, JukeboxUnavailable } from './errors.ts';
+import { rm } from "node:fs/promises";
+import { resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+import { logger } from "@bots/shared";
+import { JukeboxSignInFailed, JukeboxUnavailable } from "./errors.ts";
 
-const log = logger.scoped('jukebox');
+const log = logger.scoped("jukebox");
 
 /**
  * The Bot account's session on atrium, without a browser.
@@ -28,9 +28,9 @@ const log = logger.scoped('jukebox');
  *   one through and refuses a wrong one. Node's fetch sends none.
  */
 
-const here = fileURLToPath(new URL('.', import.meta.url));
+const here = fileURLToPath(new URL(".", import.meta.url));
 /** Ward's refresh token, saved until 2026-10-13. Spent since then: the session is atrium's own and lives in memory. */
-const SPENT_SESSION_FILE = resolve(here, '../../../data/jukebox-session.json');
+const SPENT_SESSION_FILE = resolve(here, "../../../data/jukebox-session.json");
 
 /** Delete the spent `jukebox-session.json`, if an older run left one. Best effort; never throws. */
 export async function clearSpentSessionFile(file = SPENT_SESSION_FILE): Promise<void> {
@@ -41,14 +41,14 @@ const BACKOFF_FIRST_MS = 2_000;
 const BACKOFF_MAX_MS = 60_000;
 const LOGIN_TIMEOUT_MS = 10_000;
 /** The cookie atrium sets. */
-export const SESSION_COOKIE = 'atrium_session';
+export const SESSION_COOKIE = "atrium_session";
 
 /** The `atrium_session` value out of `Set-Cookie` headers. A cleared cookie (empty value) is not one. */
 export function parseSessionCookie(setCookie: readonly string[]): string | undefined {
   let found: string | undefined;
   for (const header of setCookie) {
-    const pair = header.split(';', 1)[0];
-    const eq = pair.indexOf('=');
+    const pair = header.split(";", 1)[0];
+    const eq = pair.indexOf("=");
     if (eq === -1) continue;
     if (pair.slice(0, eq).trim() !== SESSION_COOKIE) continue;
     const value = pair.slice(eq + 1).trim();
@@ -125,8 +125,8 @@ export class AtriumSession {
     if (!sent) return;
     try {
       await this.fetchImpl(`${this.options.atriumUrl}/auth/logout`, {
-        method: 'POST',
-        headers: { accept: 'application/json', cookie: `${SESSION_COOKIE}=${sent}` },
+        method: "POST",
+        headers: { accept: "application/json", cookie: `${SESSION_COOKIE}=${sent}` },
         signal: AbortSignal.timeout(LOGIN_TIMEOUT_MS),
       }).then((res) => res.body?.cancel());
     } catch {
@@ -137,7 +137,8 @@ export class AtriumSession {
   /** Throw while a 429 or the network backoff says to wait. */
   private gate(): void {
     const wait = this.notBefore - this.now();
-    if (wait > 0) throw new JukeboxUnavailable(`waiting ${Math.ceil(wait / 1000)} s before asking atrium to sign in again`);
+    if (wait > 0)
+      throw new JukeboxUnavailable(`waiting ${Math.ceil(wait / 1000)} s before asking atrium to sign in again`);
   }
 
   private backOff(reason: string): never {
@@ -152,10 +153,10 @@ export class AtriumSession {
     let res: Response;
     try {
       res = await this.fetchImpl(`${atriumUrl}/auth/login`, {
-        method: 'POST',
+        method: "POST",
         // No Origin: atrium lets an Origin-less request through on purpose, and
         // refuses one that is not its own.
-        headers: { 'content-type': 'application/json', accept: 'application/json' },
+        headers: { "content-type": "application/json", accept: "application/json" },
         body: JSON.stringify({ username, password }),
         signal: AbortSignal.timeout(LOGIN_TIMEOUT_MS),
       });
@@ -179,7 +180,7 @@ export class AtriumSession {
     const code = body.error;
     if (res.status === 429) {
       const fromBody = Number(body.retryAfterSeconds);
-      const seconds = fromBody > 0 ? Math.ceil(fromBody) : Number(res.headers.get('retry-after')) || 60;
+      const seconds = fromBody > 0 ? Math.ceil(fromBody) : Number(res.headers.get("retry-after")) || 60;
       this.notBefore = this.now() + seconds * 1000;
       throw new JukeboxUnavailable(`atrium is rate-limiting sign-ins; waiting ${seconds} s`);
     }
@@ -188,9 +189,9 @@ export class AtriumSession {
     // cross_site. None gets better by asking again, and every failed login
     // spends one of atrium's five lockout slots, so stop until a restart.
     this.failed =
-      res.status === 403 && code === 'cross_site'
+      res.status === 403 && code === "cross_site"
         ? `atrium refused the sign-in as cross-site (403): something is adding an Origin header, check JUKEBOX_ATRIUM_URL, then restart the bot`
-        : `atrium refused the sign-in for JUKEBOX_ATRIUM_USERNAME=${username} (${res.status}${code ? ` ${code}` : ''}); check JUKEBOX_ATRIUM_USERNAME and JUKEBOX_ATRIUM_PASSWORD, then restart the bot`;
+        : `atrium refused the sign-in for JUKEBOX_ATRIUM_USERNAME=${username} (${res.status}${code ? ` ${code}` : ""}); check JUKEBOX_ATRIUM_USERNAME and JUKEBOX_ATRIUM_PASSWORD, then restart the bot`;
     log.error(`Jukebox sign-in failed: ${this.failed}`);
     throw new JukeboxSignInFailed(this.failed);
   }

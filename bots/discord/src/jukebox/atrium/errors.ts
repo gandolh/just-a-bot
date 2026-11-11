@@ -6,8 +6,8 @@
 /** The three `JUKEBOX_*` variables are unset. Not an error in the bot: the Jukebox is off. */
 export class JukeboxNotConfigured extends Error {
   constructor() {
-    super('the Jukebox is not configured: set the three JUKEBOX_* variables');
-    this.name = 'JukeboxNotConfigured';
+    super("the Jukebox is not configured: set the three JUKEBOX_* variables");
+    this.name = "JukeboxNotConfigured";
   }
 }
 
@@ -15,7 +15,7 @@ export class JukeboxNotConfigured extends Error {
 export class JukeboxSignInFailed extends Error {
   constructor(message: string) {
     super(message);
-    this.name = 'JukeboxSignInFailed';
+    this.name = "JukeboxSignInFailed";
   }
 }
 
@@ -23,7 +23,7 @@ export class JukeboxSignInFailed extends Error {
 export class JukeboxUnavailable extends Error {
   constructor(message: string) {
     super(message);
-    this.name = 'JukeboxUnavailable';
+    this.name = "JukeboxUnavailable";
   }
 }
 
@@ -32,9 +32,9 @@ export class JukeboxForbidden extends Error {
   readonly code: string | undefined;
 
   constructor(code: string | undefined) {
-    super(`atrium refused the Bot account (${code ?? 'no code'})`);
+    super(`atrium refused the Bot account (${code ?? "no code"})`);
     this.code = code;
-    this.name = 'JukeboxForbidden';
+    this.name = "JukeboxForbidden";
   }
 }
 
@@ -44,9 +44,9 @@ export class JukeboxRequestError extends Error {
   readonly code: string | undefined;
 
   constructor(status: number, code: string | undefined) {
-    super(`atrium answered ${status}${code ? ` ${code}` : ''}`);
+    super(`atrium answered ${status}${code ? ` ${code}` : ""}`);
     this.status = status;
     this.code = code;
-    this.name = 'JukeboxRequestError';
+    this.name = "JukeboxRequestError";
   }
 }

@@ -5,10 +5,10 @@ import {
   ButtonStyle,
   type ChatInputCommandInteraction,
   SlashCommandBuilder,
-} from 'discord.js';
-import { renderPair, rollPair } from '../gambling/dice.ts';
-import { credit, getBalance, tryDebit } from '../gambling/wallet.ts';
-import type { Command } from './types.ts';
+} from "discord.js";
+import { renderPair, rollPair } from "../gambling/dice.ts";
+import { credit, getBalance, tryDebit } from "../gambling/wallet.ts";
+import type { Command } from "./types.ts";
 
 interface Duel {
   bet: number;
@@ -23,14 +23,8 @@ const duels = new Map<string, Duel>();
 function lobbyButtons(): ActionRowBuilder<ButtonBuilder>[] {
   return [
     new ActionRowBuilder<ButtonBuilder>().addComponents(
-      new ButtonBuilder()
-        .setCustomId('dice2:roll')
-        .setLabel('Accept & roll')
-        .setStyle(ButtonStyle.Success),
-      new ButtonBuilder()
-        .setCustomId('dice2:decline')
-        .setLabel('Decline')
-        .setStyle(ButtonStyle.Danger),
+      new ButtonBuilder().setCustomId("dice2:roll").setLabel("Accept & roll").setStyle(ButtonStyle.Success),
+      new ButtonBuilder().setCustomId("dice2:decline").setLabel("Decline").setStyle(ButtonStyle.Danger),
     ),
   ];
 }
@@ -38,17 +32,17 @@ function lobbyButtons(): ActionRowBuilder<ButtonBuilder>[] {
 export async function handleDice2Button(interaction: ButtonInteraction): Promise<void> {
   const duel = duels.get(interaction.message.id);
   if (!duel) {
-    await interaction.reply({ content: 'This duel has expired.', ephemeral: true });
+    await interaction.reply({ content: "This duel has expired.", ephemeral: true });
     return;
   }
   if (interaction.user.id !== duel.opponentId) {
-    await interaction.reply({ content: 'This invite is for someone else.', ephemeral: true });
+    await interaction.reply({ content: "This invite is for someone else.", ephemeral: true });
     return;
   }
 
-  const action = interaction.customId.split(':')[1];
+  const action = interaction.customId.split(":")[1];
 
-  if (action === 'decline') {
+  if (action === "decline") {
     await credit(duel.challengerId, duel.bet); // refund challenger's ante
     duels.delete(interaction.message.id);
     await interaction.update({
@@ -58,7 +52,7 @@ export async function handleDice2Button(interaction: ButtonInteraction): Promise
     return;
   }
 
-  if (action !== 'roll') return;
+  if (action !== "roll") return;
 
   // Opponent antes on accept.
   const ok = await tryDebit(duel.opponentId, duel.bet);
@@ -95,34 +89,32 @@ export async function handleDice2Button(interaction: ButtonInteraction): Promise
       `🎲 **Dice Duel** — 2d6 • bet each: **${duel.bet.toLocaleString()}**`,
       `${duel.challengerName}:  ${renderPair(a.dice)}  = **${a.total}**`,
       `${duel.opponentName}:  ${renderPair(b.dice)}  = **${b.total}**`,
-      '',
+      "",
       result,
-    ].join('\n'),
+    ].join("\n"),
     components: [],
   });
 }
 
 export const dice2: Command = {
   data: new SlashCommandBuilder()
-    .setName('dice2')
-    .setDescription('Challenge another player to a dice duel — biggest 2d6 takes the pot')
-    .addUserOption((opt) =>
-      opt.setName('opponent').setDescription('Who to challenge').setRequired(true),
-    )
+    .setName("dice2")
+    .setDescription("Challenge another player to a dice duel — biggest 2d6 takes the pot")
+    .addUserOption((opt) => opt.setName("opponent").setDescription("Who to challenge").setRequired(true))
     .addIntegerOption((opt) =>
-      opt.setName('bet').setDescription('Coins each player wagers').setRequired(true).setMinValue(1),
+      opt.setName("bet").setDescription("Coins each player wagers").setRequired(true).setMinValue(1),
     ),
   async execute(interaction: ChatInputCommandInteraction) {
-    const opponent = interaction.options.getUser('opponent', true);
-    const bet = interaction.options.getInteger('bet', true);
+    const opponent = interaction.options.getUser("opponent", true);
+    const bet = interaction.options.getInteger("bet", true);
     const challengerId = interaction.user.id;
 
     if (opponent.bot) {
-      await interaction.reply({ content: 'You can only challenge a real player.', ephemeral: true });
+      await interaction.reply({ content: "You can only challenge a real player.", ephemeral: true });
       return;
     }
     if (opponent.id === challengerId) {
-      await interaction.reply({ content: 'You can not challenge yourself.', ephemeral: true });
+      await interaction.reply({ content: "You can not challenge yourself.", ephemeral: true });
       return;
     }
 
@@ -148,10 +140,10 @@ export const dice2: Command = {
     const reply = await interaction.reply({
       content: [
         `🎲 **Dice Duel** — 2d6 • bet each: **${bet.toLocaleString()}**`,
-        '',
+        "",
         `<@${challengerId}> challenged <@${opponent.id}>.`,
         `<@${opponent.id}>, accept to ante **${bet.toLocaleString()}** coins and roll.`,
-      ].join('\n'),
+      ].join("\n"),
       components: lobbyButtons(),
       withResponse: true,
     });

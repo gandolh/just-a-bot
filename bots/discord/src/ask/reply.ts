@@ -3,7 +3,7 @@
 export const DISCORD_MESSAGE_LIMIT = 2000;
 /** The reply plus two follow-ups. A longer answer is cut, and says so. */
 export const MAX_ANSWER_MESSAGES = 3;
-export const CUT_NOTE = '\n\n*(Answer cut: it ran past three messages.)*';
+export const CUT_NOTE = "\n\n*(Answer cut: it ran past three messages.)*";
 
 /** Split text into messages of at most 2000 characters, at a paragraph, line or word break where one is near. */
 export function splitForDiscord(text: string, limit = DISCORD_MESSAGE_LIMIT): string[] {
@@ -12,7 +12,7 @@ export function splitForDiscord(text: string, limit = DISCORD_MESSAGE_LIMIT): st
   let remaining = text;
   while (remaining.length > limit) {
     const slice = remaining.slice(0, limit);
-    const breakAt = Math.max(slice.lastIndexOf('\n\n'), slice.lastIndexOf('\n'), slice.lastIndexOf(' '));
+    const breakAt = Math.max(slice.lastIndexOf("\n\n"), slice.lastIndexOf("\n"), slice.lastIndexOf(" "));
     const cut = breakAt > limit * 0.5 ? breakAt : limit;
     chunks.push(remaining.slice(0, cut));
     remaining = remaining.slice(cut).trimStart();
@@ -28,7 +28,7 @@ export function splitForDiscord(text: string, limit = DISCORD_MESSAGE_LIMIT): st
  * fill the channel. When it is cut, the last message ends with `CUT_NOTE`.
  */
 export function answerMessages(prompt: string, answer: string): string[] {
-  const header = `> ${prompt.length > 200 ? prompt.slice(0, 197) + '…' : prompt}`;
+  const header = `> ${prompt.length > 200 ? prompt.slice(0, 197) + "…" : prompt}`;
   const chunks = splitForDiscord(`${header}\n\n${answer}`);
   if (chunks.length <= MAX_ANSWER_MESSAGES) return chunks;
   const kept = chunks.slice(0, MAX_ANSWER_MESSAGES);

@@ -1,19 +1,24 @@
-export type Mark = 'X' | 'O';
+export type Mark = "X" | "O";
 export type Cell = Mark | null;
 export type Board = Cell[];
 
 export interface Game {
   board: Board;
   turn: Mark;
-  winner: Mark | 'draw' | null;
+  winner: Mark | "draw" | null;
   finished: boolean;
   winningLine: number[] | null;
 }
 
 const LINES: ReadonlyArray<readonly [number, number, number]> = [
-  [0, 1, 2], [3, 4, 5], [6, 7, 8],
-  [0, 3, 6], [1, 4, 7], [2, 5, 8],
-  [0, 4, 8], [2, 4, 6],
+  [0, 1, 2],
+  [3, 4, 5],
+  [6, 7, 8],
+  [0, 3, 6],
+  [1, 4, 7],
+  [2, 5, 8],
+  [0, 4, 8],
+  [2, 4, 6],
 ];
 
 export function newBoard(): Board {
@@ -21,7 +26,7 @@ export function newBoard(): Board {
 }
 
 export function newGame(): Game {
-  return { board: newBoard(), turn: 'X', winner: null, finished: false, winningLine: null };
+  return { board: newBoard(), turn: "X", winner: null, finished: false, winningLine: null };
 }
 
 export function checkWinner(board: Board): { winner: Mark; line: number[] } | null {
@@ -46,10 +51,10 @@ export function applyMove(game: Game, cell: number, mark: Mark): boolean {
     game.winningLine = win.line;
     game.finished = true;
   } else if (game.board.every((c) => c !== null)) {
-    game.winner = 'draw';
+    game.winner = "draw";
     game.finished = true;
   } else {
-    game.turn = mark === 'X' ? 'O' : 'X';
+    game.turn = mark === "X" ? "O" : "X";
   }
   return true;
 }
@@ -65,7 +70,7 @@ function minimax(board: Board, ai: Mark, current: Mark, depth: number): number {
   const terminal = terminalScore(board, ai, depth);
   if (terminal !== null) return terminal;
 
-  const next: Mark = current === 'X' ? 'O' : 'X';
+  const next: Mark = current === "X" ? "O" : "X";
   let best = current === ai ? -Infinity : Infinity;
   for (let i = 0; i < 9; i++) {
     if (board[i]) continue;
@@ -82,7 +87,7 @@ function minimax(board: Board, ai: Mark, current: Mark, depth: number): number {
 }
 
 export function botMove(board: Board, mark: Mark): number {
-  const opp: Mark = mark === 'X' ? 'O' : 'X';
+  const opp: Mark = mark === "X" ? "O" : "X";
   const scored: { move: number; score: number }[] = [];
   for (let i = 0; i < 9; i++) {
     if (board[i]) continue;

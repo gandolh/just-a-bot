@@ -1,1 +1,1 @@
-export { parseWhen, parseDuration, parseAbsolute } from '@bots/shared';
+export { parseWhen, parseDuration, parseAbsolute } from "@bots/shared";

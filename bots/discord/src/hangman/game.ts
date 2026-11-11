@@ -1,4 +1,4 @@
-import { WORDS, ALL_CATEGORIES } from './words.ts';
+import { WORDS, ALL_CATEGORIES } from "./words.ts";
 
 export type HangmanGame = {
   threadId: string;
@@ -10,7 +10,7 @@ export type HangmanGame = {
   wrongLetters: string[];
   guessedLetters: Set<string>;
   maxWrong: number;
-  state: 'active' | 'won' | 'lost';
+  state: "active" | "won" | "lost";
   startedAt: string;
 };
 
@@ -30,14 +30,9 @@ export function resolveCategory(input?: string): string {
   return ALL_CATEGORIES[Math.floor(Math.random() * ALL_CATEGORIES.length)];
 }
 
-export function newGame(
-  threadId: string,
-  parentChannelId: string,
-  starterId: string,
-  category: string,
-): HangmanGame {
+export function newGame(threadId: string, parentChannelId: string, starterId: string, category: string): HangmanGame {
   const word = pickWord(category);
-  const revealed = word.split('').map(() => '_');
+  const revealed = word.split("").map(() => "_");
   return {
     threadId,
     parentChannelId,
@@ -48,23 +43,23 @@ export function newGame(
     wrongLetters: [],
     guessedLetters: new Set(),
     maxWrong: 6,
-    state: 'active',
+    state: "active",
     startedAt: new Date().toISOString(),
   };
 }
 
 export type GuessOutcome =
-  | { kind: 'already_guessed' }
-  | { kind: 'correct'; positions: number[] }
-  | { kind: 'wrong' }
-  | { kind: 'won' }
-  | { kind: 'lost' };
+  | { kind: "already_guessed" }
+  | { kind: "correct"; positions: number[] }
+  | { kind: "wrong" }
+  | { kind: "won" }
+  | { kind: "lost" };
 
 export function applyGuess(game: HangmanGame, letter: string): GuessOutcome {
   const l = letter.toLowerCase();
 
   if (game.guessedLetters.has(l)) {
-    return { kind: 'already_guessed' };
+    return { kind: "already_guessed" };
   }
 
   game.guessedLetters.add(l);
@@ -82,16 +77,16 @@ export function applyGuess(game: HangmanGame, letter: string): GuessOutcome {
     game.wrongLetters.sort();
 
     if (game.wrongLetters.length >= game.maxWrong) {
-      game.state = 'lost';
-      return { kind: 'lost' };
+      game.state = "lost";
+      return { kind: "lost" };
     }
-    return { kind: 'wrong' };
+    return { kind: "wrong" };
   }
 
-  if (!game.revealed.includes('_')) {
-    game.state = 'won';
-    return { kind: 'won' };
+  if (!game.revealed.includes("_")) {
+    game.state = "won";
+    return { kind: "won" };
   }
 
-  return { kind: 'correct', positions };
+  return { kind: "correct", positions };
 }

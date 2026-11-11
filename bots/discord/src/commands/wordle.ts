@@ -4,17 +4,9 @@ import {
   type Message,
   SlashCommandBuilder,
   ThreadAutoArchiveDuration,
-} from 'discord.js';
-import {
-  applyGuess,
-  type Game,
-  isValidWord,
-  MAX_ATTEMPTS,
-  newGame,
-  renderRow,
-  WORD_LENGTH,
-} from '../wordle/game.ts';
-import type { Command } from './types.ts';
+} from "discord.js";
+import { applyGuess, type Game, isValidWord, MAX_ATTEMPTS, newGame, renderRow, WORD_LENGTH } from "../wordle/game.ts";
+import type { Command } from "./types.ts";
 
 interface ThreadGame {
   game: Game;
@@ -28,32 +20,27 @@ export function hasWordleGame(threadId: string): boolean {
 }
 
 function renderBoard(game: Game): string {
-  return game.guesses.map(renderRow).join('\n');
+  return game.guesses.map(renderRow).join("\n");
 }
 
-async function postResultToParent(
-  message: Message,
-  entry: ThreadGame,
-): Promise<void> {
+async function postResultToParent(message: Message, entry: ThreadGame): Promise<void> {
   const { game, parentChannelId } = entry;
   const channel = await message.client.channels.fetch(parentChannelId).catch(() => null);
-  if (!channel || !channel.isTextBased() || !('send' in channel)) return;
+  if (!channel || !channel.isTextBased() || !("send" in channel)) return;
 
   const starter = `<@${game.starterId}>`;
   const header = game.won
     ? `🎉 ${starter} solved Wordle in **${game.guesses.length}/${MAX_ATTEMPTS}**!`
     : `💀 ${starter} ran out of guesses. The word was **${game.target.toUpperCase()}**.`;
 
-  await channel
-    .send([header, renderBoard(game)].join('\n'))
-    .catch(() => {});
+  await channel.send([header, renderBoard(game)].join("\n")).catch(() => {});
 }
 
 async function endGame(message: Message, entry: ThreadGame): Promise<void> {
   await postResultToParent(message, entry);
   games.delete(message.channelId);
   if (message.channel.isThread()) {
-    await message.channel.delete('Wordle game finished').catch(() => {});
+    await message.channel.delete("Wordle game finished").catch(() => {});
   }
 }
 
@@ -65,14 +52,14 @@ export async function handleWordleMessage(message: Message): Promise<void> {
   const content = message.content.trim().toLowerCase();
   if (!content) return;
 
-  if (content === 'delete') {
+  if (content === "delete") {
     if (message.author.id !== game.starterId && !game.finished) {
-      await message.reply('Only the player who started this game can delete it.');
+      await message.reply("Only the player who started this game can delete it.");
       return;
     }
     if (!message.channel.isThread()) return;
     try {
-      await message.channel.delete('Wordle game deleted by player');
+      await message.channel.delete("Wordle game deleted by player");
       games.delete(message.channelId);
     } catch (err) {
       const reason = err instanceof Error ? err.message : String(err);
@@ -86,7 +73,7 @@ export async function handleWordleMessage(message: Message): Promise<void> {
   if (game.finished) return;
 
   if (!/^[a-z]+$/.test(content)) {
-    await message.reply('Guesses must be letters only.');
+    await message.reply("Guesses must be letters only.");
     return;
   }
   if (content.length !== WORD_LENGTH) {
@@ -103,14 +90,20 @@ export async function handleWordleMessage(message: Message): Promise<void> {
 
   const lines: string[] = [renderRow(result)];
   if (game.won) {
-    lines.push('', `🎉 Solved in ${game.guesses.length}/${MAX_ATTEMPTS}! Posting result to the channel and closing this thread…`);
+    lines.push(
+      "",
+      `🎉 Solved in ${game.guesses.length}/${MAX_ATTEMPTS}! Posting result to the channel and closing this thread…`,
+    );
   } else if (game.finished) {
-    lines.push('', `💀 Out of guesses. The word was **${game.target.toUpperCase()}**. Posting result to the channel and closing this thread…`);
+    lines.push(
+      "",
+      `💀 Out of guesses. The word was **${game.target.toUpperCase()}**. Posting result to the channel and closing this thread…`,
+    );
   } else {
-    lines.push('', `Guess ${game.guesses.length}/${MAX_ATTEMPTS} — **${remaining}** left.`);
+    lines.push("", `Guess ${game.guesses.length}/${MAX_ATTEMPTS} — **${remaining}** left.`);
   }
 
-  await message.reply(lines.join('\n')).catch(() => {});
+  await message.reply(lines.join("\n")).catch(() => {});
 
   if (game.finished) {
     await endGame(message, entry);
@@ -118,13 +111,11 @@ export async function handleWordleMessage(message: Message): Promise<void> {
 }
 
 export const wordle: Command = {
-  data: new SlashCommandBuilder()
-    .setName('wordle')
-    .setDescription('Start a Wordle game in a new thread'),
+  data: new SlashCommandBuilder().setName("wordle").setDescription("Start a Wordle game in a new thread"),
   async execute(interaction: ChatInputCommandInteraction) {
     if (!interaction.channel || interaction.channel.type !== ChannelType.GuildText) {
       await interaction.reply({
-        content: 'Wordle can only be started in a regular text channel.',
+        content: "Wordle can only be started in a regular text channel.",
         ephemeral: true,
       });
       return;
@@ -144,9 +135,9 @@ export const wordle: Command = {
     await thread.send(
       [
         `Guess the ${WORD_LENGTH}-letter word. You have **${MAX_ATTEMPTS}** attempts.`,
-        '🟩 = right letter, right spot · 🟨 = right letter, wrong spot · ⬛ = not in word',
-        'Type your guess in this thread. Type `delete` to remove the thread early — otherwise it closes automatically when the game ends and the result is posted in the channel.',
-      ].join('\n'),
+        "🟩 = right letter, right spot · 🟨 = right letter, wrong spot · ⬛ = not in word",
+        "Type your guess in this thread. Type `delete` to remove the thread early — otherwise it closes automatically when the game ends and the result is posted in the channel.",
+      ].join("\n"),
     );
   },
 };

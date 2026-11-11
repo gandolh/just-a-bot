@@ -1,5 +1,5 @@
-import type { Character } from './world.ts';
-import { getItem, type ItemDef, shopCatalog } from './items.ts';
+import type { Character } from "./world.ts";
+import { getItem, type ItemDef, shopCatalog } from "./items.ts";
 
 export interface BuyResult {
   ok: boolean;

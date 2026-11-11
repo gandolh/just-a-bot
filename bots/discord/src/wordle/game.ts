@@ -1,9 +1,9 @@
-import { WORDS, WORD_SET } from './words.ts';
+import { WORDS, WORD_SET } from "./words.ts";
 
 export const WORD_LENGTH = 5;
 export const MAX_ATTEMPTS = 6;
 
-export type LetterResult = 'correct' | 'present' | 'absent';
+export type LetterResult = "correct" | "present" | "absent";
 
 export interface GuessResult {
   guess: string;
@@ -32,11 +32,11 @@ export function newGame(starterId: string, target = pickWord()): Game {
 
 export function evaluate(guess: string, target: string): GuessResult {
   const letters: { letter: string; result: LetterResult }[] = Array.from({ length: WORD_LENGTH });
-  const remaining: (string | null)[] = target.split('');
+  const remaining: (string | null)[] = target.split("");
 
   for (let i = 0; i < WORD_LENGTH; i++) {
     if (guess[i] === target[i]) {
-      letters[i] = { letter: guess[i], result: 'correct' };
+      letters[i] = { letter: guess[i], result: "correct" };
       remaining[i] = null;
     }
   }
@@ -44,30 +44,30 @@ export function evaluate(guess: string, target: string): GuessResult {
     if (letters[i]) continue;
     const idx = remaining.indexOf(guess[i]);
     if (idx !== -1) {
-      letters[i] = { letter: guess[i], result: 'present' };
+      letters[i] = { letter: guess[i], result: "present" };
       remaining[idx] = null;
     } else {
-      letters[i] = { letter: guess[i], result: 'absent' };
+      letters[i] = { letter: guess[i], result: "absent" };
     }
   }
   return { guess, letters };
 }
 
 const SQUARE: Record<LetterResult, string> = {
-  correct: '🟩',
-  present: '🟨',
-  absent: '⬛',
+  correct: "🟩",
+  present: "🟨",
+  absent: "⬛",
 };
 
 export function renderRow(result: GuessResult): string {
-  const squares = result.letters.map((l) => SQUARE[l.result]).join('');
-  const letters = result.letters.map((l) => l.letter.toUpperCase()).join(' ');
+  const squares = result.letters.map((l) => SQUARE[l.result]).join("");
+  const letters = result.letters.map((l) => l.letter.toUpperCase()).join(" ");
   return `${squares}  \`${letters}\``;
 }
 
 export function renderBoard(game: Game): string {
-  if (game.guesses.length === 0) return '_(no guesses yet)_';
-  return game.guesses.map(renderRow).join('\n');
+  if (game.guesses.length === 0) return "_(no guesses yet)_";
+  return game.guesses.map(renderRow).join("\n");
 }
 
 export function applyGuess(game: Game, raw: string): GuessResult {

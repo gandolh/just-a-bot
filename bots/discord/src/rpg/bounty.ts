@@ -1,4 +1,4 @@
-import { type Character, levelFor } from './world.ts';
+import { type Character, levelFor } from "./world.ts";
 
 interface BountyTier {
   goal: number;
@@ -9,12 +9,12 @@ interface BountyTier {
 }
 
 const BOUNTY_TIERS: Record<string, BountyTier> = {
-  slime:  { goal: 5, xp: 30,  coin: 15, tier: 1 },
-  goblin: { goal: 4, xp: 60,  coin: 30, tier: 2 },
-  wolf:   { goal: 4, xp: 90,  coin: 35, tier: 3 },
+  slime: { goal: 5, xp: 30, coin: 15, tier: 1 },
+  goblin: { goal: 4, xp: 60, coin: 30, tier: 2 },
+  wolf: { goal: 4, xp: 90, coin: 35, tier: 3 },
   bandit: { goal: 3, xp: 100, coin: 60, tier: 4 },
-  orc:    { goal: 3, xp: 160, coin: 80, tier: 5 },
-  troll:  { goal: 1, xp: 150, coin: 100, tier: 7 },
+  orc: { goal: 3, xp: 160, coin: 80, tier: 5 },
+  troll: { goal: 1, xp: 150, coin: 100, tier: 7 },
 };
 
 export function rollBounty(char: Character): void {

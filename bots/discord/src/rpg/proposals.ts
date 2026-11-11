@@ -1,6 +1,6 @@
-import { pendingDuelBetween } from './duel.ts';
-import { openTradeBetween } from './trade.ts';
-import type { World } from './world.ts';
+import { pendingDuelBetween } from "./duel.ts";
+import { openTradeBetween } from "./trade.ts";
+import type { World } from "./world.ts";
 
 /**
  * Limits on duel and trade proposals from the Nearby screen. Each one is a
@@ -35,12 +35,12 @@ export function claimProposalSlot(key: string, now = Date.now()): ProposalSlot {
 }
 
 /** Why this pair may not have another proposal of this kind yet, or null. */
-export function proposalConflict(world: World, kind: 'duel' | 'trade', fromId: string, toId: string): string | null {
-  if (kind === 'duel' && pendingDuelBetween(world, fromId, toId)) {
-    return '⚔️ A duel between you two is already waiting for an answer.';
+export function proposalConflict(world: World, kind: "duel" | "trade", fromId: string, toId: string): string | null {
+  if (kind === "duel" && pendingDuelBetween(world, fromId, toId)) {
+    return "⚔️ A duel between you two is already waiting for an answer.";
   }
-  if (kind === 'trade' && openTradeBetween(world, fromId, toId)) {
-    return '🤝 You two already have a trade open. Finish or cancel it first.';
+  if (kind === "trade" && openTradeBetween(world, fromId, toId)) {
+    return "🤝 You two already have a trade open. Finish or cancel it first.";
   }
   return null;
 }

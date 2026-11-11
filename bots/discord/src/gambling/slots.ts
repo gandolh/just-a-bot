@@ -1,15 +1,15 @@
 export const SIZE = 5;
-export const REELS = ['🍒', '🍋', '🍊', '🍇', '🔔', '⭐', '💎'] as const;
+export const REELS = ["🍒", "🍋", "🍊", "🍇", "🔔", "⭐", "💎"] as const;
 export type Sym = (typeof REELS)[number];
 
 const BASE_MULT: Record<Sym, number> = {
-  '🍒': 2,
-  '🍋': 3,
-  '🍊': 4,
-  '🍇': 5,
-  '🔔': 8,
-  '⭐': 12,
-  '💎': 25,
+  "🍒": 2,
+  "🍋": 3,
+  "🍊": 4,
+  "🍇": 5,
+  "🔔": 8,
+  "⭐": 12,
+  "💎": 25,
 };
 
 const LENGTH_MULT: Record<3 | 4 | 5, number> = {
@@ -33,11 +33,11 @@ function buildLines(): { name: string; cells: [number, number][] }[] {
     });
   }
   lines.push({
-    name: 'Diag ↘',
+    name: "Diag ↘",
     cells: Array.from({ length: SIZE }, (_, i) => [i, i] as [number, number]),
   });
   lines.push({
-    name: 'Diag ↙',
+    name: "Diag ↙",
     cells: Array.from({ length: SIZE }, (_, i) => [i, SIZE - 1 - i] as [number, number]),
   });
   return lines;
@@ -89,5 +89,5 @@ export function evaluate(grid: Grid, perLine: number): { wins: LineWin[]; total:
 }
 
 export function renderGrid(grid: Grid): string {
-  return grid.map((row) => row.join(' ')).join('\n');
+  return grid.map((row) => row.join(" ")).join("\n");
 }

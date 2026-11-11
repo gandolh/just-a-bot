@@ -1,5 +1,5 @@
-import { mkdir, open, rename } from 'node:fs/promises';
-import { dirname } from 'node:path';
+import { mkdir, open, rename } from "node:fs/promises";
+import { dirname } from "node:path";
 
 /**
  * Crash-safe JSON persistence, shared by every store in the repo.
@@ -41,9 +41,9 @@ export function writeJsonFile(file: string, json: string): Promise<void> {
 async function writeAtomically(file: string, json: string): Promise<void> {
   await mkdir(dirname(file), { recursive: true });
   const tmp = `${file}.${process.pid}.tmp`;
-  const handle = await open(tmp, 'w');
+  const handle = await open(tmp, "w");
   try {
-    await handle.writeFile(json, 'utf8');
+    await handle.writeFile(json, "utf8");
     await handle.sync();
   } finally {
     await handle.close();
