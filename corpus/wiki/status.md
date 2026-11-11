@@ -1,5 +1,5 @@
 ---
-summary: Dated snapshot (2026-11-11) of just-a-bot, per area — the Discord-only bot, deployed as a container with its state outside the mirror (2026-10-07); the 2026-09-26 audit fixes (2026-10-02); the Jukebox built (2026-10-09, atrium's own login 2026-10-13) but not heard in Discord or deployed; the docs site on Docusaurus (2026-10-19, not deployed); the eleven briefs of the 2026-10-20 sweep built on 2026-11-02, not deployed; briefs 12-17 built on 2026-11-04 and 2026-11-05 (13-17 not deployed); brief 18, the house style and npm run check, built 2026-11-11; a flaky RPG test; the local .env's WICKET_URL is not a URL; what is left for the owner.
+summary: Dated snapshot (2026-11-11) of just-a-bot, per area — the Discord-only bot, deployed as a container with its state outside the mirror (2026-10-07); the 2026-09-26 audit fixes (2026-10-02); the Jukebox built (2026-10-09, atrium's own login 2026-10-13) but not heard in Discord or deployed; the docs site on Docusaurus (2026-10-19, not deployed); the eleven briefs of the 2026-10-20 sweep built on 2026-11-02, not deployed; briefs 12-17 built on 2026-11-04 and 2026-11-05 (13-17 not deployed); brief 18, the house style and npm run check, built 2026-11-11 (its flaky RPG test fixed the same day); the image's dev tools as a todo; the local .env's WICKET_URL is not a URL; what is left for the owner.
 updated: 2026-11-11
 ---
 
@@ -8,7 +8,7 @@ updated: 2026-11-11
 Production runs the 2026-10-07 container. `npm run check` is the gate since
 brief 18 (2026-11-11): typecheck, lint, format, conventions, and the 119 tests
 through `npm run test:clean`, in a copy without the `.env` (never `npm test`
-in the checkout; see Known issues for the one flaky test). Brief numbering restarted at 01 on 2026-11-02 (see
+in the checkout). Brief numbering restarted at 01 on 2026-11-02 (see
 [`../log.md`](../log.md), "Briefs reset").
 
 ## By area
@@ -72,7 +72,8 @@ the start, since equipping takes the item out of the bag). 17, done on 2026-11-0
 (docs only, ships with the docs site): the architecture and reminders
 manuals no longer describe the RPG's old grid, mob tick or map renderer. 18,
 done on 2026-11-11, not deployed: the house style and the quality harness. No
-brief is open; one todo is (`proposals-test-clock`, the flaky test below).
+brief is open; one todo is (`image-without-dev-tools`: `tsx` to `dependencies` and
+`npm ci --omit=dev`, since brief 18's tool pins grew the image's `node_modules` from 87 MB to 197 MB).
 
 ## Next (owner)
 
@@ -113,11 +114,6 @@ brief is open; one todo is (`proposals-test-clock`, the flaky test below).
   invalidate them.
 
 ## Known issues
-
-- **`rpg/proposals.test.ts` is flaky** on a busy machine (found 2026-11-11):
-  one test fixes its clock before the records it prunes are stamped, so a
-  millisecond's tick fails it, and `npm run check` with it. It failed before
-  brief 18 too. The todo `proposals-test-clock` has the fix.
 
 - **`WICKET_URL` in the local `bots/discord/.env` is not a valid URL**
   (found 2026-11-05: the file changed after brief 14 was committed; the

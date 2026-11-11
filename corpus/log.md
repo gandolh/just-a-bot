@@ -1331,3 +1331,22 @@ then `node cli.ts just-a-bot deploy` from the vps-deploy checkout.
 `proposals-test-clock`: `rpg/proposals.test.ts` fixes `now` before `startTrade` and `startDuel`
 stamp records from the real clock, so a millisecond's tick during the setup fails it. It failed 3
 of 5 `test:clean` runs before brief 18 and 2 of 5 after, on a busy machine.
+
+## [2026-11-11] fix | The RPG proposals test takes its second prune from the clock
+
+`proposals-test-clock` is closed. The test's second prune now runs a day past `Date.now()` taken
+after the records exist, not a day past the `now` it took before them, so a tick during the setup
+no longer leaves a record exactly one TTL old. `npm run check` and three more `test:clean` runs
+passed at a load average of 20.
+
+## [2026-11-11] chore | knip in the gate, check-structure strict, test:clean in the docs
+
+`check:conventions` runs knip, now that the unused `img/attach.ts` is gone, and `check-structure`
+without `--warn-only`: its one finding, `shared/src/env.ts` as the environment reader, is an
+exception in `scripts/conventions.json` until the checker reads the reader's name from the config.
+`README.md` and `docs/common/setup.md` point at `npm run test:clean` instead of `npm test`.
+
+## [2026-11-11] todo | The image without the dev tools
+
+`image-without-dev-tools`: `tsx` to `dependencies` and `npm ci --omit=dev` in the image, which
+brief 18's tool pins grew from 87 MB to 197 MB of `node_modules`.

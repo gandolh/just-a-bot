@@ -89,7 +89,7 @@ Requires Node 22.12 or later, and a Discord application of your own: its bot tok
 
 ```bash
 npm install
-npm test                    # unit tests; they never connect to Discord
+npm run test:clean          # unit tests, in a copy without .env; they never connect to Discord
 npm run discord:register    # push the slash commands to your test server
 npm run discord:dev         # run the bot, reloading on save
 ```

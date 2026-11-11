@@ -95,7 +95,8 @@ test("closed trades go, open ones stay a day, and an expired duel stays a day fo
   assert.deepEqual(Object.keys(w.trades).sort(), [open.id, legacy.id].sort());
   assert.ok(w.duels[expired.id]);
 
-  pruneDuelsAndTrades(w, now + SOCIAL_RECORD_TTL_MS + 1);
+  // The records were stamped from the real clock after `now`, so a day past them is a day past this.
+  pruneDuelsAndTrades(w, Date.now() + SOCIAL_RECORD_TTL_MS + 1);
   assert.deepEqual(Object.keys(w.trades), []);
   assert.deepEqual(Object.keys(w.duels), []);
 });

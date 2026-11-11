@@ -26,7 +26,7 @@ npm run docs -w @bots/docs-site   # → docs-site/dist, served at /just-a-bot/do
 
 ```bash
 npm run typecheck     # tsc --noEmit across the workspaces
-npm test              # node:test suites for the pure game logic (*.test.ts)
+npm run test:clean    # node:test suites for the pure game logic (*.test.ts), in a copy without .env
 npm run corpus:lint   # corpus/ health check (frontmatter, links, page size)
 ```
 
