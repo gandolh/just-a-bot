@@ -4,9 +4,9 @@
 # OUTBOUND gateway connection to Discord and binds nothing. So there is no
 # health endpoint to curl; "is it up" is answered by the container's state.
 #
-# It runs from SOURCE under `tsx`, which is a devDependency — so unlike the
-# other images this one keeps dev dependencies in the runtime stage. Splitting
-# them would mean adding a compile step the project does not have.
+# It runs from SOURCE under `tsx`, which is a runtime dependency of the root
+# package, so `npm ci --omit=dev` installs it and leaves the lint, format and
+# typecheck tools out of the image. There is no compile step.
 #
 # @resvg/resvg-js (satori's renderer, for the bot's generated images) is a
 # native module; it ships prebuilds, and the toolchain is the fallback.
@@ -17,7 +17,7 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 COPY shared/package.json ./shared/
 COPY bots/discord/package.json ./bots/discord/
-RUN npm ci
+RUN npm ci --omit=dev
 
 FROM node:24-alpine AS prod
 LABEL org.opencontainers.image.title="just-a-bot"

@@ -32,9 +32,10 @@ Reason: there is no compiled artifact to keep in sync with source, so dev and
 prod run the same files and a deploy is a `git pull` + restart — a few seconds of
 startup traded for one less moving part.
 Cost accepted: no type-checking at runtime boundaries (`npm run typecheck` is a
-separate step), and `tsx` lives in root **devDependencies** — so
-`npm install --production` breaks the run script. If that scenario ever comes up,
-move `tsx` to a real dependency rather than reintroducing a build.
+separate step). Since 2026-11-13 `tsx` is a root **dependency**, so
+`npm ci --omit=dev` keeps it; the image installs production dependencies only.
+Type stripping in Node was rejected as the alternative: it needs
+`erasableSyntaxOnly` across the code and skips files under `node_modules`.
 Scope, restated 2026-10-02: this decision is about **the bot**, and the bot
 still never builds. `bots/dice-activity`, which built, is gone as of 2026-08-27. <!-- stale-ok -->
 The one build in the repo since 2026-09-07 is `docs-site`'s `docusaurus build`, a
@@ -199,5 +200,5 @@ test files is its own brief. `docs-site` stays out of Prettier and ESLint:
 Docusaurus, React and default exports. `noUncheckedIndexedAccess` waits (158
 sites). Reason: one format nobody argues about, and checks that catch the
 unawaited promise and the unchecked `!` before review. Cost: one reformat
-commit, skipped by `git blame`, and the tools ride in the image, which
-installs devDependencies for `tsx`.
+commit, skipped by `git blame`, and the tools stay out of the image,
+which installs production dependencies only (brief 19).

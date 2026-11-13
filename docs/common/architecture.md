@@ -76,9 +76,8 @@ feature uses.
 - **No SQLite, even though it would fit.** JSON wins because the RPG world
   needs to be ingestible by an LLM in one read, and most volumes are trivial.
 - **No build step.** Direct-tsx in production trades a few seconds of startup
-  for one less moving part. `tsx` lives in devDependencies; `npm install
-  --production` will break the run script — move `tsx` to a real dep if that
-  scenario actually shows up. (Nothing in the repo builds any more: the one
+  for one less moving part. `tsx` is a root dependency, so `npm ci
+  --omit=dev` (what the image runs) still has it. (Nothing in the repo builds any more: the one
   workspace that did was removed on 2026-08-27.)
 - **Commands vs game logic split.** Keeps platform-specific code (embeds,
   blocks, options, replies) from bleeding into the data model.

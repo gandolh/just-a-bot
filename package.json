@@ -29,6 +29,9 @@
     "test:clean": "node scripts/test-clean.mjs",
     "house-style:sync": "node vendor/house-style/bin/sync.mjs"
   },
+  "dependencies": {
+    "tsx": "4.22.3"
+  },
   "devDependencies": {
     "@eslint/js": "10.0.1",
     "@types/node": "22.10.5",
@@ -41,7 +44,6 @@
     "eslint-plugin-react-hooks": "7.1.1",
     "knip": "6.44.2",
     "prettier": "3.9.10",
-    "tsx": "4.22.3",
     "typescript": "6.0.3",
     "typescript-eslint": "8.72.2"
   },
