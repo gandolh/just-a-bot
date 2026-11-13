@@ -48,3 +48,13 @@ some paths. The first is the smaller, safer change.
 - `npm run check` and `bash corpus/lint.sh` pass.
 - Owner steps: deploy with `node cli.ts just-a-bot server`, then check the
   container starts and the bot answers once.
+
+## Outcome (2026-11-13)
+
+Built in `1700055`. `tsx` moved to the root `dependencies` at the same pin and the
+`deps` stage runs `npm ci --omit=dev`. On the files that stage copies, with
+`--ignore-scripts`: 277 packages and 197 MB before, 61 packages and 65 MB after (58
+and 53 MB without `tsx`). ESLint, Prettier, knip, dependency-cruiser and TypeScript
+are absent; `tsx` and its `esbuild` binary are present, and every bare import in the
+runtime source resolves. Not deployed: the image build and one bot run are the
+owner's.

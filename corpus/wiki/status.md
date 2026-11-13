@@ -71,9 +71,9 @@ Town sells a spare copy of a worn item (the sell checks were redundant from
 the start, since equipping takes the item out of the bag). 17, done on 2026-11-05
 (docs only, ships with the docs site): the architecture and reminders
 manuals no longer describe the RPG's old grid, mob tick or map renderer. 18,
-done on 2026-11-11, not deployed: the house style and the quality harness. No
-brief is open; one todo is (`image-without-dev-tools`: `tsx` to `dependencies` and
-`npm ci --omit=dev`, since brief 18's tool pins grew the image's `node_modules` from 87 MB to 197 MB).
+done on 2026-11-11, not deployed: the house style and the quality harness. 19,
+done on 2026-11-13, not deployed: `tsx` is a dependency and the image runs
+`npm ci --omit=dev` (`node_modules` 197 MB to 65 MB). No brief is open.
 
 ## Next (owner)
 
@@ -105,9 +105,8 @@ brief is open; one todo is (`image-without-dev-tools`: `tsx` to `dependencies` a
   with a second in the bag, sell the spare in 🏪 Town at the Plaza, and the
   first stays worn.
 - **Brief 18**: `git config blame.ignoreRevsFile .git-blame-ignore-revs`
-  once in the checkout, and deploy with the rest. Its new devDependencies
-  enter the image (the image installs them for `tsx`): `node_modules` from
-  the image's `npm ci` grew from 87 MB to 197 MB.
+  once in the checkout, and deploy with the rest. Brief 19 keeps its
+  devDependencies out of the image (`npm ci --omit=dev`).
 - **Rotate the Activity secrets**: `DISCORD_CLIENT_SECRET`,
   `SESSION_HMAC_KEY` and `ENGINE_AUTH_TOKEN` from the 2026-08 experiment, or
   delete that app in the developer portal. Deleting the local `.env` did not

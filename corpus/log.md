@@ -1350,3 +1350,13 @@ exception in `scripts/conventions.json` until the checker reads the reader's nam
 
 `image-without-dev-tools`: `tsx` to `dependencies` and `npm ci --omit=dev` in the image, which
 brief 18's tool pins grew from 87 MB to 197 MB of `node_modules`.
+
+## [2026-11-13] done | Brief 19: the image installs production dependencies only
+
+`tsx` moved to the root `dependencies` at the same pin, and the Dockerfile's `deps` stage runs
+`npm ci --omit=dev`. On the files that stage copies, with `--ignore-scripts`: 277 packages and
+197 MB before, 61 packages and 65 MB after (58 and 53 MB if `tsx` were left out). ESLint, Prettier,
+knip, dependency-cruiser and TypeScript are gone from it; every bare import in the runtime source
+resolves in that tree. Type stripping was the other option and lost: it needs `erasableSyntaxOnly`
+and skips files under `node_modules`. The todo `image-without-dev-tools` is gone. Not deployed;
+the image build and one bot run are the owner's.
