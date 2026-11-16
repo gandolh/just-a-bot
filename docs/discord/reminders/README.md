@@ -29,12 +29,12 @@ Two small commands — `/remindme` and `/birthday` — backed by a shared once-p
 ### Reminder flow
 
 1. `/remindme set` parses `when` via `parseDuration` (relative: `30m`/`2h`/`3d`) or `parseAbsolute` (absolute: `YYYY-MM-DD HH:mm` and `tomorrow [time]`).
-2. A `Reminder` record (id, userId, guildId, channelId, dueAt, text, createdAt) is appended to `data/reminders.json`.
+2. A `Reminder` record (id, userId, guildId, channelId, dueAt, text, createdAt) is appended to `bots/data/reminders.json`.
 3. The tick loop (see below) checks every minute. When a reminder is due, the bot sends `<@userId> reminder: <text>` to the original channel and removes the record.
 
 ### Birthday flow
 
-1. `/birthday set` upserts a `Birthday` record (userId, guildId, channelId, month, day, lastFiredYear=null) in `data/birthdays.json`.
+1. `/birthday set` upserts a `Birthday` record (userId, guildId, channelId, month, day, lastFiredYear=null) in `bots/data/birthdays.json`.
 2. The tick loop checks every minute (UTC). When the current month+day matches a birthday AND `lastFiredYear !== currentYear`, the bot posts `🎂 Happy birthday <@userId>!` in the saved channel and sets `lastFiredYear = currentYear`.
 
 ### Shared tick loop
@@ -53,8 +53,8 @@ Date-based fires require a heartbeat: nothing a member does can stand in for the
 | Time parsing helpers | [`bots/discord/src/reminders/parse.ts`](../../../bots/discord/src/reminders/parse.ts) |
 | `/remindme` slash command | [`bots/discord/src/commands/remindme.ts`](../../../bots/discord/src/commands/remindme.ts) |
 | `/birthday` slash command | [`bots/discord/src/commands/birthday.ts`](../../../bots/discord/src/commands/birthday.ts) |
-| Reminder state file | `bots/discord/data/reminders.json` (gitignored) |
-| Birthday state file | `bots/discord/data/birthdays.json` (gitignored) |
+| Reminder state file | `bots/data/reminders.json` (gitignored) |
+| Birthday state file | `bots/data/birthdays.json` (gitignored) |
 
 ## Design notes
 

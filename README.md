@@ -6,7 +6,7 @@ A personal Discord bot for one server: play-money casino games, party games in t
   <img src="docs/images/command-flow.svg" width="100%" alt="Diagram of a slash command's path. A member types /slots bet:50. Discord sends the interaction to the router in index.ts, which calls commands/slots.ts. That uses the game rules in gambling/, which keep balances in JSON files under data/. The command replies to Discord with a message, often with buttons. Below, the other ways in: button presses picked by customId prefix, Wordle and Hangman guesses read from thread messages, timers for reminders, birthdays and the RPG crier, and the Jukebox taking commands from atrium.">
 </p>
 
-**Status:** Hobby project. It runs as a container on the owner's server, last deployed on 2026-10-07 with its state started fresh. The Jukebox is built but not yet deployed or heard in Discord. Its slash commands are registered to a single server, and there is no public invite.
+**Status:** Hobby project, running as a container on the owner's server. The last deploy was on 2026-10-07, with its state started fresh. Work merged since then is not deployed yet. That includes the Jukebox, which has not been heard in Discord, and `/ask` going through Wicket. The slash commands are registered to a single server, and there is no public invite.
 
 ## What it does
 
@@ -14,7 +14,7 @@ A personal Discord bot for one server: play-money casino games, party games in t
 - Runs party games: Wordle and Hangman in their own threads, trivia from the Open Trivia Database, tic-tac-toe, Connect Four, and Mafia with night actions sent by DM.
 - Keeps one RPG world per server that everyone shares. Members explore, fight, loot, trade and level up, and a town crier announces what happened.
 - Remembers things for the server: quotes saved by link or right-click, reminders, birthdays, everyone's time zone, and an anonymous confession channel.
-- Answers questions through an Ollama-hosted model, draws meme and announcement cards, and plays music from atrium, the owner's media app, in a voice channel.
+- Answers `/ask` questions with an LLM, draws meme and announcement cards, and plays music from atrium, the owner's media app, in a voice channel.
 
 The gambling coins are play money and buy nothing outside the games. The bot keeps its state in plain JSON files rather than a database, so a server's RPG world is one file that a person or an LLM can read. It does no moderation.
 
@@ -81,20 +81,22 @@ Net: **+54** • Balance: **1,054**
 
 One Node process runs the TypeScript directly with tsx; there is no build step. [`bots/discord/src/index.ts`](bots/discord/src/index.ts) has a single interaction handler. A slash command goes to its file in `commands/`, a button press goes to the feature that owns its `customId` prefix, such as `bj:` or `rpg:`, and a message in a Wordle or Hangman thread counts as a guess. Commands are thin and call a feature folder such as `gambling/`, `rpg/` or `mafia/`. Two timers run beside the handler: reminders and birthdays every 60 seconds, the RPG town crier every 20.
 
-State is gitignored JSON under `bots/data/` and `bots/discord/data/`, read through an in-memory cache, with writes queued one at a time. The Jukebox is the only part that talks to another app. It signs in to atrium with its own local atrium user and long-polls atrium for what to play. More in [docs/discord/architecture.md](docs/discord/architecture.md) and the [wiki's architecture page](corpus/wiki/architecture.md).
+State is gitignored JSON under `bots/data/` and `bots/discord/data/`, read through an in-memory cache, with writes queued one at a time and renamed into place, so a crash never leaves half a file. Two features talk to the owner's other apps. `/ask` posts each question to Wicket, the owner's queue for LLM calls, and long-polls it, showing the question's place in the queue until the answer comes. The Jukebox signs in to atrium with its own local atrium user and long-polls atrium for what to play. More in [docs/discord/architecture.md](docs/discord/architecture.md) and the [wiki's architecture page](corpus/wiki/architecture.md).
 
 ## Run it locally
 
 Requires Node 22.12 or later, and a Discord application of your own: its bot token, its application id, and the id of a test server you have added it to.
 
 ```bash
-npm install
+npm ci
 npm run test:clean          # unit tests, in a copy without .env; they never connect to Discord
 npm run discord:register    # push the slash commands to your test server
 npm run discord:dev         # run the bot, reloading on save
 ```
 
 Before the last two, put `DISCORD_TOKEN`, `CLIENT_ID` and `GUILD_ID` in `bots/discord/.env`. [`bots/discord/.env.example`](bots/discord/.env.example) lists every variable. Use a test application, never the live bot's token. Discord sends each interaction to every running copy, so both copies answer and one fails with error 40060. The deploy copies `bots/discord/.env` to the server as it is, so on a machine that deploys, that file holds production's values.
+
+Never run `npm test` in the checkout. Two tests import `env.ts`, which reads `bots/discord/.env`; `test:clean` runs the same suites in a copy without it. `npm run check` is the whole gate: typecheck, lint, format check, conventions, then `test:clean`.
 
 Full setup, the optional `/ask` and Jukebox variables, and where state is kept are in [docs/common/setup.md](docs/common/setup.md) and [docs/discord/setup.md](docs/discord/setup.md).
 
@@ -108,11 +110,13 @@ Full setup, the optional `/ask` and Jukebox variables, and where state is kept a
 | `docs-site/` | The Docusaurus site that renders `docs/` and `corpus/` |
 | `corpus/` | The project wiki: decisions, status, and the briefs behind each change |
 | `infrastructure/` | Dockerfile and compose file for the production container |
+| `scripts/` | The scripts behind `test:clean` and `check:fast` |
+| `vendor/house-style/` | The owner's shared ESLint, Prettier, TypeScript and conventions config. A generated copy: refresh it with `npm run house-style:sync`, never by hand |
 
 ## Docs
 
 - [docs/](docs/README.md): setup, architecture, a guide per feature, and the images used here
-- Docs site: `/just-a-bot/docs/`, the same guides plus the wiki, built from `docs-site/`
+- Docs site: the same guides plus the wiki, built from `docs-site/` with `npm run docs -w @bots/docs-site`. It is set up for `/just-a-bot/docs/` on the owner's server but not deployed yet
 - Project wiki: [corpus/](corpus/index.md) for decisions, status and the work log
 
 ## License

@@ -105,7 +105,7 @@ Formula: `mafia = max(1, floor(n / 4))`, `doctor = n >= 6 ? 1 : 0`, rest are tow
 - **DM intents**: `GatewayIntentBits.DirectMessages` and `Partials.Channel` are required in the Discord client to receive DM interactions. These were added to `bots/discord/src/index.ts`.
 - **Button prefix `maf:`**: all mafia buttons use `maf:<action>:<guildId>[:<targetId>]` and are dispatched in the global `InteractionCreate` handler.
 - **One game per guild**: the store holds a single nullable record per `guildId`. Starting while a game exists (non-finished phase) is rejected.
-- **Phase timers via `setTimeout`**: the day timer is 5 minutes; the night timer is 2 minutes. These live in memory only — a bot restart loses active deadlines. This is a known v1 limitation; a v2 recovery sweep could rehydrate timers from the JSON files on boot.
+- **Phase timers via `setTimeout`**: the lobby lasts 60 seconds, the day 5 minutes and the night 2 minutes. The timers live in memory, but each deadline is saved in the guild's JSON file, and `rearmMafiaTimers` re-arms them when the bot starts. A deadline that passed while the bot was down resolves at once.
 - **Thread creation**: uses `ChannelType.PublicThread` on a `TextChannel`. The bot needs the Manage Threads permission in the target channel.
 - **Dead players**: remain visible in the thread (no per-user thread permission control in Discord v1). The game relies on the honor system; a dead-player role assignment is a v2 nicety.
 - **Role roster v1**: Mafia, Town, Doctor only. Detective, Vigilante, Jester, and others are deferred to v2.

@@ -18,13 +18,15 @@ npm workspaces:
 - [`shared/`](../../shared) — `@bots/shared`: logger, env loader, reminder
   parse/store. Deliberately runtime-agnostic — no `discord.js` imports.
 - [`bots/discord/`](../../bots/discord) — the bot (discord.js v14).
+- [`docs-site/`](../../docs-site) — `@bots/docs-site`: the Docusaurus site that
+  renders `docs/` and `corpus/`. It is not part of the bot's image.
 
 This was a multi-bot monorepo until 2026-08-27, when the Slack, WhatsApp and
 dice-activity workspaces were removed, followed by the `/dicetable` feature and
 the old music subsystem — see
-[corpus/wiki/decisions.md](../../corpus/wiki/decisions.md). The two-workspace
-split is kept because `shared/` still holds code with no Discord dependency at
-all, which the package boundary enforces mechanically.
+[corpus/wiki/decisions.md](../../corpus/wiki/decisions.md). The split between
+`shared/` and `bots/discord/` is kept because `shared/` still holds code with no
+Discord dependency at all, which the package boundary enforces mechanically.
 
 ## Runtime
 
@@ -63,10 +65,14 @@ revisit note in [corpus/wiki/decisions.md](../../corpus/wiki/decisions.md).
 
 All persisted state is JSON on local disk, gitignored: `bots/data/` for birthdays and
 reminders, and `bots/discord/data/` for everything else (wallets, timezones, RPG
-worlds, quotes, confessions, Mafia, the Jukebox session).
+worlds, quotes, confessions, Mafia). The Jukebox keeps nothing there: its atrium
+session lives in memory and its song buffer in the OS temp folder.
 In-memory cache plus a serialized write chain (per-key for per-guild/team
-files, single chain for single-file stores like wallets). No SQLite — files have to
-be human- and LLM-readable.
+files, single chain for single-file stores like wallets). Every write goes
+through `writeJsonFile` in [`shared/src/json-file.ts`](../../shared/src/json-file.ts):
+the snapshot lands in a temp file, is fsynced and renamed over the target, so a
+killed process leaves the old file or the new one, never half of one. No SQLite —
+files have to be human- and LLM-readable.
 
 Scoping is per `guild_id`. Per-feature docs spell out which file layout each
 feature uses.
@@ -77,7 +83,7 @@ feature uses.
   needs to be ingestible by an LLM in one read, and most volumes are trivial.
 - **No build step.** Direct-tsx in production trades a few seconds of startup
   for one less moving part. `tsx` is a root dependency, so `npm ci
-  --omit=dev` (what the image runs) still has it. (Nothing in the repo builds any more: the one
-  workspace that did was removed on 2026-08-27.)
+  --omit=dev` (what the image runs) still has it. The bot has nothing to build;
+  the only build in the repo is the docs site's `docusaurus build`.
 - **Commands vs game logic split.** Keeps platform-specific code (embeds,
   blocks, options, replies) from bleeding into the data model.
