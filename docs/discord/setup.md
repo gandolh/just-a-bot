@@ -18,6 +18,17 @@ GUILD_ID=...        # the guild slash commands are registered to
 not numeric where it should be. `WICKET_URL` and `WICKET_TOKEN` (for `/ask`, see
 [ask](ask/README.md#config)) are optional.
 
+## Gateway intents
+
+The client asks for `Guilds`, `GuildMessages`, `MessageContent`,
+`DirectMessages` and `GuildVoiceStates` (in
+[`index.ts`](../../bots/discord/src/index.ts)). `MessageContent` is a
+privileged intent: turn on **Message Content Intent** on the application's Bot
+page in the Discord Developer Portal, or the gateway refuses the login. Wordle
+and Hangman need it to read guesses from their threads. Mafia's night actions
+arrive by DM, which needs `DirectMessages` and the `Channel` partial; the
+Jukebox needs `GuildVoiceStates`.
+
 ### The Jukebox (optional)
 
 Three more variables connect the bot to atrium's music. Set all three or none:
@@ -33,6 +44,9 @@ JUKEBOX_ATRIUM_PASSWORD=...                        # its password, only in .env
 The user is a local atrium account (not a Ward one) with the role `jukebox`,
 which limits it to the Jukebox. Atrium's owner seeds it. A local dev bot gets
 its own user (`discord-bot-dev`), so the two never share a session.
+
+The Jukebox converts each song with the `ffmpeg` binary, so a local run needs
+`ffmpeg` on the `PATH`. The production image installs it.
 
 **The deploy pushes `bots/discord/.env` to the server as it is**, so that file
 holds the production values. For a local run against the local
@@ -98,12 +112,10 @@ package.json has.
 
 ## Data directories
 
-Runtime state lives under `bots/discord/data/` and is gitignored.
-
-| Path | What |
-| --- | --- |
-| `bots/discord/data/wallets.json` | Per-user gambling balances |
-| `bots/discord/data/rpg/<guild-id>.json` | One RPG world per Discord guild |
+Runtime state lives under `bots/discord/data/`, except reminders and birthdays,
+which live under `bots/data/`. Both are gitignored, and in production each is a
+bind mount (`infrastructure/docker-compose.yml`). The full list of files is in
+[architecture.md](architecture.md#data-paths).
 
 Wiping a file resets that feature's state. RPG worlds can be hand-edited or
 piped to an LLM directly; the data model is described in

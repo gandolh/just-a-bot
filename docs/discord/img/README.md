@@ -7,8 +7,8 @@ produce image attachments without going through a `/img` slash command.
 ## Goal
 
 Ship a two-subcommand surface (`/img meme`, `/img card`) backed by an
-internal rendering API that leaderboard and quote-book features can call
-once those land.
+internal rendering API that other features can call (see
+[Cross-feature hooks](#cross-feature-hooks)).
 
 ## Command surface
 
@@ -42,7 +42,8 @@ no JS). Sufficient for cards and memes.
 
 The project runs TypeScript directly via `tsx` with no JSX transform
 configured. Templates are plain `{ type, props }` objects. See
-`docs/architecture.md` for the no-build-step rationale.
+[the repo architecture](../../common/architecture.md#runtime) for the
+no-build-step rationale.
 
 ### Rendering pipeline
 
@@ -52,10 +53,16 @@ memeTemplate(props) → plain object tree
 renderToPng(tree, { width, height })
   ↓  satori → SVG string
   ↓  Resvg  → PNG buffer
-pngAttachment(buf, 'meme.png')
-  ↓
-interaction.editReply({ files: [attachment] })
+editReplyWithImage(interaction, buf, 'meme.png')
+  ↓  PATCH the deferred reply with global fetch, one retry
 ```
+
+The upload skips discord.js: `@discordjs/rest` 2.6.1 hangs on multipart file
+uploads under Node 24, so `img/upload.ts` sends the same edit that
+`interaction.editReply({ files })` would, as a plain multipart `PATCH` to the
+interaction webhook, authorized by the interaction token. If the render or
+both upload attempts fail, the reply is edited to an apology instead of
+staying on "thinking…".
 
 ## Source layout
 
@@ -64,7 +71,7 @@ interaction.editReply({ files: [attachment] })
 | PNG renderer | [`bots/discord/src/img/render.ts`](../../../bots/discord/src/img/render.ts) |
 | Font loading | [`bots/discord/src/img/fonts.ts`](../../../bots/discord/src/img/fonts.ts) |
 | Bundled fonts | [`bots/discord/src/img/fonts/`](../../../bots/discord/src/img/fonts/) |
-| Discord attachment helper | [`bots/discord/src/img/attach.ts`](../../../bots/discord/src/img/attach.ts) |
+| Upload to the deferred reply | [`bots/discord/src/img/upload.ts`](../../../bots/discord/src/img/upload.ts) |
 | Meme template | [`bots/discord/src/img/templates/meme.ts`](../../../bots/discord/src/img/templates/meme.ts) |
 | Card template | [`bots/discord/src/img/templates/card.ts`](../../../bots/discord/src/img/templates/card.ts) |
 | Shared style constants | [`bots/discord/src/img/templates/_styles.ts`](../../../bots/discord/src/img/templates/_styles.ts) |
@@ -76,10 +83,11 @@ Other features call this to produce PNG attachments:
 
 ```ts
 import { renderToPng } from '../img/render.ts';
-import { pngAttachment } from '../img/attach.ts';
+import { editReplyWithImage } from '../img/upload.ts';
 
+await interaction.deferReply();
 const buf = await renderToPng(myTemplate(props), { width: 600, height: 340 });
-await interaction.editReply({ files: [pngAttachment(buf, 'output.png')] });
+await editReplyWithImage(interaction, buf, 'output.png');
 ```
 
 `renderToPng` accepts any plain `{ type, props }` object tree that Satori
@@ -94,7 +102,7 @@ every render call.
 | --- | --- | --- | --- |
 | `Inter-Regular.ttf` | Inter | 400 | SIL Open Font License 1.1 |
 | `Inter-Bold.ttf` | Inter | 700 | SIL Open Font License 1.1 |
-| `Anton-Regular.woff` | Anton | 400 | SIL Open Font License 1.1 |
+| `Anton-Regular.ttf` | Anton | 400 | SIL Open Font License 1.1 |
 
 **Inter** is used for body text and card headings.
 **Anton** is an Impact-style condensed display font used for meme captions.

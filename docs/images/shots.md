@@ -9,6 +9,8 @@ How each image and sample in the main README was made, so the next refresh is a 
 
 The `/slots` reply in the README is text, made the same way.
 
+All three were checked against the code on 2026-11-16 and still match it: the routing and the two timers in `index.ts` are as drawn, and since 2026-10-09 the card template, `/coins` and `/slots` have changed only in formatting.
+
 ## Running a handler outside Discord
 
 Never import the command registry from the repo itself for this. `env.ts` loads `bots/discord/.env`, and on a machine that deploys, that file holds production's token. Work on a copy instead:

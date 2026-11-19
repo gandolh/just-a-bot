@@ -16,10 +16,10 @@ OpenTDB's category IDs (hard-coded at startup to avoid a network call on boot).
 
 ## How it works
 
-1. `/trivia start` defers the reply while fetching from OpenTDB.
+1. `/trivia` defers the reply while fetching from OpenTDB.
 2. The bot GETs `https://opentdb.com/api.php?amount=1&type=multiple&…`. On any
-   network error or non-zero `response_code`, it silently falls back to a bundled
-   set of ~50 hand-written questions.
+   network error, no answer within 5 seconds, or a non-zero `response_code`, it
+   silently falls back to a bundled set of 50 hand-written questions.
 3. HTML entities in the question and answers are decoded with a small helper
    (no extra dependencies).
 4. The four answers (correct + 3 incorrect) are shuffled; `correctIdx` records
@@ -41,7 +41,7 @@ All state is in-memory. No disk persistence in v1.
 | ------- | -------- |
 | Session type + store | [`bots/discord/src/trivia/session.ts`](../../../bots/discord/src/trivia/session.ts) |
 | OpenTDB fetch + fallback dispatch | [`bots/discord/src/trivia/api.ts`](../../../bots/discord/src/trivia/api.ts) |
-| Bundled fallback questions (~50) | [`bots/discord/src/trivia/fallback.ts`](../../../bots/discord/src/trivia/fallback.ts) |
+| Bundled fallback questions (50) | [`bots/discord/src/trivia/fallback.ts`](../../../bots/discord/src/trivia/fallback.ts) |
 | HTML entity decoder | [`bots/discord/src/trivia/decode.ts`](../../../bots/discord/src/trivia/decode.ts) |
 | Embed + button builders | [`bots/discord/src/trivia/render.ts`](../../../bots/discord/src/trivia/render.ts) |
 | Slash command + button handler | [`bots/discord/src/commands/trivia.ts`](../../../bots/discord/src/commands/trivia.ts) |

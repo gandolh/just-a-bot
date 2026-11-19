@@ -5,7 +5,7 @@ steady drip of smaller features.
 
 - [Architecture](architecture.md) — interaction routing, button prefixes,
   Discord-specific data paths.
-- [Setup](setup.md) — registering slash commands, running the bot, data dirs.
+- [Setup](setup.md) — env vars, gateway intents, registering slash commands, running the bot, data dirs.
 
 ## Feature index
 
@@ -23,5 +23,5 @@ steady drip of smaller features.
 - [Connect Four](connect-four/README.md) — `/c4` against the bot, `/c42 opponent` against another member; button-driven 7×6 Connect Four
 - [Wordle](wordle/README.md) — `/wordle` guess a five-letter word in six tries, in a thread
 - [Tic-tac-toe](tictactoe/README.md) — `/tictactoe [opponent]` against the bot or another member, with buttons
-- [Ask](ask/README.md) — `/ask` Ollama Cloud–backed Q&A command
+- [Ask](ask/README.md) — `/ask` sends a question to an LLM through Wicket, the estate's LLM queue
 - [Jukebox](jukebox/README.md) — `/jukebox` plays atrium's music library in a voice channel; atrium's page is the other remote

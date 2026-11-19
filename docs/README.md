@@ -12,11 +12,11 @@ If you are an agent orienting in this repo, start at [corpus/index.md](../corpus
 
 | File | What it covers |
 |---|---|
-| [common/setup.md](common/setup.md) | Install, typecheck, tests, the repo layout, how env vars are loaded |
-| [common/architecture.md](common/architecture.md) | The workspaces, the no-build runtime, the source layout, JSON persistence |
+| [common/setup.md](common/setup.md) | Install, the checks (`npm run check` and its parts), tests, the repo layout, how env vars are loaded |
+| [common/architecture.md](common/architecture.md) | The three workspaces, the no-build runtime, the source layout, JSON persistence |
 | [discord/README.md](discord/README.md) | The bot's feature index |
 | [discord/setup.md](discord/setup.md) | Token and env vars, the Jukebox's variables, registering commands, running, the data files |
-| [discord/architecture.md](discord/architecture.md) | Interaction routing, button prefixes, data paths |
+| [discord/architecture.md](discord/architecture.md) | Interaction routing, button prefixes, where each feature keeps its state |
 | [images/](images/shots.md) | The images used in the main README, and how each was made |
 
 One guide per feature, under `discord/`:
@@ -44,5 +44,5 @@ The split mirrors the source tree. Anything Discord-specific lives under `discor
 
 ## Going deeper
 
-- Docs site: `/just-a-bot/docs/` renders these pages under "Manual" and the corpus wiki beside them. It is built from [`docs-site/`](../docs-site/) with `npm run docs -w @bots/docs-site`.
+- Docs site: renders these pages under "Manual" and the corpus wiki beside them. It is built from [`docs-site/`](../docs-site/) with `npm run docs -w @bots/docs-site` into `docs-site/dist/`, and is set up for `/just-a-bot/docs/` on the owner's server but not deployed yet.
 - Project wiki: [corpus/index.md](../corpus/index.md), with decisions, status, the glossary and the work log.
