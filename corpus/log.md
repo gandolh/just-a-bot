@@ -1360,3 +1360,15 @@ knip, dependency-cruiser and TypeScript are gone from it; every bare import in t
 resolves in that tree. Type stripping was the other option and lost: it needs `erasableSyntaxOnly`
 and skips files under `node_modules`. The todo `image-without-dev-tools` is gone. Not deployed;
 the image build and one bot run are the owner's.
+
+## [2026-11-23] research | Romanian law from lexifina/romania-law, and brief 20
+
+The owner asked whether lexifina/romania-law helps any project and whether it could feed a chatbot with RAG
+knowledge of Romanian law. Read at `2d4c02b` through a blob-less partial clone (the repo is about 6.5 GB). One
+Markdown file per article, every version dated, official texts free of copyright and Lexifina's arrangement CC0;
+but upstream stopped publishing on 2026-11-08 and marks the acts it holds `stale`. The Constitution and the 11
+codes in force are 7,710 articles, 7.8 MB. [Brief 20](briefs/todo/20-a-romanian-law-index-and-a-recall-check.md)
+builds that subset into a JSON file and checks BM25 recall on 20 everyday questions, gated on the owner's yes;
+"measured, not built" is a valid end. Two wrong law citations found on the way went to comercial-website
+(brief 28) and scoala-ramna's theme (brief 165); a Wicket todo checks what Ollama Cloud does with `format`. See
+[the research page](wiki/research-romania-law.md).
