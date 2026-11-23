@@ -18,7 +18,7 @@ version dated and credited to the act that made it. But the last data publish wa
 was not answering upstream's pipeline then, and every act checked for this page is marked `stale` by upstream's own
 freshness file. For the estate it is most useful today as a reference: checking our pages against it turned up wrong
 law references on two of them (Mercatus brief 28, scoala-ramna brief 165). A law chatbot is feasible at a small size on the box, and
-the cheap first step is a recall check in this bot ([brief 20](../briefs/todo/20-a-romanian-law-index-and-a-recall-check.md)).
+the cheap first step is a recall check in this bot ([brief 20](../briefs/blocked/20-a-romanian-law-index-and-a-recall-check.md)).
 
 ## What is in it
 

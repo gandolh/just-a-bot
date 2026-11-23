@@ -1,5 +1,13 @@
 # Task 20: A Romanian law index and a recall check
 
+**Blocked by:** the owner's final refinement of the law Q&A app.
+
+**Settled with the owner on 2026-11-23:** the law Q&A becomes a public web app of its own (not a just-a-bot
+command); searching and AI answers both sit behind Ward sign-in. Everything else waits for the refinement, held when
+the owner starts it: which acts to index, what to do if romania-law stays frozen, the app's name, a per-account
+daily cap and whether Wicket needs a cap per app, and whether this measurement runs here or in the new app's repo
+(likely the latter). The proposal is [law-qa-app-proposal.md](../../wiki/law-qa-app-proposal.md).
+
 From the romania-law research of 2026-11-23 ([research-romania-law.md](../../wiki/research-romania-law.md)).
 A measure-first brief: "measured, not built" is a valid end.
 

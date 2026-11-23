@@ -1367,8 +1367,15 @@ The owner asked whether lexifina/romania-law helps any project and whether it co
 knowledge of Romanian law. Read at `2d4c02b` through a blob-less partial clone (the repo is about 6.5 GB). One
 Markdown file per article, every version dated, official texts free of copyright and Lexifina's arrangement CC0;
 but upstream stopped publishing on 2026-11-08 and marks the acts it holds `stale`. The Constitution and the 11
-codes in force are 7,710 articles, 7.8 MB. [Brief 20](briefs/todo/20-a-romanian-law-index-and-a-recall-check.md)
+codes in force are 7,710 articles, 7.8 MB. [Brief 20](briefs/blocked/20-a-romanian-law-index-and-a-recall-check.md)
 builds that subset into a JSON file and checks BM25 recall on 20 everyday questions, gated on the owner's yes;
 "measured, not built" is a valid end. Two wrong law citations found on the way went to comercial-website
 (brief 28) and scoala-ramna's theme (brief 165); a Wicket todo checks what Ollama Cloud does with `format`. See
 [the research page](wiki/research-romania-law.md).
+
+## [2026-11-23] parked | The law Q&A: its own public app, blocked by the owner's refinement
+
+Grilled on the romania-law research: the owner wants the law Q&A as a public web app of its own, with searching and
+AI answers both behind Ward sign-in, and parked it until a final refinement held when the work starts. Brief 20 moved
+to [briefs/blocked/](briefs/blocked/20-a-romanian-law-index-and-a-recall-check.md); the proposal is now
+[law-qa-app-proposal.md](wiki/law-qa-app-proposal.md).
