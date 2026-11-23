@@ -124,7 +124,7 @@ GitHub shows `NOASSERTION` because `LICENSE` is custom text, not a standard lice
 | scoala-ramna (theme) | Informații publice labels Legea 198/2023 "Legea educației naționale", the name of the repealed Legea 1/2011, and offers as-published PDFs of laws amended since: 198/2023 from 2023-07-05 (record: 15 versions), 153/2017 from 2017-06-28 (26 versions) | Brief 165 |
 | almanac | Codul muncii art. 139 names the public holidays and its history. It gives names, not dates: Easter and Rusalii need a computed Orthodox date | None now; "No import; events are typed in" is locked |
 | ro-housing | A buyer's tool for flats for sale, not rentals. Codul civil on sale, Legea 7/1996 (land book) and Legea 196/2018 (owners' associations) are reading, not features | None |
-| gazette | Prints no law citations. Advertising disclosure rules (Legea 148/2000) apply to the posts, not to the report | None |
+| gazette | Prints no law citations. Advertising disclosure rules apply to the posts, not to the report | None |
 | wzd_auth (Ward) | Prints no law citations. Legea 190/2018 adds rules on health, biometric and national ID data and workplace monitoring; Ward handles none of them | None |
 
 Each "None" was checked by a grep of the repo's code for law citations; only the two briefs' pages turned any up.
@@ -143,9 +143,10 @@ Excluded on purpose: the 15,227 acts held only as published (their text is likel
 
 **Wicket today.** It sends Ollama's `/api/chat` and nothing else, takes `{ messages, format? }` only, and runs one
 call at a time, per wicket's `api.md` and `providers.md`. There is no embeddings route. Whether Ollama Cloud serves an
-embedding model is unverified: its cloud page lists none (docs.ollama.com/cloud, fetched 2026-11-23). Embedding
+embedding model is unverified, but unlikely: the cloud model list (`ollama.com/api/tags`) held 25 models on
+2026-11-23, none of them an embedding model, and the cloud docs page names none. Embedding
 90,000 chunks one at a time through the same queue as `/ask` would block it for hours, so vectors are not the
-first step. Plain BM25 over the 7.8 MB subset fits in this bot's memory and respects the "JSON files on disk, no
+first step. Plain BM25 over the 7.8 MB subset should fit in this bot's memory (brief 20 measures it) and respects the "JSON files on disk, no
 SQLite" decision in [decisions.md](decisions.md): the index is reference data loaded at start, not state.
 
 **Romanian.** No stemmer ships with the usual search tools for Romanian. Folding diacritics and lower-casing gets
@@ -153,7 +154,8 @@ part of the way; an LLM rewrite of the question into legal words is the next lev
 in Romanian on legal text is unmeasured.
 
 **Updates.** Measured on 2026-11-23: a treeless, depth-1 clone with cone-mode sparse checkout and a sparse index,
-for four acts, costs 105 MB of objects (every tree of 1.9 million paths comes down) and about 74 seconds. Without
+for four acts, costs about 215 MB and 74 seconds: 105 MB of objects (every tree of 1.9 million paths comes down)
+and about 100 MB of root files that cone mode always checks out, mostly the 97 MB `REPRODUCE.md`. Without
 `--sparse-index` the git index alone is 207 MB. So the index is built on the laptop and shipped as a file; the box
 gets no git clone. Between two snapshots, compare `git ls-tree -r` blob ids for the chosen folders and re-index
 only the changed articles. Don't use `git log --since`: acts added late carry their publish time as commit date

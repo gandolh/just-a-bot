@@ -47,12 +47,14 @@ The 12 folders: `constitutie/1991`, `lege/2009/287` (Codul civil), `lege/2010/13
 1. **The checkout**, in `docs/discord/law/README.md`, for the owner or the builder to run outside the repo:
    `git clone --filter=tree:0 --depth 1 --no-checkout https://github.com/lexifina/romania-law.git`, then
    `git sparse-checkout init --cone --sparse-index`, `git sparse-checkout set <the 12 folders>`, and
-   `git checkout main`. Measured on 2026-11-23: about 105 MB and 74 s for four acts. Leave out `--sparse-index`
-   and the git index alone grows to 207 MB. Don't add `data` to the set: it holds 40,560 files of unmeasured
+   `git checkout main`. Measured on 2026-11-23 for four acts: about 215 MB and 74 s, of which 105 MB is
+   git objects (every tree comes down) and about 100 MB the root files cone mode always checks out, mostly the
+   97 MB `REPRODUCE.md`. Leave out `--sparse-index` and the git index alone grows to 207 MB. Delete the checkout
+   after the build if the space matters. Don't add `data` to the set: it holds 40,560 files of unmeasured
    size. Take the one table the builder needs with `git show HEAD:data/acts.json > acts.json` (13.4 MB). Record
    the checkout's `git rev-parse HEAD`.
 2. **The builder**, `law/build.ts`, run as `npm run law:build -w @bots/discord -- <checkout>`. For each folder,
-   read the act's title and portal link from `data/acts.json` and each article's last-changed day from the act's
+   read the act's title and portal link from the `acts.json` taken in step 1 and each article's last-changed day from the act's
    README table. Skip any article whose text is only "Abrogat." Split an article longer than 2,000 characters at
    paragraph lines into parts. Write one gitignored JSON file, `bots/discord/data/law/articles.json`, with the
    upstream SHA, the build date, and one entry per chunk: act id, act title, article label, part, text,
