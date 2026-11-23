@@ -49,6 +49,11 @@ that will be relitigated.
   `npm run check:fast` is the typecheck plus ESLint on the changed files, never
   the tests; the house-style plugin's Stop hook runs it. `npm run format` is
   Prettier (Markdown and `docs-site` stay out).
+- `npm run check` keeps going after a failing step and prints one line per step,
+  then the end of each failure. The whole output stays in
+  `node_modules/.cache/check/last.log`, so read that log rather than running the
+  gate again. While you work, `npm run check:fast` and any test file you touched
+  are enough; run the full gate once, after your last change.
 - **The house style** is vendored in `vendor/house-style/` (generated; refresh
   with `npm run house-style:sync -- <tag>`). `eslint.config.mjs`,
   `prettier.config.mjs` and `.dependency-cruiser.cjs` extend it.
