@@ -75,3 +75,22 @@ caches grows for weeks.
 - `node cli.ts just-a-bot server` from vps-deploy. The image builds on the box.
 - A day later, `docker stats --no-stream just-a-bot` on the box (read only), against 112.3 MiB on 2026-11-24 a
   few hours after a restart. Then play a track in a voice channel: the Jukebox still sees its listeners.
+
+## Outcome (2026-11-24)
+
+Built in `9c02063`. `bots/discord/src/client-cache.ts` holds the policy; `index.ts` spreads it into the `Client`.
+Messages: 25 per channel, swept hourly when older than 30 minutes (an edit renews). Members and users: swept hourly
+unless the bot itself or in a voice channel (users: any guild's voice states hold them). Threads keep the default sweep.
+
+Step 1, every cache read in `bots/discord/src`:
+
+- `speaker.ts:102`, `:243` `guilds.cache`; `:117`, `:129`, `:219` `channels.cache`: guilds and channels are not swept.
+- `speaker.ts:115` `guild.members.me`: the bot's own member, kept.
+- `speaker.ts:221` voice channel `members` then `member.user.bot`: voice members and their users, kept.
+- `jukebox.ts:122-123`, `mafia.ts:239`, `jukebox.ts:132` `interaction.member` and `member.voice`: built from the interaction payload, not the cache.
+- `clock.ts:116`, `top.ts:49`, `quote.ts:122` members, `quote.ts:153`, `mafia.ts:470` messages, `mafia/dm.ts` users, many `channels.fetch`: fetches.
+- Listeners: `ClientReady`, `Error`, `InteractionCreate`, `MessageCreate` (reads the new message only), `VoiceStateUpdate`, channel create/delete/update. None reads an old message or reaction.
+
+Nothing besides the Jukebox reads members or users from the cache, so the exceptions are the bot and voice members.
+Tests (`client-cache.test.ts`): the filters keep the bot and voice members and drop others, the limit is 25, staleness at 30 minutes.
+`npm run check` and `npm run corpus:lint` pass. Not run: a container boot (no Docker build needed by the brief) and the memory reading, which is the owner's.

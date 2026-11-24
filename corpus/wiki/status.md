@@ -1,6 +1,6 @@
 ---
 summary: Dated snapshot (2026-11-11) of just-a-bot, per area — the Discord-only bot, deployed as a container with its state outside the mirror (2026-10-07); the 2026-09-26 audit fixes (2026-10-02); the Jukebox built (2026-10-09, atrium's own login 2026-10-13) but not heard in Discord or deployed; the docs site on Docusaurus (2026-10-19, not deployed); the eleven briefs of the 2026-10-20 sweep built on 2026-11-02, not deployed; briefs 12-17 built on 2026-11-04 and 2026-11-05 (13-17 not deployed); brief 18, the house style and npm run check, built 2026-11-11 (its flaky RPG test fixed the same day); the image's dev tools as a todo; the local .env's WICKET_URL is not a URL; what is left for the owner.
-updated: 2026-11-11
+updated: 2026-11-24
 ---
 
 # Status — 2026-11-11
@@ -42,6 +42,9 @@ in the checkout). Brief numbering restarted at 01 on 2026-11-02 (see
   from the skills library as `vendor/house-style/` 1.1.0; `npm run check` and
   `check:fast`; `.claude/rules/bot.md` for agents
   ([decisions.md](decisions.md), "The house style, formatted and checked").
+- **Bounded caches** (2026-11-24, brief 21, not deployed). 25 messages per channel, hourly sweeps of messages, members
+  and users (the bot and voice members stay), and the image's node pinned to `24.22.1-alpine`
+  ([architecture.md](architecture.md)).
 - **Knowledge layers.** Root `CLAUDE.md` points at the corpus; `docs/` is the
   how and ranks last; the code graph is installed for impact queries only
   ([code-graph.md](code-graph.md)).

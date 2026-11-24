@@ -56,6 +56,7 @@ map; that one is revisited only when a pattern changes.
 ## The Discord bot (`bots/discord/src/`)
 
 - **`index.ts`** — client bootstrap: routes interactions and thread messages to the features, runs the reminder and town-crier ticks, and shuts the gateway down cleanly.
+- **`client-cache.ts`** — the cache policy, passed to the `Client`: 25 messages per channel, and hourly sweeps of messages older than 30 minutes and of members and users, except the bot and anyone in a voice channel (the Jukebox counts listeners from those). Other managers keep discord.js's defaults.
 - **`register.ts`** — registers slash commands with Discord.
 - **`env.ts`** — Zod-validated env loading via `@bots/shared`'s `loadEnv`.
 - **`commands/`** — one thin slash-command handler per feature

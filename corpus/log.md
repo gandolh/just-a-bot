@@ -1387,3 +1387,9 @@ sweep, and hourly sweeps of members and users that keep the bot and anyone in a 
 defaults cap messages at 200 per channel and never sweep members or users, so the bot (112.3 MiB on the box on
 2026-11-24) grows until the next deploy. The image's node base is pinned to `node:24.22.1-alpine` in the same
 brief. Ships with `node cli.ts just-a-bot server`; the memory reading a day later is the owner's.
+
+## [2026-11-24] brief | Brief 21 built: the Discord caches are bounded
+
+`client-cache.ts` gives the `Client` 25 messages per channel and hourly sweeps of stale messages, members and users,
+keeping the bot and anyone in a voice channel. Both `FROM` lines are `node:24.22.1-alpine`. Built in `9c02063`; ready for
+deploy with `node cli.ts just-a-bot server`.
