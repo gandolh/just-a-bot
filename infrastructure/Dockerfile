@@ -11,7 +11,7 @@
 # @resvg/resvg-js (satori's renderer, for the bot's generated images) is a
 # native module; it ships prebuilds, and the toolchain is the fallback.
 
-FROM node:24-alpine AS deps
+FROM node:24.22.1-alpine AS deps
 RUN apk add --no-cache python3 make g++
 WORKDIR /app
 COPY package.json package-lock.json ./
@@ -19,7 +19,7 @@ COPY shared/package.json ./shared/
 COPY bots/discord/package.json ./bots/discord/
 RUN npm ci --omit=dev
 
-FROM node:24-alpine AS prod
+FROM node:24.22.1-alpine AS prod
 LABEL org.opencontainers.image.title="just-a-bot"
 # The Jukebox converts each MP3 from atrium to Ogg Opus with the
 # ffmpeg binary. Nothing else in the bot needs it.

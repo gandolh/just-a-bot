@@ -20,6 +20,7 @@ import { handleConnectFourButton } from "./commands/connect-four.ts";
 import { rearmMafiaTimers } from "./mafia/phases.ts";
 import { startJukeboxLink, type JukeboxLink } from "./jukebox/link.ts";
 import { drainStores } from "./drain.ts";
+import { clientCacheOptions } from "./client-cache.ts";
 import { discordHost } from "./jukebox/speaker.ts";
 
 const log = logger.scoped("discord");
@@ -41,6 +42,8 @@ const client = new Client({
     GatewayIntentBits.GuildVoiceStates,
   ],
   partials: [Partials.Channel],
+  // Bounded caches: see client-cache.ts.
+  ...clientCacheOptions,
   // The default for every send that doesn't pass its own. Users only: reminder
   // text, `/ask` prompts and RPG character names are user-supplied and posted as
   // plain content, and without this any member could make the bot ping
