@@ -1379,3 +1379,11 @@ Grilled on the romania-law research: the owner wants the law Q&A as a public web
 AI answers both behind Ward sign-in, and parked it until a final refinement held when the work starts. Brief 20 moved
 to [briefs/blocked/](briefs/blocked/20-a-romanian-law-index-and-a-recall-check.md); the proposal is now
 [law-qa-app-proposal.md](wiki/law-qa-app-proposal.md).
+
+## [2026-11-24] todo | Brief 21 from the infra review of 2026-11-24
+
+Filed from the estate's infra review. The `Client` gets bounded caches: 25 messages per channel with a 30-minute
+sweep, and hourly sweeps of members and users that keep the bot and anyone in a voice channel. discord.js's
+defaults cap messages at 200 per channel and never sweep members or users, so the bot (112.3 MiB on the box on
+2026-11-24) grows until the next deploy. The image's node base is pinned to `node:24.22.1-alpine` in the same
+brief. Ships with `node cli.ts just-a-bot server`; the memory reading a day later is the owner's.
